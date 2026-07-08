@@ -233,6 +233,57 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addDomainsHintText => 'domain.com';
 
   @override
+  String get myDevices => 'My devices';
+
+  @override
+  String get otherDevices => 'Other devices';
+
+  @override
+  String get deviceName => 'Device name';
+
+  @override
+  String get deviceType => 'Device type';
+
+  @override
+  String get deviceStatus => 'Device status';
+
+  @override
+  String get connected => 'Connected';
+
+  @override
+  String get notConnected => 'Not connected';
+
+  @override
+  String get disconnect => 'Disconnect';
+
+  @override
+  String get forgetDevice => 'Forget Device';
+
+  @override
+  String get connectionRequest => 'Connection request';
+
+  @override
+  String get enterCodeToConnect => 'Enter code to connect to';
+
+  @override
+  String get connectionCode => 'Connection code';
+
+  @override
+  String get mobileType => 'Mobile';
+
+  @override
+  String get speakerType => 'Speaker';
+
+  @override
+  String get otherType => 'Other';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get pair => 'Pair';
+
+  @override
   String get autoTime => 'Auto time';
 
   @override

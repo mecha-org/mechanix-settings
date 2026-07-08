@@ -538,6 +538,108 @@ abstract class AppLocalizations {
   /// **'domain.com'**
   String get addDomainsHintText;
 
+  /// No description provided for @myDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'My devices'**
+  String get myDevices;
+
+  /// No description provided for @otherDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Other devices'**
+  String get otherDevices;
+
+  /// No description provided for @deviceName.
+  ///
+  /// In en, this message translates to:
+  /// **'Device name'**
+  String get deviceName;
+
+  /// No description provided for @deviceType.
+  ///
+  /// In en, this message translates to:
+  /// **'Device type'**
+  String get deviceType;
+
+  /// No description provided for @deviceStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Device status'**
+  String get deviceStatus;
+
+  /// No description provided for @connected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected'**
+  String get connected;
+
+  /// No description provided for @notConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Not connected'**
+  String get notConnected;
+
+  /// No description provided for @disconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect'**
+  String get disconnect;
+
+  /// No description provided for @forgetDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Forget Device'**
+  String get forgetDevice;
+
+  /// No description provided for @connectionRequest.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection request'**
+  String get connectionRequest;
+
+  /// No description provided for @enterCodeToConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter code to connect to'**
+  String get enterCodeToConnect;
+
+  /// No description provided for @connectionCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection code'**
+  String get connectionCode;
+
+  /// No description provided for @mobileType.
+  ///
+  /// In en, this message translates to:
+  /// **'Mobile'**
+  String get mobileType;
+
+  /// No description provided for @speakerType.
+  ///
+  /// In en, this message translates to:
+  /// **'Speaker'**
+  String get speakerType;
+
+  /// No description provided for @otherType.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get otherType;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @pair.
+  ///
+  /// In en, this message translates to:
+  /// **'Pair'**
+  String get pair;
+
   /// No description provided for @autoTime.
   ///
   /// In en, this message translates to:

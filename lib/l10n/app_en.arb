@@ -84,6 +84,26 @@
   "addServer": "Add Server",
   "addDomainsHintText": "domain.com",
 
+  "myDevices": "My devices",
+  "otherDevices": "Other devices",
+  "deviceName": "Device name",
+  "deviceType": "Device type",
+  "deviceStatus": "Device status",
+  "connected": "Connected",
+  "notConnected": "Not connected",
+  "disconnect": "Disconnect",
+  "forgetDevice": "Forget Device",
+  "connectionRequest": "Connection request",
+  "enterCodeToConnect": "Enter code to connect to",
+
+  "connectionCode": "Connection code",
+  "mobileType": "Mobile",
+  "speakerType": "Speaker",
+  "otherType": "Other",
+  "cancel": "Cancel",
+  "pair": "Pair"
+  "addDomainsHintText": "domain.com",
+
   "autoTime": "Auto time",
   "timezone": "Timezone",
   "setTime": "Set time",

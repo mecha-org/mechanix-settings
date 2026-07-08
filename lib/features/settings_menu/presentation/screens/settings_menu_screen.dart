@@ -7,6 +7,7 @@ import 'package:mechanix_settings/core/widgets/custom_divider.dart';
 import 'package:mechanix_settings/core/widgets/custom_image_asset.dart';
 import 'package:mechanix_settings/core/widgets/section_list/section_item.dart';
 import 'package:mechanix_settings/core/widgets/section_list/section_list.dart';
+import 'package:mechanix_settings/features/bluetooth/presentation/screens/bluetooth.dart';
 import 'package:mechanix_settings/features/settings_menu/presentation/widgets/settings_menu_bottombar.dart';
 import 'package:mechanix_settings/features/wireless/presentation/screens/wireless.dart';
 import 'package:mechanix_settings/features/date_time/presentation/screens/date_time_screen.dart';
@@ -81,7 +82,13 @@ class SettingsMenuScreenState extends State<SettingsMenuScreen> {
                       assetPath: SettingIcons.bluetooth,
                       color: AppColors.onSurfaceVariant,
                     ),
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const BluetoothScreen(),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),

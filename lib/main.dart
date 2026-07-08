@@ -10,22 +10,32 @@ import 'package:mechanix_settings/features/settings_menu/presentation/screens/se
 import 'package:mechanix_settings/features/wireless/data/repositories/wireless_repository.dart';
 import 'package:mechanix_settings/features/wireless/blocs/wireless_bloc.dart';
 import 'package:mechanix_settings/features/wireless/presentation/screens/wireless.dart';
+import 'package:mechanix_settings/features/bluetooth/data/repositories/bluetooth_repository.dart';
+import 'package:mechanix_settings/features/bluetooth/blocs/bluetooth_bloc.dart';
+import 'package:mechanix_settings/features/bluetooth/presentation/screens/bluetooth.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
 import 'package:show_fps/show_fps.dart';
 
 void main() {
   final wirelessRepository = WirelessRepository();
-
+  final bluetoothRepository = BluetoothRepository();
   runApp(
     MultiRepositoryProvider(
       providers: [
         RepositoryProvider<WirelessRepository>.value(value: wirelessRepository),
+        RepositoryProvider<BluetoothRepository>.value(
+          value: bluetoothRepository,
+        ),
       ],
       child: MultiBlocProvider(
         providers: [
           BlocProvider<WirelessBloc>(
             create: (context) =>
                 WirelessBloc(wirelessRepository)..add(const LoadWireless()),
+          ),
+          BlocProvider<BluetoothBloc>(
+            create: (context) =>
+                BluetoothBloc(bluetoothRepository)..add(const LoadBluetooth()),
           ),
 
           BlocProvider<DateTimeBloc>(
@@ -57,7 +67,10 @@ class MechanixMessageApp extends StatelessWidget {
       home: const SettingsMenuScreen(),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      routes: {AppRoutes.wireless: (context) => const WirelessScreen()},
+      routes: {
+        AppRoutes.wireless: (context) => const WirelessScreen(),
+        AppRoutes.bluetooth: (context) => const BluetoothScreen(),
+      },
     );
   }
 }
