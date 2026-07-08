@@ -231,4 +231,103 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addDomainsHintText => 'domain.com';
+
+  @override
+  String get autoTime => 'Auto time';
+
+  @override
+  String get timezone => 'Timezone';
+
+  @override
+  String get setTime => 'Set time';
+
+  @override
+  String get setDate => 'Set date';
+
+  @override
+  String get timeFormat => 'Time Format';
+
+  @override
+  String get dateFormat => 'Date Format';
+
+  @override
+  String get format12Hour => '12 hour clock';
+
+  @override
+  String get format24Hour => '24 hour clock';
+
+  @override
+  String get timezoneGmt => 'GMT (UTC 0)';
+
+  @override
+  String get timezoneIst => 'IST (UTC +5:30)';
+
+  @override
+  String get timezoneHst => 'HST (UTC -10)';
+
+  @override
+  String get timezoneAkst => 'AKST (UTC -9)';
+
+  @override
+  String get timezonePst => 'PST (UTC -8)';
+
+  @override
+  String get timezoneMst => 'MST (UTC -7)';
+
+  @override
+  String get timezoneCstMinus6 => 'CST (UTC -6)';
+
+  @override
+  String get timezoneEst => 'EST (UTC -5)';
+
+  @override
+  String get timezoneAst => 'AST (UTC -4)';
+
+  @override
+  String get timezoneBrt => 'BRT (UTC -3)';
+
+  @override
+  String get timezoneCet => 'CET (UTC +1)';
+
+  @override
+  String get timezoneEet => 'EET (UTC +2)';
+
+  @override
+  String get timezoneGst => 'GST (UTC +4)';
+
+  @override
+  String get timezoneIct => 'ICT (UTC +7)';
+
+  @override
+  String get timezoneCstPlus8 => 'CST (UTC +8)';
+
+  @override
+  String get timezoneJst => 'JST (UTC +9)';
+
+  @override
+  String get timezoneAest => 'AEST (UTC +10)';
+
+  @override
+  String get timezoneNzst => 'NZST (UTC +12)';
+
+  @override
+  String get dateFormatDmy => 'dd/MM/yyyy';
+
+  @override
+  String get dateFormatMdy => 'MM/dd/yy';
+
+  @override
+  String get dateFormatYmd => 'yyyy-MM-dd';
+
+  @override
+  String get dateFormatDmyShort => 'dd MMM yyyy';
+
+  @override
+  String get dateFormatDmyLong => 'dd MMMM yyyy';
+
+  @override
+  String get am => 'AM';
+
+  @override
+  String get pm => 'PM';
 }

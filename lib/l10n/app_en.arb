@@ -82,5 +82,45 @@
   "dnsServers": "DNS Servers",
   "searchDomains": "Search Domains",
   "addServer": "Add Server",
-  "addDomainsHintText": "domain.com"
+  "addDomainsHintText": "domain.com",
+
+  "autoTime": "Auto time",
+  "timezone": "Timezone",
+  "setTime": "Set time",
+  "setDate": "Set date",
+  "timeFormat": "Time Format",
+  "dateFormat": "Date Format",
+  "format12Hour": "12 hour clock",
+  "format24Hour": "24 hour clock",
+  "timezoneGmt": "GMT (UTC 0)",
+  "timezoneIst": "IST (UTC +5:30)",
+  "timezoneHst": "HST (UTC -10)",
+  "timezoneAkst": "AKST (UTC -9)",
+  "timezonePst": "PST (UTC -8)",
+  "timezoneMst": "MST (UTC -7)",
+  "timezoneCstMinus6": "CST (UTC -6)",
+  "timezoneEst": "EST (UTC -5)",
+  "timezoneAst": "AST (UTC -4)",
+  "timezoneBrt": "BRT (UTC -3)",
+  "timezoneCet": "CET (UTC +1)",
+  "timezoneEet": "EET (UTC +2)",
+  "timezoneGst": "GST (UTC +4)",
+  "timezoneIct": "ICT (UTC +7)",
+  "timezoneCstPlus8": "CST (UTC +8)",
+  "timezoneJst": "JST (UTC +9)",
+  "timezoneAest": "AEST (UTC +10)",
+  "timezoneNzst": "NZST (UTC +12)",
+  "dateFormatDmy": "dd/MM/yyyy",
+  "dateFormatMdy": "MM/dd/yy",
+  "dateFormatYmd": "yyyy-MM-dd",
+  "dateFormatDmyShort": "dd MMM yyyy",
+  "dateFormatDmyLong": "dd MMMM yyyy",
+  "am": "AM",
+  "@am": {
+    "description": "Ante meridiem time indicator"
+  },
+  "pm": "PM",
+  "@pm": {
+    "description": "Post meridiem time indicator"
+  }
 }

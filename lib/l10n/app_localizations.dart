@@ -537,6 +537,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'domain.com'**
   String get addDomainsHintText;
+
+  /// No description provided for @autoTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto time'**
+  String get autoTime;
+
+  /// No description provided for @timezone.
+  ///
+  /// In en, this message translates to:
+  /// **'Timezone'**
+  String get timezone;
+
+  /// No description provided for @setTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Set time'**
+  String get setTime;
+
+  /// No description provided for @setDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Set date'**
+  String get setDate;
+
+  /// No description provided for @timeFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Time Format'**
+  String get timeFormat;
+
+  /// No description provided for @dateFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Date Format'**
+  String get dateFormat;
+
+  /// No description provided for @format12Hour.
+  ///
+  /// In en, this message translates to:
+  /// **'12 hour clock'**
+  String get format12Hour;
+
+  /// No description provided for @format24Hour.
+  ///
+  /// In en, this message translates to:
+  /// **'24 hour clock'**
+  String get format24Hour;
+
+  /// No description provided for @timezoneGmt.
+  ///
+  /// In en, this message translates to:
+  /// **'GMT (UTC 0)'**
+  String get timezoneGmt;
+
+  /// No description provided for @timezoneIst.
+  ///
+  /// In en, this message translates to:
+  /// **'IST (UTC +5:30)'**
+  String get timezoneIst;
+
+  /// No description provided for @timezoneHst.
+  ///
+  /// In en, this message translates to:
+  /// **'HST (UTC -10)'**
+  String get timezoneHst;
+
+  /// No description provided for @timezoneAkst.
+  ///
+  /// In en, this message translates to:
+  /// **'AKST (UTC -9)'**
+  String get timezoneAkst;
+
+  /// No description provided for @timezonePst.
+  ///
+  /// In en, this message translates to:
+  /// **'PST (UTC -8)'**
+  String get timezonePst;
+
+  /// No description provided for @timezoneMst.
+  ///
+  /// In en, this message translates to:
+  /// **'MST (UTC -7)'**
+  String get timezoneMst;
+
+  /// No description provided for @timezoneCstMinus6.
+  ///
+  /// In en, this message translates to:
+  /// **'CST (UTC -6)'**
+  String get timezoneCstMinus6;
+
+  /// No description provided for @timezoneEst.
+  ///
+  /// In en, this message translates to:
+  /// **'EST (UTC -5)'**
+  String get timezoneEst;
+
+  /// No description provided for @timezoneAst.
+  ///
+  /// In en, this message translates to:
+  /// **'AST (UTC -4)'**
+  String get timezoneAst;
+
+  /// No description provided for @timezoneBrt.
+  ///
+  /// In en, this message translates to:
+  /// **'BRT (UTC -3)'**
+  String get timezoneBrt;
+
+  /// No description provided for @timezoneCet.
+  ///
+  /// In en, this message translates to:
+  /// **'CET (UTC +1)'**
+  String get timezoneCet;
+
+  /// No description provided for @timezoneEet.
+  ///
+  /// In en, this message translates to:
+  /// **'EET (UTC +2)'**
+  String get timezoneEet;
+
+  /// No description provided for @timezoneGst.
+  ///
+  /// In en, this message translates to:
+  /// **'GST (UTC +4)'**
+  String get timezoneGst;
+
+  /// No description provided for @timezoneIct.
+  ///
+  /// In en, this message translates to:
+  /// **'ICT (UTC +7)'**
+  String get timezoneIct;
+
+  /// No description provided for @timezoneCstPlus8.
+  ///
+  /// In en, this message translates to:
+  /// **'CST (UTC +8)'**
+  String get timezoneCstPlus8;
+
+  /// No description provided for @timezoneJst.
+  ///
+  /// In en, this message translates to:
+  /// **'JST (UTC +9)'**
+  String get timezoneJst;
+
+  /// No description provided for @timezoneAest.
+  ///
+  /// In en, this message translates to:
+  /// **'AEST (UTC +10)'**
+  String get timezoneAest;
+
+  /// No description provided for @timezoneNzst.
+  ///
+  /// In en, this message translates to:
+  /// **'NZST (UTC +12)'**
+  String get timezoneNzst;
+
+  /// No description provided for @dateFormatDmy.
+  ///
+  /// In en, this message translates to:
+  /// **'dd/MM/yyyy'**
+  String get dateFormatDmy;
+
+  /// No description provided for @dateFormatMdy.
+  ///
+  /// In en, this message translates to:
+  /// **'MM/dd/yy'**
+  String get dateFormatMdy;
+
+  /// No description provided for @dateFormatYmd.
+  ///
+  /// In en, this message translates to:
+  /// **'yyyy-MM-dd'**
+  String get dateFormatYmd;
+
+  /// No description provided for @dateFormatDmyShort.
+  ///
+  /// In en, this message translates to:
+  /// **'dd MMM yyyy'**
+  String get dateFormatDmyShort;
+
+  /// No description provided for @dateFormatDmyLong.
+  ///
+  /// In en, this message translates to:
+  /// **'dd MMMM yyyy'**
+  String get dateFormatDmyLong;
+
+  /// Ante meridiem time indicator
+  ///
+  /// In en, this message translates to:
+  /// **'AM'**
+  String get am;
+
+  /// Post meridiem time indicator
+  ///
+  /// In en, this message translates to:
+  /// **'PM'**
+  String get pm;
 }
 
 class _AppLocalizationsDelegate
