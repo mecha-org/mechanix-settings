@@ -22,13 +22,13 @@ extension TimezoneItemLocalization on TimezoneItem {
         return l10n.timezoneHst;
       case "America/Anchorage":
         return l10n.timezoneAkst;
-      case "America/Los Angeles":
+      case "America/Los_Angeles":
         return l10n.timezonePst;
       case "America/Denver":
         return l10n.timezoneMst;
       case "America/Chicago":
         return l10n.timezoneCstMinus6;
-      case "America/New York":
+      case "America/New_York":
         return l10n.timezoneEst;
       case "America/Halifax":
         return l10n.timezoneAst;
@@ -61,12 +61,12 @@ const List<TimezoneItem> timezones = [
   TimezoneItem(id: "Asia/Kolkata"),
   TimezoneItem(id: "Pacific/Honolulu"),
   TimezoneItem(id: "America/Anchorage"),
-  TimezoneItem(id: "America/Los Angeles"),
+  TimezoneItem(id: "America/Los_Angeles"),
   TimezoneItem(id: "America/Denver"),
   TimezoneItem(id: "America/Chicago"),
-  TimezoneItem(id: "America/New York"),
+  TimezoneItem(id: "America/New_York"),
   TimezoneItem(id: "America/Halifax"),
-  TimezoneItem(id: "America/Sao Paulo"),
+  TimezoneItem(id: "America/Sao_Paulo"),
   TimezoneItem(id: "Europe/Paris"),
   TimezoneItem(id: "Europe/Helsinki"),
   TimezoneItem(id: "Asia/Dubai"),
