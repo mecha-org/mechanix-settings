@@ -77,27 +77,39 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
 
       // Listen for adapter power changes.
       _powerSub = _repository.powerStream.listen((isOn) {
-        add(BluetoothPowerChanged(isOn));
+        if (!isClosed) {
+          add(BluetoothPowerChanged(isOn));
+        }
       });
 
       // Listen for discovery start/stop changes.
       _scanningSub = _repository.scanningStream.listen((isScanning) {
-        add(BluetoothScanningChanged(isScanning));
+        if (!isClosed) {
+          add(BluetoothScanningChanged(isScanning));
+        }
       });
 
       // Listen for adapter discoverable changes.
-      _discoverableSub = _repository.discoverableStream.listen((isDiscoverable) {
-        add(BluetoothDiscoverableChanged(isDiscoverable));
+      _discoverableSub = _repository.discoverableStream.listen((
+        isDiscoverable,
+      ) {
+        if (!isClosed) {
+          add(BluetoothDiscoverableChanged(isDiscoverable));
+        }
       });
 
       // Listen for paired and discovered device updates.
       _devicesSub = _repository.devicesStream.listen((devices) {
-        add(BluetoothDevicesUpdated(devices));
+        if (!isClosed) {
+          add(BluetoothDevicesUpdated(devices));
+        }
       });
 
       final isPowered = await _repository.isBluetoothEnabled();
       final localDeviceName = await _repository.getLocalDeviceName();
-      final isDiscoverable = isPowered ? await _repository.isDiscoverable() : false;
+      final isDiscoverable = isPowered
+          ? await _repository.isDiscoverable()
+          : false;
 
       emit(
         state.copyWith(
@@ -107,13 +119,8 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
         ),
       );
 
-      // Always load saved devices
-      final devices = await _repository.getPairedDevices();
-
-      add(BluetoothDevicesUpdated(devices));
-
       if (isPowered) {
-        _startScan();
+        await _startScan();
       }
     } catch (e, stackTrace) {
       AppLogger.e('Failed to load bluetooth devices: $e', stack: stackTrace);
@@ -127,7 +134,7 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
     try {
       if (event.isEnabled) {
         await _repository.togglePower(true);
-        _startScan();
+        await _startScan();
       } else {
         _scanTimer?.cancel();
         await _repository.togglePower(false);
@@ -154,7 +161,7 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
   ) async {
     try {
       if (state.isBluetoothOn) {
-        _startScan();
+        await _startScan();
       }
     } catch (e, stackTrace) {
       AppLogger.e('Failed to scan bluetooth devices: $e', stack: stackTrace);
@@ -176,6 +183,10 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
     final macAddress = event.device.macAddress;
 
     try {
+      if (state.connectingDevices.contains(macAddress)) {
+        return;
+      }
+
       final isAlreadyConnected = state.pairedDevices.any(
         (d) => d.macAddress == macAddress && d.isConnected,
       );
@@ -237,8 +248,10 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
       await _repository.connectToDevice(event.device.macAddress);
     } catch (e, stackTrace) {
       AppLogger.e('Failed to complete pairing: $e', stack: stackTrace);
+
       final updatedConnecting = {...state.connectingDevices}
         ..remove(event.device.macAddress);
+
       emit(
         state.copyWith(
           connectingDevices: updatedConnecting,
@@ -249,12 +262,6 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
           ),
         ),
       );
-    } finally {
-      if (state.connectingDevices.contains(event.device.macAddress)) {
-        final updatedConnecting = {...state.connectingDevices}
-          ..remove(event.device.macAddress);
-        emit(state.copyWith(connectingDevices: updatedConnecting));
-      }
     }
   }
 
@@ -386,13 +393,16 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
 
   /// Releases stream subscriptions, timers, and Bluetooth resources.
   @override
-  Future<void> close() {
+  Future<void> close() async {
     _scanTimer?.cancel();
-    _powerSub?.cancel();
-    _scanningSub?.cancel();
-    _discoverableSub?.cancel();
-    _devicesSub?.cancel();
-    _repository.close();
+
+    await _powerSub?.cancel();
+    await _scanningSub?.cancel();
+    await _discoverableSub?.cancel();
+    await _devicesSub?.cancel();
+
+    await _repository.close();
+
     return super.close();
   }
 }

@@ -385,7 +385,7 @@ class BluetoothRepositoryImpl implements BluetoothRepository {
         'Pairing with ${device.alias.isNotEmpty ? device.alias : device.address}',
       );
 
-      await device.pair().timeout(const Duration(seconds: 15));
+      await device.pair();
 
       AppLogger.i('Pair request completed for ${device.address}');
     } catch (e, stack) {
@@ -409,7 +409,7 @@ class BluetoothRepositoryImpl implements BluetoothRepository {
         'Connecting to ${device.alias.isNotEmpty ? device.alias : device.address}',
       );
 
-      await device.connect().timeout(const Duration(seconds: 15));
+      await device.connect();
 
       AppLogger.i('Connect request completed for ${device.address}');
     } catch (e, stack) {
@@ -455,6 +455,13 @@ class BluetoothRepositoryImpl implements BluetoothRepository {
       if (_adapter == null) {
         AppLogger.e('Bluetooth adapter not available');
         return;
+      }
+
+      // Disconnect before removing device
+      if (device.connected) {
+        await device.disconnect();
+
+        await Future.delayed(const Duration(milliseconds: 500));
       }
 
       await _adapter!.removeDevice(device);
