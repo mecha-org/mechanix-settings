@@ -622,11 +622,35 @@ abstract class AppLocalizations {
   /// **'Speaker'**
   String get speakerType;
 
-  /// No description provided for @otherType.
+  /// No description provided for @unknownType.
   ///
   /// In en, this message translates to:
-  /// **'Other'**
-  String get otherType;
+  /// **'Unknown'**
+  String get unknownType;
+
+  /// No description provided for @car.
+  ///
+  /// In en, this message translates to:
+  /// **'Car'**
+  String get car;
+
+  /// No description provided for @headphones.
+  ///
+  /// In en, this message translates to:
+  /// **'Headphones'**
+  String get headphones;
+
+  /// No description provided for @computer.
+  ///
+  /// In en, this message translates to:
+  /// **'Computer'**
+  String get computer;
+
+  /// No description provided for @tv.
+  ///
+  /// In en, this message translates to:
+  /// **'TV'**
+  String get tv;
 
   /// No description provided for @cancel.
   ///

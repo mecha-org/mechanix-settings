@@ -275,7 +275,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get speakerType => 'Speaker';
 
   @override
-  String get otherType => 'Other';
+  String get unknownType => 'Unknown';
+
+  @override
+  String get car => 'Car';
+
+  @override
+  String get headphones => 'Headphones';
+
+  @override
+  String get computer => 'Computer';
+
+  @override
+  String get tv => 'TV';
 
   @override
   String get cancel => 'Cancel';

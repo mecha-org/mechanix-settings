@@ -40,10 +40,10 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
                 ? [
                     CustomIconButton.asset(
                       assetPath: SettingIcons.refresh,
-                      enabled: true,
+                      enabled: !state.isScanning,
                       onPressed: () {
                         context.read<BluetoothBloc>().add(
-                          const ToggleBluetoothPower(true),
+                          const ScanBluetoothDevices(),
                         );
                       },
                     ),

@@ -99,7 +99,11 @@
   "connectionCode": "Connection code",
   "mobileType": "Mobile",
   "speakerType": "Speaker",
-  "otherType": "Other",
+  "unknownType": "Unknown",
+  "car" : "Car",
+  "headphones" : "Headphones",
+  "computer":"Computer",
+  "tv":"TV",
   "cancel": "Cancel",
   "pair": "Pair"
 }

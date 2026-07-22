@@ -8,10 +8,11 @@ class BluetoothState extends Equatable {
   final bool isScanning;
   final List<BluetoothDevice> pairedDevices;
   final List<BluetoothDevice> discoveredDevices;
-  final String? connectingDeviceName;
+
+  /// Devices currently trying to connect
+  final Set<String> connectingDevices;
+
   final String? connectedDeviceName;
-  final BluetoothDevice? pairingRequestDevice;
-  final BluetoothDevice? pairingCodeDisplayDevice;
   final String localDeviceName;
 
   const BluetoothState({
@@ -19,11 +20,9 @@ class BluetoothState extends Equatable {
     this.isScanning = false,
     this.pairedDevices = const [],
     this.discoveredDevices = const [],
-    this.connectingDeviceName,
+    this.connectingDevices = const {},
     this.connectedDeviceName,
-    this.pairingRequestDevice,
-    this.pairingCodeDisplayDevice,
-    this.localDeviceName = 'comet',
+    this.localDeviceName = '',
   });
 
   BluetoothState copyWith({
@@ -31,10 +30,8 @@ class BluetoothState extends Equatable {
     bool? isScanning,
     List<BluetoothDevice>? pairedDevices,
     List<BluetoothDevice>? discoveredDevices,
-    Object? connectingDeviceName = _unset,
+    Set<String>? connectingDevices,
     Object? connectedDeviceName = _unset,
-    Object? pairingRequestDevice = _unset,
-    Object? pairingCodeDisplayDevice = _unset,
     String? localDeviceName,
   }) {
     return BluetoothState(
@@ -42,18 +39,10 @@ class BluetoothState extends Equatable {
       isScanning: isScanning ?? this.isScanning,
       pairedDevices: pairedDevices ?? this.pairedDevices,
       discoveredDevices: discoveredDevices ?? this.discoveredDevices,
-      connectingDeviceName: connectingDeviceName == _unset
-          ? this.connectingDeviceName
-          : connectingDeviceName as String?,
+      connectingDevices: connectingDevices ?? this.connectingDevices,
       connectedDeviceName: connectedDeviceName == _unset
           ? this.connectedDeviceName
           : connectedDeviceName as String?,
-      pairingRequestDevice: pairingRequestDevice == _unset
-          ? this.pairingRequestDevice
-          : pairingRequestDevice as BluetoothDevice?,
-      pairingCodeDisplayDevice: pairingCodeDisplayDevice == _unset
-          ? this.pairingCodeDisplayDevice
-          : pairingCodeDisplayDevice as BluetoothDevice?,
       localDeviceName: localDeviceName ?? this.localDeviceName,
     );
   }
@@ -64,10 +53,8 @@ class BluetoothState extends Equatable {
     isScanning,
     pairedDevices,
     discoveredDevices,
-    connectingDeviceName,
+    connectingDevices,
     connectedDeviceName,
-    pairingRequestDevice,
-    pairingCodeDisplayDevice,
     localDeviceName,
   ];
 }

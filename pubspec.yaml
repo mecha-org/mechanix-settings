@@ -41,6 +41,8 @@ dependencies:
   bloc: ^9.2.1
   equatable: ^2.0.8
   show_fps: ^1.1.0
+  dbus: ^0.7.11
+  bluez: ^0.8.3
 
 dev_dependencies:
   flutter_test:
