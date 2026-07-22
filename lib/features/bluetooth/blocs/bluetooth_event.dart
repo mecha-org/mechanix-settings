@@ -125,3 +125,5 @@ class BluetoothDiscoverableChanged extends BluetoothEvent {
   @override
   List<Object?> get props => [isDiscoverable];
 }
+
+class RefreshDeviceList extends BluetoothEvent {}

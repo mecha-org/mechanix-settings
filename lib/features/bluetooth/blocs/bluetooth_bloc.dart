@@ -19,22 +19,6 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
   StreamSubscription<bool>? _discoverableSub;
   StreamSubscription<List<BluetoothDevice>>? _devicesSub;
 
-  Timer? _scanTimer;
-
-  Future<void> _startScan() async {
-    if (state.isScanning) {
-      return;
-    }
-
-    await _repository.startDiscovery();
-
-    _scanTimer?.cancel();
-
-    _scanTimer = Timer(const Duration(seconds: 15), () async {
-      await _repository.stopDiscovery();
-    });
-  }
-
   BluetoothBloc(this._repository) : super(const BluetoothState()) {
     // User actions
     on<LoadBluetooth>(_onLoadBluetooth);
@@ -53,6 +37,8 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
     on<BluetoothScanningChanged>(_onScanningChanged);
     on<BluetoothDiscoverableChanged>(_onDiscoverableChanged);
     on<BluetoothDevicesUpdated>(_onDevicesChanged);
+
+    on<RefreshDeviceList>(_onGetRefreshDeviceList);
   }
 
   /// Initializes Bluetooth and listens for BlueZ state changes.
@@ -120,7 +106,7 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
       );
 
       if (isPowered) {
-        await _startScan();
+        add(RefreshDeviceList());
       }
     } catch (e, stackTrace) {
       AppLogger.e('Failed to load bluetooth devices: $e', stack: stackTrace);
@@ -132,13 +118,8 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
     Emitter<BluetoothState> emit,
   ) async {
     try {
-      if (event.isEnabled) {
-        await _repository.togglePower(true);
-        await _startScan();
-      } else {
-        _scanTimer?.cancel();
-        await _repository.togglePower(false);
-      }
+      await _repository.togglePower(event.isEnabled);
+      add(RefreshDeviceList());
     } catch (e, stackTrace) {
       AppLogger.e('Failed to toggle bluetooth: $e', stack: stackTrace);
     }
@@ -161,7 +142,7 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
   ) async {
     try {
       if (state.isBluetoothOn) {
-        await _startScan();
+        add(RefreshDeviceList());
       }
     } catch (e, stackTrace) {
       AppLogger.e('Failed to scan bluetooth devices: $e', stack: stackTrace);
@@ -391,11 +372,29 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
     );
   }
 
+  /// Refresh device list after discovery
+  Future<void> _onGetRefreshDeviceList(
+    RefreshDeviceList event,
+    Emitter<BluetoothState> emit,
+  ) async {
+    try {
+      await _repository.startDiscovery();
+
+      await Future.delayed(const Duration(seconds: 15));
+
+      await _repository.stopDiscovery();
+
+      final devices = await _repository.getPairedDevices();
+      add(BluetoothDevicesUpdated(devices));
+    } catch (e, stack) {
+      AppLogger.e('Error refreshing device list', error: e, stack: stack);
+      emit(state.copyWith(error: e.toString()));
+    }
+  }
+
   /// Releases stream subscriptions, timers, and Bluetooth resources.
   @override
   Future<void> close() async {
-    _scanTimer?.cancel();
-
     await _powerSub?.cancel();
     await _scanningSub?.cancel();
     await _discoverableSub?.cancel();
