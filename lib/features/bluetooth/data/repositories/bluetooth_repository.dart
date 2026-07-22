@@ -13,6 +13,8 @@ abstract class BluetoothRepository {
 
   Future<bool> isBluetoothEnabled();
 
+  Future<bool> isDiscoverable();
+
   Future<bool> togglePower(bool enable);
 
   Future<void> startDiscovery();

@@ -109,3 +109,19 @@ class BluetoothDevicesUpdated extends BluetoothEvent {
   @override
   List<Object?> get props => [devices];
 }
+
+class ToggleBluetoothDiscoverable extends BluetoothEvent {
+  final bool isDiscoverable;
+  const ToggleBluetoothDiscoverable(this.isDiscoverable);
+
+  @override
+  List<Object?> get props => [isDiscoverable];
+}
+
+class BluetoothDiscoverableChanged extends BluetoothEvent {
+  final bool isDiscoverable;
+  const BluetoothDiscoverableChanged(this.isDiscoverable);
+
+  @override
+  List<Object?> get props => [isDiscoverable];
+}

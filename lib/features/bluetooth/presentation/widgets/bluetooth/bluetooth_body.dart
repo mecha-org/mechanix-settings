@@ -90,7 +90,6 @@ class _BluetoothBodyState extends State<BluetoothBody> {
 
             const CustomDivider(verticalPadding: 0),
 
-            // Remaining bluetooth UI
             BlocSelector<BluetoothBloc, BluetoothState, bool>(
               selector: (state) => state.isBluetoothOn,
               builder: (context, isBluetoothOn) {
@@ -101,6 +100,42 @@ class _BluetoothBodyState extends State<BluetoothBody> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Discoverable
+                    BlocSelector<BluetoothBloc, BluetoothState, bool>(
+                      selector: (state) => state.isDiscoverable,
+                      builder: (context, isDiscoverable) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 20,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                l10n.discoverable,
+                                style: Theme.of(context).textTheme.bodyLarge!
+                                    .copyWith(
+                                      color: AppColors.onSurfaceVariant,
+                                    ),
+                              ),
+                              CustomToggle(
+                                value: isDiscoverable,
+                                onChanged: (value) {
+                                  context.read<BluetoothBloc>().add(
+                                    ToggleBluetoothDiscoverable(value),
+                                  );
+                                },
+                                l10n: l10n,
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+
+                    const CustomDivider(verticalPadding: 0),
+
                     // Connected devices
                     BlocSelector<
                       BluetoothBloc,

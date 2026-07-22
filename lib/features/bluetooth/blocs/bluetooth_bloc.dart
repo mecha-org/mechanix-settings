@@ -16,6 +16,7 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
   // Stream subscriptions to receive real-time updates from BlueZ.
   StreamSubscription<bool>? _powerSub;
   StreamSubscription<bool>? _scanningSub;
+  StreamSubscription<bool>? _discoverableSub;
   StreamSubscription<List<BluetoothDevice>>? _devicesSub;
 
   Timer? _scanTimer;
@@ -38,6 +39,7 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
     // User actions
     on<LoadBluetooth>(_onLoadBluetooth);
     on<ToggleBluetoothPower>(_onToggleBluetoothPower);
+    on<ToggleBluetoothDiscoverable>(_onToggleBluetoothDiscoverable);
     on<ScanBluetoothDevices>(_onScanBluetoothDevices);
     on<ConnectToDeviceEvent>(_onConnectToDevice);
     on<DisconnectFromDeviceEvent>(_onDisconnectFromDevice);
@@ -49,6 +51,7 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
     // Internal events triggered by repository streams.
     on<BluetoothPowerChanged>(_onPowerChanged);
     on<BluetoothScanningChanged>(_onScanningChanged);
+    on<BluetoothDiscoverableChanged>(_onDiscoverableChanged);
     on<BluetoothDevicesUpdated>(_onDevicesChanged);
   }
 
@@ -69,6 +72,7 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
       // Cancel old subscriptions first
       await _powerSub?.cancel();
       await _scanningSub?.cancel();
+      await _discoverableSub?.cancel();
       await _devicesSub?.cancel();
 
       // Listen for adapter power changes.
@@ -81,6 +85,11 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
         add(BluetoothScanningChanged(isScanning));
       });
 
+      // Listen for adapter discoverable changes.
+      _discoverableSub = _repository.discoverableStream.listen((isDiscoverable) {
+        add(BluetoothDiscoverableChanged(isDiscoverable));
+      });
+
       // Listen for paired and discovered device updates.
       _devicesSub = _repository.devicesStream.listen((devices) {
         add(BluetoothDevicesUpdated(devices));
@@ -88,11 +97,13 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
 
       final isPowered = await _repository.isBluetoothEnabled();
       final localDeviceName = await _repository.getLocalDeviceName();
+      final isDiscoverable = isPowered ? await _repository.isDiscoverable() : false;
 
       emit(
         state.copyWith(
           isBluetoothOn: isPowered,
           localDeviceName: localDeviceName,
+          isDiscoverable: isDiscoverable,
         ),
       );
 
@@ -123,6 +134,17 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
       }
     } catch (e, stackTrace) {
       AppLogger.e('Failed to toggle bluetooth: $e', stack: stackTrace);
+    }
+  }
+
+  Future<void> _onToggleBluetoothDiscoverable(
+    ToggleBluetoothDiscoverable event,
+    Emitter<BluetoothState> emit,
+  ) async {
+    try {
+      await _repository.setDiscoverable(event.isDiscoverable);
+    } catch (e, stackTrace) {
+      AppLogger.e('Failed to toggle discoverable: $e', stack: stackTrace);
     }
   }
 
@@ -164,7 +186,7 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
 
       final updatedConnecting = {...state.connectingDevices, macAddress};
 
-      emit(state.copyWith(connectingDevices: updatedConnecting));
+      emit(state.copyWith(connectingDevices: updatedConnecting, error: null));
 
       if (!event.device.isSaved) {
         await _repository.pairDevice(macAddress);
@@ -180,7 +202,16 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
       final updatedConnecting = {...state.connectingDevices}
         ..remove(macAddress);
 
-      emit(state.copyWith(connectingDevices: updatedConnecting));
+      emit(
+        state.copyWith(
+          connectingDevices: updatedConnecting,
+          error: BluetoothFailure(
+            type: BluetoothErrorType.pairingFailed,
+            message: e.toString(),
+            data: {'deviceName': event.device.name},
+          ),
+        ),
+      );
     }
   }
 
@@ -206,11 +237,24 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
       await _repository.connectToDevice(event.device.macAddress);
     } catch (e, stackTrace) {
       AppLogger.e('Failed to complete pairing: $e', stack: stackTrace);
-    } finally {
       final updatedConnecting = {...state.connectingDevices}
         ..remove(event.device.macAddress);
-
-      emit(state.copyWith(connectingDevices: updatedConnecting));
+      emit(
+        state.copyWith(
+          connectingDevices: updatedConnecting,
+          error: BluetoothFailure(
+            type: BluetoothErrorType.connectionFailed,
+            message: e.toString(),
+            data: {'deviceName': event.device.name},
+          ),
+        ),
+      );
+    } finally {
+      if (state.connectingDevices.contains(event.device.macAddress)) {
+        final updatedConnecting = {...state.connectingDevices}
+          ..remove(event.device.macAddress);
+        emit(state.copyWith(connectingDevices: updatedConnecting));
+      }
     }
   }
 
@@ -262,6 +306,7 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
       emit(
         state.copyWith(
           isScanning: false,
+          isDiscoverable: false,
           pairedDevices: [],
           discoveredDevices: [],
           connectingDevices: {},
@@ -269,6 +314,13 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
         ),
       );
     }
+  }
+
+  void _onDiscoverableChanged(
+    BluetoothDiscoverableChanged event,
+    Emitter<BluetoothState> emit,
+  ) {
+    emit(state.copyWith(isDiscoverable: event.isDiscoverable));
   }
 
   // Updates scanning indicator shown in the UI.
@@ -338,6 +390,7 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
     _scanTimer?.cancel();
     _powerSub?.cancel();
     _scanningSub?.cancel();
+    _discoverableSub?.cancel();
     _devicesSub?.cancel();
     _repository.close();
     return super.close();

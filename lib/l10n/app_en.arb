@@ -210,5 +210,25 @@
       }
     }
   },
+  "discoverable": "Discoverable",
+  "bluetoothConnectionFailed": "Failed to connect to Bluetooth device",
+  "bluetoothConnectionFailedWithName": "Failed to connect to {deviceName}",
+  "@bluetoothConnectionFailedWithName": {
+    "placeholders": {
+      "deviceName": {
+        "type": "String"
+      }
+    }
+  },
+  "bluetoothPairingFailed": "Failed to pair with Bluetooth device",
+  "bluetoothPairingFailedWithName": "Failed to pair with {deviceName}",
+  "@bluetoothPairingFailedWithName": {
+    "placeholders": {
+      "deviceName": {
+        "type": "String"
+      }
+    }
+  },
+  "deviceNameLimit": "Device name cannot exceed 30 characters",
   "unknownError": "An unknown error occurred"
 }

@@ -273,6 +273,12 @@ class BluetoothRepositoryImpl implements BluetoothRepository {
   }
 
   @override
+  Future<bool> isDiscoverable() async {
+    final adapter = await getBluezAdapter();
+    return adapter?.discoverable ?? false;
+  }
+
+  @override
   Future<bool> togglePower(bool enable) async {
     final adapter = await getBluezAdapter();
 
@@ -372,19 +378,19 @@ class BluetoothRepositoryImpl implements BluetoothRepository {
       final device = _findDevice(addressOrName);
 
       if (device == null) {
-        AppLogger.e('Pair failed. Device not found: $addressOrName');
-        return;
+        throw Exception('Device not found: $addressOrName');
       }
 
       AppLogger.i(
         'Pairing with ${device.alias.isNotEmpty ? device.alias : device.address}',
       );
 
-      await device.pair();
+      await device.pair().timeout(const Duration(seconds: 15));
 
       AppLogger.i('Pair request completed for ${device.address}');
     } catch (e, stack) {
       AppLogger.e('Failed to pair bluetooth device: $e', stack: stack);
+      rethrow;
     }
   }
 
@@ -396,19 +402,19 @@ class BluetoothRepositoryImpl implements BluetoothRepository {
       final device = _findDevice(addressOrName);
 
       if (device == null) {
-        AppLogger.e('Connect failed. Device not found: $addressOrName');
-        return;
+        throw Exception('Device not found: $addressOrName');
       }
 
       AppLogger.i(
         'Connecting to ${device.alias.isNotEmpty ? device.alias : device.address}',
       );
 
-      await device.connect();
+      await device.connect().timeout(const Duration(seconds: 15));
 
       AppLogger.i('Connect request completed for ${device.address}');
     } catch (e, stack) {
       AppLogger.e('Failed to connect bluetooth device: $e', stack: stack);
+      rethrow;
     }
   }
 

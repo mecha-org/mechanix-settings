@@ -26,7 +26,7 @@ void main() {
           create: (_) => WirelessRepositoryImpl(),
         ),
         RepositoryProvider<BluetoothRepository>(
-          create: (_) => BluetoothRepository(),
+          create: (_) => BluetoothRepositoryImpl(),
         ),
       ],
       child: MultiBlocProvider(

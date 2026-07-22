@@ -922,6 +922,42 @@ abstract class AppLocalizations {
   /// **'Failed to add network {networkName}'**
   String addNetworkFailedWithNetwork(String networkName);
 
+  /// No description provided for @discoverable.
+  ///
+  /// In en, this message translates to:
+  /// **'Discoverable'**
+  String get discoverable;
+
+  /// No description provided for @bluetoothConnectionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to connect to Bluetooth device'**
+  String get bluetoothConnectionFailed;
+
+  /// No description provided for @bluetoothConnectionFailedWithName.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to connect to {deviceName}'**
+  String bluetoothConnectionFailedWithName(String deviceName);
+
+  /// No description provided for @bluetoothPairingFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to pair with Bluetooth device'**
+  String get bluetoothPairingFailed;
+
+  /// No description provided for @bluetoothPairingFailedWithName.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to pair with {deviceName}'**
+  String bluetoothPairingFailedWithName(String deviceName);
+
+  /// No description provided for @deviceNameLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Device name cannot exceed 30 characters'**
+  String get deviceNameLimit;
+
   /// No description provided for @unknownError.
   ///
   /// In en, this message translates to:

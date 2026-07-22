@@ -15,23 +15,38 @@ class ConfigRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      minTileHeight: 56,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      title: Text(title, style: Theme.of(context).textTheme.labelLarge),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(value, style: Theme.of(context).textTheme.bodyLarge),
-          const SizedBox(width: 8),
-          const Icon(
-            Icons.chevron_right,
-            color: AppColors.onSurfaceVariant,
-            size: 28,
-          ),
-        ],
-      ),
+    return InkWell(
       onTap: onTap,
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 56),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          children: [
+            Text(
+              title,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: AppColors.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                value,
+                style: Theme.of(context).textTheme.bodyLarge,
+                textAlign: TextAlign.end,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Icon(
+              Icons.chevron_right,
+              color: AppColors.onSurfaceVariant,
+              size: 28,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

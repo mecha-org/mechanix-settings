@@ -16,18 +16,35 @@ class InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      minTileHeight: 56,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      title: Text(title, style: Theme.of(context).textTheme.labelLarge),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
+    return Container(
+      constraints: const BoxConstraints(minHeight: 56),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
         children: [
-          if (showConnectedIcon) ...[
-            const CustomImage(assetPath: SettingIcons.connected),
-            const SizedBox(width: 6),
-          ],
-          Text(value, style: Theme.of(context).textTheme.bodyLarge),
+          Text(title, style: Theme.of(context).textTheme.labelLarge),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (showConnectedIcon) ...[
+                  const CustomImage(assetPath: SettingIcons.connected),
+                  const SizedBox(width: 6),
+                ],
+                Flexible(
+                  child: Text(
+                    value,
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.end,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

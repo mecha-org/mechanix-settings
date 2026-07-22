@@ -436,5 +436,28 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get discoverable => 'Discoverable';
+
+  @override
+  String get bluetoothConnectionFailed =>
+      'Failed to connect to Bluetooth device';
+
+  @override
+  String bluetoothConnectionFailedWithName(String deviceName) {
+    return 'Failed to connect to $deviceName';
+  }
+
+  @override
+  String get bluetoothPairingFailed => 'Failed to pair with Bluetooth device';
+
+  @override
+  String bluetoothPairingFailedWithName(String deviceName) {
+    return 'Failed to pair with $deviceName';
+  }
+
+  @override
+  String get deviceNameLimit => 'Device name cannot exceed 30 characters';
+
+  @override
   String get unknownError => 'An unknown error occurred';
 }
