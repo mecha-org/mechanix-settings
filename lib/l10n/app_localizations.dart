@@ -244,12 +244,6 @@ abstract class AppLocalizations {
   /// **'Low Data mode'**
   String get lowDataMode;
 
-  /// No description provided for @limitIpAddressTracking.
-  ///
-  /// In en, this message translates to:
-  /// **'Limit IP Address Tracking'**
-  String get limitIpAddressTracking;
-
   /// No description provided for @ipv4Address.
   ///
   /// In en, this message translates to:
@@ -273,18 +267,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Configure DNS'**
   String get configureDns;
-
-  /// No description provided for @httpProxy.
-  ///
-  /// In en, this message translates to:
-  /// **'HTTP Proxy'**
-  String get httpProxy;
-
-  /// No description provided for @configureProxy.
-  ///
-  /// In en, this message translates to:
-  /// **'Configure Proxy'**
-  String get configureProxy;
 
   /// No description provided for @automatic.
   ///
@@ -388,47 +370,227 @@ abstract class AppLocalizations {
   /// **'Enter password'**
   String get enterPassword;
 
+  /// No description provided for @eapMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Authentication'**
+  String get eapMethod;
+
+  /// No description provided for @phase2Authentication.
+  ///
+  /// In en, this message translates to:
+  /// **'Inner authentication'**
+  String get phase2Authentication;
+
+  /// No description provided for @identity.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity'**
+  String get identity;
+
+  /// No description provided for @certificate.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificate'**
+  String get certificate;
+
+  /// No description provided for @caCertificate.
+  ///
+  /// In en, this message translates to:
+  /// **'CA certificate'**
+  String get caCertificate;
+
+  /// No description provided for @caCertificatePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'CA certificate password'**
+  String get caCertificatePassword;
+
+  /// No description provided for @noCaCertificate.
+  ///
+  /// In en, this message translates to:
+  /// **'No CA certificate is required'**
+  String get noCaCertificate;
+
+  /// No description provided for @userCertificate.
+  ///
+  /// In en, this message translates to:
+  /// **'User certificate'**
+  String get userCertificate;
+
+  /// No description provided for @userCertificatePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'User certificate password'**
+  String get userCertificatePassword;
+
+  /// No description provided for @privateKey.
+  ///
+  /// In en, this message translates to:
+  /// **'User private key'**
+  String get privateKey;
+
+  /// No description provided for @privateKeyPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'User key password'**
+  String get privateKeyPassword;
+
+  /// No description provided for @selectFromFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Select from file'**
+  String get selectFromFile;
+
+  /// No description provided for @networkName.
+  ///
+  /// In en, this message translates to:
+  /// **'Network name'**
+  String get networkName;
+
   /// No description provided for @security.
   ///
   /// In en, this message translates to:
   /// **'Security'**
   String get security;
 
-  /// No description provided for @securityNone.
-  ///
-  /// In en, this message translates to:
-  /// **'None'**
-  String get securityNone;
-
-  /// No description provided for @securityWpa2Wpa3.
-  ///
-  /// In en, this message translates to:
-  /// **'WPA2 / WPA3'**
-  String get securityWpa2Wpa3;
-
-  /// No description provided for @securityWpa3.
-  ///
-  /// In en, this message translates to:
-  /// **'WPA3'**
-  String get securityWpa3;
-
-  /// No description provided for @securityWpa.
-  ///
-  /// In en, this message translates to:
-  /// **'WPA'**
-  String get securityWpa;
-
-  /// No description provided for @securityWpa2Enterprise.
-  ///
-  /// In en, this message translates to:
-  /// **'WPA2 Enterprise'**
-  String get securityWpa2Enterprise;
-
-  /// No description provided for @securityWep.
+  /// No description provided for @wep.
   ///
   /// In en, this message translates to:
   /// **'WEP'**
-  String get securityWep;
+  String get wep;
+
+  /// No description provided for @wpaPersonal.
+  ///
+  /// In en, this message translates to:
+  /// **'WPA Personal'**
+  String get wpaPersonal;
+
+  /// No description provided for @wpa2Personal.
+  ///
+  /// In en, this message translates to:
+  /// **'WPA & WPA2 Personal'**
+  String get wpa2Personal;
+
+  /// No description provided for @wpa3Personal.
+  ///
+  /// In en, this message translates to:
+  /// **'WPA3 Personal'**
+  String get wpa3Personal;
+
+  /// No description provided for @wpaEnterprise.
+  ///
+  /// In en, this message translates to:
+  /// **'WPA & WPA2 Enterprise'**
+  String get wpaEnterprise;
+
+  /// No description provided for @leap.
+  ///
+  /// In en, this message translates to:
+  /// **'LEAP'**
+  String get leap;
+
+  /// No description provided for @enhancedOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Enhanced Open'**
+  String get enhancedOpen;
+
+  /// No description provided for @peap.
+  ///
+  /// In en, this message translates to:
+  /// **'PEAP'**
+  String get peap;
+
+  /// No description provided for @tls.
+  ///
+  /// In en, this message translates to:
+  /// **'TLS'**
+  String get tls;
+
+  /// No description provided for @ttls.
+  ///
+  /// In en, this message translates to:
+  /// **'TTLS'**
+  String get ttls;
+
+  /// No description provided for @pwd.
+  ///
+  /// In en, this message translates to:
+  /// **'PWD'**
+  String get pwd;
+
+  /// No description provided for @version0.
+  ///
+  /// In en, this message translates to:
+  /// **'Version 0'**
+  String get version0;
+
+  /// No description provided for @version1.
+  ///
+  /// In en, this message translates to:
+  /// **'Version 1'**
+  String get version1;
+
+  /// No description provided for @pap.
+  ///
+  /// In en, this message translates to:
+  /// **'PAP'**
+  String get pap;
+
+  /// No description provided for @chap.
+  ///
+  /// In en, this message translates to:
+  /// **'CHAP'**
+  String get chap;
+
+  /// No description provided for @mschap.
+  ///
+  /// In en, this message translates to:
+  /// **'MSCHAP'**
+  String get mschap;
+
+  /// No description provided for @mschapv2.
+  ///
+  /// In en, this message translates to:
+  /// **'MSCHAPv2'**
+  String get mschapv2;
+
+  /// No description provided for @mschapv2NoEap.
+  ///
+  /// In en, this message translates to:
+  /// **'MSCHAPv2 (No EAP)'**
+  String get mschapv2NoEap;
+
+  /// No description provided for @md5.
+  ///
+  /// In en, this message translates to:
+  /// **'MD5'**
+  String get md5;
+
+  /// No description provided for @gtc.
+  ///
+  /// In en, this message translates to:
+  /// **'GTC'**
+  String get gtc;
+
+  /// No description provided for @peapVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'PEAP Version'**
+  String get peapVersion;
+
+  /// No description provided for @anonymousIdentity.
+  ///
+  /// In en, this message translates to:
+  /// **'Anonymous Identity'**
+  String get anonymousIdentity;
+
+  /// No description provided for @domain.
+  ///
+  /// In en, this message translates to:
+  /// **'Domain'**
+  String get domain;
 
   /// No description provided for @fixed.
   ///
@@ -460,60 +622,6 @@ abstract class AppLocalizations {
   /// **'No saved networks'**
   String get noSavedNetwork;
 
-  /// No description provided for @proxyUrl.
-  ///
-  /// In en, this message translates to:
-  /// **'URL'**
-  String get proxyUrl;
-
-  /// No description provided for @proxyEnterUrl.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter url'**
-  String get proxyEnterUrl;
-
-  /// No description provided for @proxyServer.
-  ///
-  /// In en, this message translates to:
-  /// **'Server'**
-  String get proxyServer;
-
-  /// No description provided for @proxyEnterServer.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter server'**
-  String get proxyEnterServer;
-
-  /// No description provided for @proxyPort.
-  ///
-  /// In en, this message translates to:
-  /// **'Port'**
-  String get proxyPort;
-
-  /// No description provided for @proxyEnterPort.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter port'**
-  String get proxyEnterPort;
-
-  /// No description provided for @proxyAuthentication.
-  ///
-  /// In en, this message translates to:
-  /// **'Authentication'**
-  String get proxyAuthentication;
-
-  /// No description provided for @proxyUsername.
-  ///
-  /// In en, this message translates to:
-  /// **'Username'**
-  String get proxyUsername;
-
-  /// No description provided for @proxyPassword.
-  ///
-  /// In en, this message translates to:
-  /// **'Password'**
-  String get proxyPassword;
-
   /// No description provided for @dnsServers.
   ///
   /// In en, this message translates to:
@@ -537,6 +645,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'domain.com'**
   String get addDomainsHintText;
+
+  /// Shown when the IP address format is invalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid IPv4 address.'**
+  String get invalidIpAddress;
+
+  /// No description provided for @unspecifiedIpAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'0.0.0.0 is not a valid host IP address.'**
+  String get unspecifiedIpAddress;
+
+  /// No description provided for @loopbackIpAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Loopback addresses (127.x.x.x) cannot be used.'**
+  String get loopbackIpAddress;
+
+  /// No description provided for @multicastIpAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Multicast addresses cannot be assigned to a host.'**
+  String get multicastIpAddress;
+
+  /// Shown when the subnet mask format is invalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid subnet mask.'**
+  String get invalidSubnetMask;
+
+  /// Shown when the subnet prefix cannot be parsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid subnet prefix.'**
+  String get invalidSubnetPrefix;
+
+  /// Shown when the subnet prefix is outside the supported range.
+  ///
+  /// In en, this message translates to:
+  /// **'Subnet prefix must be between 1 and 30.'**
+  String get invalidSubnetPrefixRange;
+
+  /// Shown when the entered IP address is the network address.
+  ///
+  /// In en, this message translates to:
+  /// **'The IP address cannot be the network address.'**
+  String get networkAddressNotAllowed;
+
+  /// Shown when the entered IP address is the broadcast address.
+  ///
+  /// In en, this message translates to:
+  /// **'The IP address cannot be the broadcast address.'**
+  String get broadcastAddressNotAllowed;
+
+  /// Shown when the gateway format is invalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid gateway address.'**
+  String get invalidGateway;
+
+  /// Shown when the gateway is outside the subnet.
+  ///
+  /// In en, this message translates to:
+  /// **'The gateway must be in the same subnet as the IP address.'**
+  String get gatewayDifferentSubnet;
+
+  /// Shown when the gateway equals the IP address.
+  ///
+  /// In en, this message translates to:
+  /// **'The gateway cannot be the same as the IP address.'**
+  String get gatewaySameAsIp;
 
   /// No description provided for @myDevices.
   ///
@@ -663,6 +843,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Pair'**
   String get pair;
+
+  /// No description provided for @fieldRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'This field is required'**
+  String get fieldRequired;
+
+  /// No description provided for @networkNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Network name is required'**
+  String get networkNameRequired;
+
+  /// No description provided for @identityRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Identity is required'**
+  String get identityRequired;
+
+  /// No description provided for @passwordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Password is required'**
+  String get passwordRequired;
+
+  /// No description provided for @domainRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Domain is required'**
+  String get domainRequired;
+
+  /// No description provided for @caCertificateRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'CA certificate is required'**
+  String get caCertificateRequired;
+
+  /// No description provided for @userCertificateRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'User certificate is required'**
+  String get userCertificateRequired;
+
+  /// No description provided for @privateKeyRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Private key is required'**
+  String get privateKeyRequired;
+
+  /// No description provided for @invalidDomain.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid domain name'**
+  String get invalidDomain;
+
+  /// No description provided for @connectionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to connect to network'**
+  String get connectionFailed;
+
+  /// No description provided for @connectionFailedWithNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to connect to {networkName}'**
+  String connectionFailedWithNetwork(String networkName);
+
+  /// No description provided for @addNetworkFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to add network'**
+  String get addNetworkFailed;
+
+  /// No description provided for @addNetworkFailedWithNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to add network {networkName}'**
+  String addNetworkFailedWithNetwork(String networkName);
+
+  /// No description provided for @unknownError.
+  ///
+  /// In en, this message translates to:
+  /// **'An unknown error occurred'**
+  String get unknownError;
 }
 
 class _AppLocalizationsDelegate

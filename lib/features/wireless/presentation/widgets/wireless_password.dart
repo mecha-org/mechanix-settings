@@ -115,7 +115,7 @@ class _WirelessPasswordBottomSheetState
               Text(l10n.security, style: Theme.of(context).textTheme.bodyLarge),
               const Spacer(),
               Text(
-                l10n.securityWpa2Wpa3,
+                l10n.wpa2Personal,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ],

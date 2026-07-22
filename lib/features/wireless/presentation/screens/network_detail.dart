@@ -28,16 +28,17 @@ class _NetworkDetailScreenState extends State<NetworkDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<WirelessBloc, WirelessState>(
-      builder: (context, state) {
-        final network = state.savedNetworks.firstWhere(
+    return BlocSelector<WirelessBloc, WirelessState, WifiNetwork>(
+      selector: (state) {
+        return state.savedNetworks.firstWhere(
           (n) => n.name == widget.networkName,
           orElse: () => state.availableNetworks.firstWhere(
             (n) => n.name == widget.networkName,
             orElse: () => WifiNetwork(name: widget.networkName),
           ),
         );
-
+      },
+      builder: (context, network) {
         return Scaffold(
           appBar: NetworkDetailsAppBar(
             networkName: widget.networkName,
@@ -82,19 +83,12 @@ class _NetworkDetailScreenState extends State<NetworkDetailScreen> {
   }
 }
 
-void connectToNetwork(BuildContext context, WifiNetwork network) async {
+void connectToNetwork(BuildContext context, WifiNetwork network) {
   final bloc = context.read<WirelessBloc>();
 
   if (bloc.state.connectedNetworkName == network.name) {
     return;
   }
 
-  String? password;
-
-  if (network.isSecured) {
-    // Use the saved password for known networks.
-    password = network.password;
-  }
-
-  bloc.add(ConnectToNetworkEvent(network.name, password));
+  bloc.add(ConnectToNetworkEvent(network.name, null));
 }

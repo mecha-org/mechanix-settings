@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mechanix_settings/features/wireless/blocs/wireless_bloc.dart';
+import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
 import 'package:mechanix_settings/features/wireless/presentation/widgets/manage_network/saved_network_tile.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
 
@@ -16,10 +17,9 @@ class ManageNetworksBody extends StatelessWidget {
         dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.mouse},
       ),
       child: SingleChildScrollView(
-        child: BlocBuilder<WirelessBloc, WirelessState>(
-          builder: (context, state) {
-            final networks = state.savedNetworks;
-
+        child: BlocSelector<WirelessBloc, WirelessState, List<WifiNetwork>>(
+          selector: (state) => state.savedNetworks,
+          builder: (context, networks) {
             if (networks.isEmpty) {
               return Padding(
                 padding: const EdgeInsets.all(24),

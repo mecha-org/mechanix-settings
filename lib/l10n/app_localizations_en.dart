@@ -86,9 +86,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get lowDataMode => 'Low Data mode';
 
   @override
-  String get limitIpAddressTracking => 'Limit IP Address Tracking';
-
-  @override
   String get ipv4Address => 'IPv4 Address';
 
   @override
@@ -99,12 +96,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get configureDns => 'Configure DNS';
-
-  @override
-  String get httpProxy => 'HTTP Proxy';
-
-  @override
-  String get configureProxy => 'Configure Proxy';
 
   @override
   String get automatic => 'Automatic';
@@ -158,25 +149,115 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enterPassword => 'Enter password';
 
   @override
+  String get eapMethod => 'Authentication';
+
+  @override
+  String get phase2Authentication => 'Inner authentication';
+
+  @override
+  String get identity => 'Identity';
+
+  @override
+  String get certificate => 'Certificate';
+
+  @override
+  String get caCertificate => 'CA certificate';
+
+  @override
+  String get caCertificatePassword => 'CA certificate password';
+
+  @override
+  String get noCaCertificate => 'No CA certificate is required';
+
+  @override
+  String get userCertificate => 'User certificate';
+
+  @override
+  String get userCertificatePassword => 'User certificate password';
+
+  @override
+  String get privateKey => 'User private key';
+
+  @override
+  String get privateKeyPassword => 'User key password';
+
+  @override
+  String get selectFromFile => 'Select from file';
+
+  @override
+  String get networkName => 'Network name';
+
+  @override
   String get security => 'Security';
 
   @override
-  String get securityNone => 'None';
+  String get wep => 'WEP';
 
   @override
-  String get securityWpa2Wpa3 => 'WPA2 / WPA3';
+  String get wpaPersonal => 'WPA Personal';
 
   @override
-  String get securityWpa3 => 'WPA3';
+  String get wpa2Personal => 'WPA & WPA2 Personal';
 
   @override
-  String get securityWpa => 'WPA';
+  String get wpa3Personal => 'WPA3 Personal';
 
   @override
-  String get securityWpa2Enterprise => 'WPA2 Enterprise';
+  String get wpaEnterprise => 'WPA & WPA2 Enterprise';
 
   @override
-  String get securityWep => 'WEP';
+  String get leap => 'LEAP';
+
+  @override
+  String get enhancedOpen => 'Enhanced Open';
+
+  @override
+  String get peap => 'PEAP';
+
+  @override
+  String get tls => 'TLS';
+
+  @override
+  String get ttls => 'TTLS';
+
+  @override
+  String get pwd => 'PWD';
+
+  @override
+  String get version0 => 'Version 0';
+
+  @override
+  String get version1 => 'Version 1';
+
+  @override
+  String get pap => 'PAP';
+
+  @override
+  String get chap => 'CHAP';
+
+  @override
+  String get mschap => 'MSCHAP';
+
+  @override
+  String get mschapv2 => 'MSCHAPv2';
+
+  @override
+  String get mschapv2NoEap => 'MSCHAPv2 (No EAP)';
+
+  @override
+  String get md5 => 'MD5';
+
+  @override
+  String get gtc => 'GTC';
+
+  @override
+  String get peapVersion => 'PEAP Version';
+
+  @override
+  String get anonymousIdentity => 'Anonymous Identity';
+
+  @override
+  String get domain => 'Domain';
 
   @override
   String get fixed => 'Fixed';
@@ -194,33 +275,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noSavedNetwork => 'No saved networks';
 
   @override
-  String get proxyUrl => 'URL';
-
-  @override
-  String get proxyEnterUrl => 'Enter url';
-
-  @override
-  String get proxyServer => 'Server';
-
-  @override
-  String get proxyEnterServer => 'Enter server';
-
-  @override
-  String get proxyPort => 'Port';
-
-  @override
-  String get proxyEnterPort => 'Enter port';
-
-  @override
-  String get proxyAuthentication => 'Authentication';
-
-  @override
-  String get proxyUsername => 'Username';
-
-  @override
-  String get proxyPassword => 'Password';
-
-  @override
   String get dnsServers => 'DNS Servers';
 
   @override
@@ -231,6 +285,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get addDomainsHintText => 'domain.com';
+
+  @override
+  String get invalidIpAddress => 'Enter a valid IPv4 address.';
+
+  @override
+  String get unspecifiedIpAddress => '0.0.0.0 is not a valid host IP address.';
+
+  @override
+  String get loopbackIpAddress =>
+      'Loopback addresses (127.x.x.x) cannot be used.';
+
+  @override
+  String get multicastIpAddress =>
+      'Multicast addresses cannot be assigned to a host.';
+
+  @override
+  String get invalidSubnetMask => 'Enter a valid subnet mask.';
+
+  @override
+  String get invalidSubnetPrefix => 'Enter a valid subnet prefix.';
+
+  @override
+  String get invalidSubnetPrefixRange =>
+      'Subnet prefix must be between 1 and 30.';
+
+  @override
+  String get networkAddressNotAllowed =>
+      'The IP address cannot be the network address.';
+
+  @override
+  String get broadcastAddressNotAllowed =>
+      'The IP address cannot be the broadcast address.';
+
+  @override
+  String get invalidGateway => 'Enter a valid gateway address.';
+
+  @override
+  String get gatewayDifferentSubnet =>
+      'The gateway must be in the same subnet as the IP address.';
+
+  @override
+  String get gatewaySameAsIp =>
+      'The gateway cannot be the same as the IP address.';
 
   @override
   String get myDevices => 'My devices';
@@ -294,4 +391,50 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pair => 'Pair';
+
+  @override
+  String get fieldRequired => 'This field is required';
+
+  @override
+  String get networkNameRequired => 'Network name is required';
+
+  @override
+  String get identityRequired => 'Identity is required';
+
+  @override
+  String get passwordRequired => 'Password is required';
+
+  @override
+  String get domainRequired => 'Domain is required';
+
+  @override
+  String get caCertificateRequired => 'CA certificate is required';
+
+  @override
+  String get userCertificateRequired => 'User certificate is required';
+
+  @override
+  String get privateKeyRequired => 'Private key is required';
+
+  @override
+  String get invalidDomain => 'Enter a valid domain name';
+
+  @override
+  String get connectionFailed => 'Failed to connect to network';
+
+  @override
+  String connectionFailedWithNetwork(String networkName) {
+    return 'Failed to connect to $networkName';
+  }
+
+  @override
+  String get addNetworkFailed => 'Failed to add network';
+
+  @override
+  String addNetworkFailedWithNetwork(String networkName) {
+    return 'Failed to add network $networkName';
+  }
+
+  @override
+  String get unknownError => 'An unknown error occurred';
 }

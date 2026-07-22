@@ -4,6 +4,7 @@ import 'package:mechanix_settings/core/widgets/bottom_bar/bottom_bar.dart';
 import 'package:mechanix_settings/core/widgets/custom_icon_button.dart';
 import 'package:mechanix_settings/core/constants/icons.dart';
 import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
+import 'package:mechanix_settings/features/wireless/data/utils/ip_validation_utils.dart';
 import 'package:mechanix_settings/features/wireless/presentation/widgets/dns/dns_app_bar.dart';
 import 'package:mechanix_settings/features/wireless/presentation/widgets/dns/dns_body.dart';
 
@@ -39,12 +40,7 @@ class _DNSScreenState extends State<DNSScreen> {
 
     // Load initial servers
     final initialServers = List<String>.from(widget.servers);
-    final displayServers = initialServers.isEmpty
-        ? [
-            '192.168.29.187',
-            '2405:201:2029:f84b:c3d:dbdf:fe9f',
-          ] //TODO : update later, test data
-        : initialServers;
+    final displayServers = initialServers.isNotEmpty ? initialServers : [];
 
     for (final server in displayServers) {
       _addServerController(server);
@@ -53,13 +49,7 @@ class _DNSScreenState extends State<DNSScreen> {
 
     // Load initial search domains
     final initialDomains = List<String>.from(widget.network.dnsSearchDomains);
-    //TODO : update later, test data
-    final displayDomains =
-        initialDomains.isEmpty &&
-            (widget.network.name.toLowerCase() == 'office wifi 2' ||
-                widget.network.name.toLowerCase() == 'office wifi 2')
-        ? ['somedomain.com']
-        : initialDomains;
+    final displayDomains = initialDomains.isNotEmpty ? initialDomains : [];
 
     for (final domain in displayDomains) {
       _addDomainController(domain);
@@ -174,6 +164,23 @@ class _DNSScreenState extends State<DNSScreen> {
         .where((text) => text.isNotEmpty)
         .toList();
 
+    if (_configType == DNSConfigType.manual) {
+      if (servers.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enter at least one DNS Server')),
+        );
+        return;
+      }
+      if (!IpValidationUtils.isValidDnsList(servers)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Invalid DNS Server(s) or duplicate entries'),
+          ),
+        );
+        return;
+      }
+    }
+
     widget.onSaved({
       'config': _configType,
       'servers': servers,
@@ -206,12 +213,7 @@ class _DNSScreenState extends State<DNSScreen> {
             _configType = value;
           });
         },
-        autoServers: widget.servers.isEmpty
-            ? [
-                '192.168.29.187',
-                '2405:201:2026:18db:c0a8:1d01',
-              ] //TODO : update later, test data
-            : widget.servers,
+        autoServers: widget.servers.isNotEmpty ? widget.servers : [],
         serverControllers: _serverControllers,
         domainControllers: _domainControllers,
         onAddServer: () {
@@ -235,15 +237,13 @@ class _DNSScreenState extends State<DNSScreen> {
             Navigator.of(context).pop();
           },
         ),
-        trailing: _configType == DNSConfigType.automatic
-            ? []
-            : [
-                CustomIconButton.asset(
-                  assetPath: SettingIcons.check,
-                  enabled: true,
-                  onPressed: _saveAndPop,
-                ),
-              ],
+        trailing: [
+          CustomIconButton.asset(
+            assetPath: SettingIcons.check,
+            enabled: true,
+            onPressed: _saveAndPop,
+          ),
+        ],
       ),
     );
   }

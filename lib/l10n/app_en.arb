@@ -32,13 +32,10 @@
   "autoJoin": "Auto join",
   "password": "Password",
   "lowDataMode": "Low Data mode",
-  "limitIpAddressTracking": "Limit IP Address Tracking",
   "ipv4Address": "IPv4 Address",
   "configureIp": "Configure IP",
   "dns": "DNS",
   "configureDns": "Configure DNS",
-  "httpProxy": "HTTP Proxy",
-  "configureProxy": "Configure Proxy",
   "automatic": "Automatic",
   "automaticDhcp": "Automatic (DHCP)",
   "manual": "Manual",
@@ -57,32 +54,111 @@
   "off": "Off",
   "enterPassword": "Enter password",
 
+  "eapMethod": "Authentication",
+  "phase2Authentication": "Inner authentication",
+  "identity": "Identity",
+
+  "certificate": "Certificate",
+  "caCertificate": "CA certificate",
+  "caCertificatePassword": "CA certificate password",
+  "noCaCertificate": "No CA certificate is required",
+
+
+  "userCertificate": "User certificate",
+  "userCertificatePassword" : "User certificate password",
+  "privateKey": "User private key",
+  "privateKeyPassword": "User key password",
+
+  "selectFromFile": "Select from file",
+  "networkName" : "Network name",
+
   "security": "Security",
-  "securityNone": "None",
-  "securityWpa2Wpa3": "WPA2 / WPA3",
-  "securityWpa3": "WPA3",
-  "securityWpa": "WPA",
-  "securityWpa2Enterprise": "WPA2 Enterprise",
-  "securityWep": "WEP",
+  "wep": "WEP",
+  "wpaPersonal": "WPA Personal",
+  "wpa2Personal": "WPA & WPA2 Personal",
+  "wpa3Personal": "WPA3 Personal",
+  "wpaEnterprise": "WPA & WPA2 Enterprise",
+  "leap": "LEAP",
+  "enhancedOpen": "Enhanced Open",
+  
+  "peap": "PEAP",
+  "tls": "TLS",
+  "ttls": "TTLS",
+  "pwd": "PWD",
+
+  "version0": "Version 0",
+  "version1": "Version 1",
+
+  "pap": "PAP",
+  "chap": "CHAP",
+  "mschap": "MSCHAP",
+  "mschapv2": "MSCHAPv2",
+  "mschapv2NoEap": "MSCHAPv2 (No EAP)",
+  "md5": "MD5",
+  "gtc": "GTC",
+
+  "peapVersion" : "PEAP Version",
+  "anonymousIdentity" : "Anonymous Identity",
+  "domain" : "Domain",
 
   "fixed": "Fixed",
   "randomized": "Randomized",
   "connect" : "Connect",
   "forget" : "Forget",
   "noSavedNetwork" : "No saved networks",
-  "proxyUrl": "URL",
-  "proxyEnterUrl": "Enter url",
-  "proxyServer": "Server",
-  "proxyEnterServer": "Enter server",
-  "proxyPort": "Port",
-  "proxyEnterPort": "Enter port",
-  "proxyAuthentication": "Authentication",
-  "proxyUsername": "Username",
-  "proxyPassword": "Password",
   "dnsServers": "DNS Servers",
   "searchDomains": "Search Domains",
   "addServer": "Add Server",
   "addDomainsHintText": "domain.com",
+  "invalidIpAddress": "Enter a valid IPv4 address.",
+  "@invalidIpAddress": {
+    "description": "Shown when the IP address format is invalid."
+  },
+
+  "unspecifiedIpAddress": "0.0.0.0 is not a valid host IP address.",
+  "loopbackIpAddress": "Loopback addresses (127.x.x.x) cannot be used.",
+  "multicastIpAddress": "Multicast addresses cannot be assigned to a host.",
+
+  "invalidSubnetMask": "Enter a valid subnet mask.",
+  "@invalidSubnetMask": {
+    "description": "Shown when the subnet mask format is invalid."
+  },
+
+  "invalidSubnetPrefix": "Enter a valid subnet prefix.",
+  "@invalidSubnetPrefix": {
+    "description": "Shown when the subnet prefix cannot be parsed."
+  },
+
+  "invalidSubnetPrefixRange": "Subnet prefix must be between 1 and 30.",
+  "@invalidSubnetPrefixRange": {
+    "description": "Shown when the subnet prefix is outside the supported range."
+  },
+
+  "networkAddressNotAllowed": "The IP address cannot be the network address.",
+  "@networkAddressNotAllowed": {
+    "description": "Shown when the entered IP address is the network address."
+  },
+
+  "broadcastAddressNotAllowed": "The IP address cannot be the broadcast address.",
+  "@broadcastAddressNotAllowed": {
+    "description": "Shown when the entered IP address is the broadcast address."
+  },
+
+  "invalidGateway": "Enter a valid gateway address.",
+  "@invalidGateway": {
+    "description": "Shown when the gateway format is invalid."
+  },
+
+  "gatewayDifferentSubnet": "The gateway must be in the same subnet as the IP address.",
+  "@gatewayDifferentSubnet": {
+    "description": "Shown when the gateway is outside the subnet."
+  },
+
+  "gatewaySameAsIp": "The gateway cannot be the same as the IP address.",
+  "@gatewaySameAsIp": {
+    "description": "Shown when the gateway equals the IP address."
+  },
+
 
   "myDevices": "My devices",
   "otherDevices": "Other devices",
@@ -105,5 +181,34 @@
   "computer":"Computer",
   "tv":"TV",
   "cancel": "Cancel",
-  "pair": "Pair"
+  "pair": "Pair",
+
+  "fieldRequired": "This field is required",
+  "networkNameRequired": "Network name is required",
+  "identityRequired": "Identity is required",
+  "passwordRequired": "Password is required",
+  "domainRequired": "Domain is required",
+  "caCertificateRequired": "CA certificate is required",
+  "userCertificateRequired": "User certificate is required",
+  "privateKeyRequired": "Private key is required",
+  "invalidDomain": "Enter a valid domain name",
+  "connectionFailed": "Failed to connect to network",
+  "connectionFailedWithNetwork": "Failed to connect to {networkName}",
+  "@connectionFailedWithNetwork": {
+    "placeholders": {
+      "networkName": {
+        "type": "String"
+      }
+    }
+  },
+  "addNetworkFailed": "Failed to add network",
+  "addNetworkFailedWithNetwork": "Failed to add network {networkName}",
+  "@addNetworkFailedWithNetwork": {
+    "placeholders": {
+      "networkName": {
+        "type": "String"
+      }
+    }
+  },
+  "unknownError": "An unknown error occurred"
 }
