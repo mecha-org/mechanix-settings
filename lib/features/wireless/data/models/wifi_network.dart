@@ -7,6 +7,8 @@ class WifiNetwork extends Equatable {
 
   final int signalLevel;
   final bool isSecured;
+  final WirelessSecurity security;
+  final EnterpriseEapMethod? eapMethod;
   final bool isConnected;
   final bool isConnecting;
   final bool autoJoin;
@@ -24,20 +26,15 @@ class WifiNetwork extends Equatable {
   final List<String> dnsServers;
   final List<String> dnsSearchDomains;
 
-  final ProxyType proxyConfigType;
-  final String proxyUrl;
-  final String proxyServer;
-  final String proxyPort;
-  final bool proxyUseAuth;
-  final String proxyUsername;
-  final String proxyPassword;
   final String wirelessAddress;
 
   const WifiNetwork({
     required this.name,
-    this.password = 'test123',
+    this.password = '',
     this.signalLevel = 3,
     this.isSecured = true,
+    this.security = WirelessSecurity.none,
+    this.eapMethod,
     this.isConnected = false,
     this.isConnecting = false,
     this.autoJoin = true,
@@ -45,23 +42,13 @@ class WifiNetwork extends Equatable {
     this.limitIpAddressTracking = true,
     this.privateAddressType = PrivateAddressType.staticAddress,
     this.ipConfigType = IPv4ConfigType.automatic,
-    this.ipAddress = "192.168.29.187",
-    this.subnetMask = "255.255.255.0",
-    this.router = "192.168.29.1",
+    this.ipAddress = "",
+    this.subnetMask = "",
+    this.router = "",
     this.dnsConfigType = DNSConfigType.automatic,
-    this.dnsServers = const [
-      "192.168.29.187",
-      "2405:201:2029:f84b:c3d:dbdf:fe9f",
-    ],
+    this.dnsServers = const [],
     this.dnsSearchDomains = const [],
-    this.proxyConfigType = ProxyType.off,
-    this.proxyUrl = '',
-    this.proxyServer = '',
-    this.proxyPort = '',
-    this.proxyUseAuth = false,
-    this.proxyUsername = '',
-    this.proxyPassword = '',
-    this.wirelessAddress = "62:C5:7D:EB:85:66",
+    this.wirelessAddress = "",
   });
 
   // Computed signal type
@@ -73,6 +60,8 @@ class WifiNetwork extends Equatable {
     String? password,
     int? signalLevel,
     bool? isSecured,
+    WirelessSecurity? security,
+    EnterpriseEapMethod? eapMethod,
     bool? isConnected,
     bool? isConnecting,
     bool? autoJoin,
@@ -87,13 +76,6 @@ class WifiNetwork extends Equatable {
     DNSConfigType? dnsConfigType,
     List<String>? dnsServers,
     List<String>? dnsSearchDomains,
-    ProxyType? proxyConfigType,
-    String? proxyUrl,
-    String? proxyServer,
-    String? proxyPort,
-    bool? proxyUseAuth,
-    String? proxyUsername,
-    String? proxyPassword,
     String? wirelessAddress,
   }) {
     return WifiNetwork(
@@ -102,6 +84,8 @@ class WifiNetwork extends Equatable {
 
       signalLevel: signalLevel ?? this.signalLevel,
       isSecured: isSecured ?? this.isSecured,
+      security: security ?? this.security,
+      eapMethod: eapMethod ?? this.eapMethod,
       isConnected: isConnected ?? this.isConnected,
       isConnecting: isConnecting ?? this.isConnecting,
       autoJoin: autoJoin ?? this.autoJoin,
@@ -116,13 +100,6 @@ class WifiNetwork extends Equatable {
       dnsConfigType: dnsConfigType ?? this.dnsConfigType,
       dnsServers: dnsServers ?? this.dnsServers,
       dnsSearchDomains: dnsSearchDomains ?? this.dnsSearchDomains,
-      proxyConfigType: proxyConfigType ?? this.proxyConfigType,
-      proxyUrl: proxyUrl ?? this.proxyUrl,
-      proxyServer: proxyServer ?? this.proxyServer,
-      proxyPort: proxyPort ?? this.proxyPort,
-      proxyUseAuth: proxyUseAuth ?? this.proxyUseAuth,
-      proxyUsername: proxyUsername ?? this.proxyUsername,
-      proxyPassword: proxyPassword ?? this.proxyPassword,
       wirelessAddress: wirelessAddress ?? this.wirelessAddress,
     );
   }
@@ -133,6 +110,8 @@ class WifiNetwork extends Equatable {
     password,
     signalLevel,
     isSecured,
+    security,
+    eapMethod,
     isConnected,
     isConnecting,
     autoJoin,
@@ -146,13 +125,6 @@ class WifiNetwork extends Equatable {
     dnsConfigType,
     dnsServers,
     dnsSearchDomains,
-    proxyConfigType,
-    proxyUrl,
-    proxyServer,
-    proxyPort,
-    proxyUseAuth,
-    proxyUsername,
-    proxyPassword,
     wirelessAddress,
   ];
 }

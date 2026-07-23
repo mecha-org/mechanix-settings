@@ -31,6 +31,8 @@ class BluetoothDeviceListItem extends StatelessWidget {
                 child: Text(
                   device.name,
                   style: Theme.of(context).textTheme.bodyLarge,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
               ),
 

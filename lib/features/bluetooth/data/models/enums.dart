@@ -1,1 +1,9 @@
-enum BluetoothDeviceType { mobile, speaker, other }
+enum BluetoothDeviceType {
+  speaker,
+  headphones,
+  mobile,
+  computer,
+  tv,
+  car,
+  unknown,
+}

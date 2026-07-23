@@ -17,7 +17,7 @@ class BluetoothDevice extends Equatable {
     this.isConnected = false,
     this.isConnecting = false,
     this.isSaved = false,
-    this.macAddress = '00:11:22:33:44:55',
+    this.macAddress = '',
   });
 
   BluetoothDevice copyWith({

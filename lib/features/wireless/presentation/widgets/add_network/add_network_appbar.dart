@@ -1,18 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:mechanix_settings/core/widgets/breadcrumbs.dart';
 import 'package:mechanix_settings/core/widgets/custom_divider.dart';
-import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
 
-class ProxyAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final WifiNetwork network;
-  final ScrollController scrollController;
+class AddNetworkAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final ScrollController breadcrumbController;
 
-  const ProxyAppBar({
-    super.key,
-    required this.network,
-    required this.scrollController,
-  });
+  const AddNetworkAppBar({super.key, required this.breadcrumbController});
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +18,7 @@ class ProxyAppBar extends StatelessWidget implements PreferredSizeWidget {
       backgroundColor: Colors.transparent,
       automaticallyImplyLeading: false,
       title: AppBreadcrumbs(
-        scrollController: scrollController,
+        scrollController: breadcrumbController,
         items: [
           BreadcrumbItem(
             label: l10n.settings,
@@ -35,17 +29,10 @@ class ProxyAppBar extends StatelessWidget implements PreferredSizeWidget {
           BreadcrumbItem(
             label: l10n.wireless,
             onTap: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
+              Navigator.pop(context);
             },
           ),
-          BreadcrumbItem(
-            label: network.name,
-            onTap: () {
-              Navigator.of(context).pop();
-            },
-          ),
-          BreadcrumbItem(label: l10n.httpProxy),
+          BreadcrumbItem(label: l10n.addWireless),
         ],
       ),
       bottom: const PreferredSize(

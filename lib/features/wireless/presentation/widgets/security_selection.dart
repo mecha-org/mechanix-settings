@@ -68,7 +68,7 @@ class _SecuritySelectionScreenState extends State<SecuritySelectionScreen> {
               value: security,
               activeColor: AppColors.onSurface,
               title: Text(
-                security.localizedLabel(AppLocalizations.of(context)!),
+                security.label(AppLocalizations.of(context)!),
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
             );

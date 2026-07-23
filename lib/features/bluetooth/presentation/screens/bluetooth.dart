@@ -6,6 +6,7 @@ import 'package:mechanix_settings/core/constants/icons.dart';
 import 'package:mechanix_settings/features/bluetooth/blocs/bluetooth_bloc.dart';
 import 'package:mechanix_settings/features/bluetooth/presentation/widgets/bluetooth/bluetooth_body.dart';
 import 'package:mechanix_settings/features/bluetooth/presentation/widgets/bluetooth/bluetooth_app_bar.dart';
+import 'package:mechanix_settings/l10n/app_localizations.dart';
 
 class BluetoothScreen extends StatefulWidget {
   const BluetoothScreen({super.key});
@@ -29,7 +30,47 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
       builder: (context, state) {
         return Scaffold(
           appBar: BluetoothAppBar(breadcrumbController: _breadcrumbController),
-          body: const BluetoothBody(),
+          body: BlocListener<BluetoothBloc, BluetoothState>(
+            listenWhen: (previous, current) =>
+                current.error != null && previous.error != current.error,
+            listener: (context, state) {
+              if (state.error != null) {
+                final failure = state.error!;
+                final l10n = AppLocalizations.of(context)!;
+                String message = '';
+
+                final deviceName = failure.data?['deviceName'] as String?;
+
+                switch (failure.type) {
+                  case BluetoothErrorType.connectionFailed:
+                    if (deviceName != null) {
+                      message = l10n.bluetoothConnectionFailedWithName(deviceName);
+                    } else {
+                      message = l10n.bluetoothConnectionFailed;
+                    }
+                    break;
+                  case BluetoothErrorType.pairingFailed:
+                    if (deviceName != null) {
+                      message = l10n.bluetoothPairingFailedWithName(deviceName);
+                    } else {
+                      message = l10n.bluetoothPairingFailed;
+                    }
+                    break;
+                  case BluetoothErrorType.unknown:
+                    message = l10n.unknownError;
+                    break;
+                }
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(message),
+                    backgroundColor: Theme.of(context).colorScheme.error,
+                  ),
+                );
+              }
+            },
+            child: const BluetoothBody(),
+          ),
           bottomNavigationBar: BottomBar(
             leading: CustomIconButton.asset(
               assetPath: SettingIcons.back,
@@ -40,10 +81,10 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
                 ? [
                     CustomIconButton.asset(
                       assetPath: SettingIcons.refresh,
-                      enabled: true,
+                      enabled: !state.isScanning,
                       onPressed: () {
                         context.read<BluetoothBloc>().add(
-                          const ToggleBluetoothPower(true),
+                          const ScanBluetoothDevices(),
                         );
                       },
                     ),

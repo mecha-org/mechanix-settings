@@ -1,118 +1,76 @@
 import 'dart:async';
+import 'package:mechanix_settings/features/wireless/data/models/enterprise_config.dart';
+import 'package:nm/nm.dart';
 import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
+import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
+import 'package:mechanix_settings/features/wireless/data/models/access_points.dart';
+import 'package:mechanix_settings/features/wireless/data/models/saved_networks.dart';
 
-class WirelessRepository {
-  // TODO : Remove later
-  // Test data
-  final List<WifiNetwork> _savedNetworks = [
-    const WifiNetwork(
-      name: 'office wifi 1',
-      signalLevel: 3,
-      isSecured: true,
-      isConnected: false,
-    ),
-    const WifiNetwork(
-      name: 'office wifi 2',
-      signalLevel: 2,
-      isSecured: true,
-      isConnected: false,
-    ),
-  ];
+abstract class WirelessRepository {
+  Future<void> init();
 
-  final List<WifiNetwork> _availableNetworks = [
-    const WifiNetwork(
-      name: 'New Office wifi 1',
-      signalLevel: 3,
-      isSecured: true,
-      isConnected: false,
-    ),
-  ];
+  Future<bool> isWirelessEnabled();
 
-  Future<List<WifiNetwork>> getSavedNetworks() async {
-    // Return a copy of the list
-    return List.from(_savedNetworks);
-  }
+  Future<void> setWifiEnabled(bool enable);
 
-  Future<List<WifiNetwork>> getAvailableNetworks() async {
-    return List.from(_availableNetworks);
-  }
+  Future<NetworkManagerDevice?> getWifiDevice();
 
-  Future<void> connectToNetwork(String name, String? password) async {
-    // Simulate connection delay
-    await Future.delayed(const Duration(seconds: 2));
+  Future<List<WifiNetwork>> getSavedNetworks();
 
-    // Reset all networks to disconnected
-    for (int i = 0; i < _savedNetworks.length; i++) {
-      _savedNetworks[i] = _savedNetworks[i].copyWith(
-        isConnected: false,
-        isConnecting: false,
-      );
-    }
-    for (int i = 0; i < _availableNetworks.length; i++) {
-      _availableNetworks[i] = _availableNetworks[i].copyWith(
-        isConnected: false,
-        isConnecting: false,
-      );
-    }
+  Future<List<WifiNetwork>> getAvailableNetworks({
+    bool requestScan = true,
+    List<WifiNetwork>? savedNetworks,
+  });
 
-    // Check if network is in my networks
-    int myIndex = _savedNetworks.indexWhere((n) => n.name == name);
-    if (myIndex != -1) {
-      _savedNetworks[myIndex] = _savedNetworks[myIndex].copyWith(
-        isConnected: true,
-        isConnecting: false,
-      );
-      return;
-    }
+  Future<void> connectToNetwork(
+    String name,
+    String? password, {
+    EnterpriseConfig? enterpriseConfig,
+  });
+  Future<void> addNetwork(
+    String name,
+    WirelessSecurity security,
+    EnterpriseConfig? enterpriseConfig,
+  );
+  Future<void> updateNetwork(WifiNetwork updatedNetwork);
 
-    // Check if network is in available networks. If so, move to my networks.
-    int availIndex = _availableNetworks.indexWhere((n) => n.name == name);
-    if (availIndex != -1) {
-      final network = _availableNetworks[availIndex];
-      _availableNetworks.removeAt(availIndex);
-      _savedNetworks.add(
-        network.copyWith(isConnected: true, isConnecting: false),
-      );
-    }
-  }
+  Future<void> updateIPSettings(
+    WifiNetwork network,
+    IPv4ConfigType ipConfigType,
+    String ipAddress,
+    String subnetMask,
+    String router,
+  );
 
-  Future<void> addNetwork(String name) async {
-    _savedNetworks.add(
-      WifiNetwork(
-        name: name,
-        signalLevel: 3,
-        isSecured: true,
-        isConnected: false,
-      ),
-    );
-  }
+  Future<void> updateDNSSettings(
+    WifiNetwork network,
+    DNSConfigType dnsConfigType,
+    List<String> dnsServers,
+    List<String> dnsSearchDomains,
+  );
 
-  Future<void> updateNetwork(WifiNetwork updatedNetwork) async {
-    int myIndex = _savedNetworks.indexWhere(
-      (n) => n.name == updatedNetwork.name,
-    );
-    if (myIndex != -1) {
-      _savedNetworks[myIndex] = updatedNetwork;
-      return;
-    }
+  Future<void> forgetNetwork(WifiNetwork network);
 
-    int availIndex = _availableNetworks.indexWhere(
-      (n) => n.name == updatedNetwork.name,
-    );
-    if (availIndex != -1) {
-      _availableNetworks[availIndex] = updatedNetwork;
-    }
-  }
+  Future<NetworkManagerSettingsConnection?> getAccessPointConnectionSettings(
+    NetworkManagerDevice device,
+    NetworkManagerAccessPoint accessPoint,
+  );
 
-  Future<void> forgetNetwork(WifiNetwork network) async {
-    final index = _savedNetworks.indexWhere((n) => n.name == network.name);
+  Future<String?> getSavedWifiPsk(
+    NetworkManagerDevice device,
+    NetworkManagerAccessPoint accessPoint,
+  );
 
-    if (index == -1) return;
+  Future<Stream<List<String>>> getWifiEventsStream();
+  Future<Stream<List<String>>> getWirelessDeviceEventsStream();
+  Future<Stream<List<String>>> getDeviceEventsStream();
 
-    final removed = _savedNetworks.removeAt(index);
+  Future<({AccessPoints? active, List<AccessPoints> available})>
+  availableAccessPoints({bool requestScan = true});
 
-    _availableNetworks.add(
-      removed.copyWith(isConnected: false, isConnecting: false),
-    );
-  }
+  Future<List<SavedWirelessNetwork>> getSavedWirelessNetworks();
+
+  Future<NetworkManagerDeviceState?> getWifiDeviceState();
+
+  Future<List<WifiNetwork>> getMyNetworks();
 }

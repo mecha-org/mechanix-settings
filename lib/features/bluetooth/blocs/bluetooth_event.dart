@@ -65,7 +65,9 @@ class ShowPairingCodeEvent extends BluetoothEvent {
 }
 
 class CancelPairingEvent extends BluetoothEvent {
-  const CancelPairingEvent();
+  final BluetoothDevice device;
+
+  const CancelPairingEvent(this.device);
 }
 
 class CompletePairingEvent extends BluetoothEvent {
@@ -84,3 +86,44 @@ class RenameLocalDeviceEvent extends BluetoothEvent {
   List<Object?> get props => [name];
 }
 
+class BluetoothPowerChanged extends BluetoothEvent {
+  final bool isOn;
+  const BluetoothPowerChanged(this.isOn);
+
+  @override
+  List<Object?> get props => [isOn];
+}
+
+class BluetoothScanningChanged extends BluetoothEvent {
+  final bool isScanning;
+  const BluetoothScanningChanged(this.isScanning);
+
+  @override
+  List<Object?> get props => [isScanning];
+}
+
+class BluetoothDevicesUpdated extends BluetoothEvent {
+  final List<BluetoothDevice> devices;
+  const BluetoothDevicesUpdated(this.devices);
+
+  @override
+  List<Object?> get props => [devices];
+}
+
+class ToggleBluetoothDiscoverable extends BluetoothEvent {
+  final bool isDiscoverable;
+  const ToggleBluetoothDiscoverable(this.isDiscoverable);
+
+  @override
+  List<Object?> get props => [isDiscoverable];
+}
+
+class BluetoothDiscoverableChanged extends BluetoothEvent {
+  final bool isDiscoverable;
+  const BluetoothDiscoverableChanged(this.isDiscoverable);
+
+  @override
+  List<Object?> get props => [isDiscoverable];
+}
+
+class RefreshDeviceList extends BluetoothEvent {}

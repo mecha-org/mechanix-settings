@@ -1,16 +1,19 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:mechanix_settings/core/theme/app_theme.dart';
 import 'package:mechanix_settings/core/widgets/custom_divider.dart';
 import 'package:mechanix_settings/core/widgets/custom_toggle.dart';
+
 import 'package:mechanix_settings/features/bluetooth/blocs/bluetooth_bloc.dart';
 import 'package:mechanix_settings/features/bluetooth/data/models/bluetooth_device.dart';
 import 'package:mechanix_settings/features/bluetooth/presentation/screens/bluetooth_device_detail.dart';
 import 'package:mechanix_settings/features/bluetooth/presentation/screens/bluetooth_rename.dart';
 import 'package:mechanix_settings/features/bluetooth/presentation/widgets/bluetooth_device_list_item.dart';
 import 'package:mechanix_settings/features/bluetooth/presentation/widgets/config_row.dart';
-import 'package:mechanix_settings/features/bluetooth/presentation/widgets/connection_sheets.dart';
+
 import 'package:mechanix_settings/features/wireless/presentation/widgets/wireless_settings/settings_section_header.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
 
@@ -22,222 +25,290 @@ class BluetoothBody extends StatefulWidget {
 }
 
 class _BluetoothBodyState extends State<BluetoothBody> {
-  bool _isDialogShowing = false;
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return BlocListener<BluetoothBloc, BluetoothState>(
-      listener: (context, state) {
-        final bloc = context.read<BluetoothBloc>();
-
-        // Handle PIN input sheet
-        if (state.pairingRequestDevice != null && !_isDialogShowing) {
-          _isDialogShowing = true;
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            builder: (_) => PairingPinInputSheet(
-              deviceName: state.pairingRequestDevice!.name,
-              onSubmit: (pin) {
-                bloc.add(CompletePairingEvent(state.pairingRequestDevice!));
-                Navigator.pop(context);
-              },
-              onCancel: () {
-                bloc.add(const CancelPairingEvent());
-                Navigator.pop(context);
-              },
-            ),
-          ).then((_) {
-            _isDialogShowing = false;
-            if (bloc.state.pairingRequestDevice != null) {
-              bloc.add(const CancelPairingEvent());
-            }
-          });
-        }
-
-        // Handle Connection Code Display sheet
-        if (state.pairingCodeDisplayDevice != null && !_isDialogShowing) {
-          _isDialogShowing = true;
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            builder: (_) => ConnectionCodeSheet(
-              deviceName: state.pairingCodeDisplayDevice!.name,
-              code: '445120',
-              onCancel: () {
-                bloc.add(const CancelPairingEvent());
-                Navigator.pop(context);
-              },
-              onPair: () {
-                bloc.add(CompletePairingEvent(state.pairingCodeDisplayDevice!));
-                Navigator.pop(context);
-              },
-            ),
-          ).then((_) {
-            _isDialogShowing = false;
-            if (bloc.state.pairingCodeDisplayDevice != null) {
-              bloc.add(const CancelPairingEvent());
-            }
-          });
-        }
-      },
-      child: BlocBuilder<BluetoothBloc, BluetoothState>(
-        builder: (context, state) {
-          final isBluetoothOn = state.isBluetoothOn;
-          final isScanning = state.isScanning;
-          final pairedDevices = state.pairedDevices;
-          final discoveredDevices = state.discoveredDevices;
-          // Separate the connected devices
-          final connectedList = pairedDevices
-              .where((d) => d.isConnected)
-              .toList();
-          final otherPaired = pairedDevices
-              .where((d) => !d.isConnected)
-              .toList();
-
-          return ScrollConfiguration(
-            behavior: ScrollConfiguration.of(context).copyWith(
-              dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.mouse},
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Bluetooth Toggle Row
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 20,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          l10n.bluetooth,
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                        CustomToggle(
-                          value: isBluetoothOn,
-                          onChanged: (val) {
-                            context.read<BluetoothBloc>().add(
-                              ToggleBluetoothPower(val),
-                            );
-                          },
-                          l10n: l10n,
-                        ),
-                      ],
-                    ),
+    return ScrollConfiguration(
+      behavior: ScrollConfiguration.of(context).copyWith(
+        dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.mouse},
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Bluetooth Toggle
+            BlocSelector<BluetoothBloc, BluetoothState, bool>(
+              selector: (state) => state.isBluetoothOn,
+              builder: (context, isBluetoothOn) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 20,
                   ),
-                  const CustomDivider(verticalPadding: 0),
-
-                  ConfigRow(
-                    title: l10n.deviceName,
-                    value: state.localDeviceName,
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const BluetoothRenameScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  const CustomDivider(verticalPadding: 0),
-
-                  if (isBluetoothOn) ...[
-                    // Connected Device Section
-                    if (connectedList.isNotEmpty) ...[
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: connectedList.length,
-                        itemBuilder: (context, index) {
-                          final device = connectedList[index];
-                          return Column(
-                            children: [
-                              BluetoothDeviceListItem(
-                                device: device,
-                                onTap: () {},
-                                onSettingsTap: () =>
-                                    _navigateToDetails(context, device),
-                              ),
-                            ],
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        l10n.bluetooth,
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                      CustomToggle(
+                        value: isBluetoothOn,
+                        onChanged: (value) {
+                          context.read<BluetoothBloc>().add(
+                            ToggleBluetoothPower(value),
                           );
                         },
+                        l10n: l10n,
                       ),
-                      const CustomDivider(verticalPadding: 0),
                     ],
+                  ),
+                );
+              },
+            ),
 
-                    // Paired/My Devices List
-                    SettingsSectionHeader(title: l10n.myDevices),
+            const CustomDivider(verticalPadding: 0),
 
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: otherPaired.length,
-                      itemBuilder: (context, index) {
-                        final device = otherPaired[index];
+            // Device Name
+            BlocSelector<BluetoothBloc, BluetoothState, String>(
+              selector: (state) => state.localDeviceName,
+              builder: (context, deviceName) {
+                return ConfigRow(
+                  title: l10n.deviceName,
+                  value: deviceName,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const BluetoothRenameScreen(),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+
+            const CustomDivider(verticalPadding: 0),
+
+            BlocSelector<BluetoothBloc, BluetoothState, bool>(
+              selector: (state) => state.isBluetoothOn,
+              builder: (context, isBluetoothOn) {
+                if (!isBluetoothOn) {
+                  return const SizedBox.shrink();
+                }
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Discoverable
+                    BlocSelector<BluetoothBloc, BluetoothState, bool>(
+                      selector: (state) => state.isDiscoverable,
+                      builder: (context, isDiscoverable) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 20,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                l10n.discoverable,
+                                style: Theme.of(context).textTheme.bodyLarge!
+                                    .copyWith(
+                                      color: AppColors.onSurfaceVariant,
+                                    ),
+                              ),
+                              CustomToggle(
+                                value: isDiscoverable,
+                                onChanged: (value) {
+                                  context.read<BluetoothBloc>().add(
+                                    ToggleBluetoothDiscoverable(value),
+                                  );
+                                },
+                                l10n: l10n,
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+
+                    const CustomDivider(verticalPadding: 0),
+
+                    // Connected devices
+                    BlocSelector<
+                      BluetoothBloc,
+                      BluetoothState,
+                      List<BluetoothDevice>
+                    >(
+                      selector: (state) {
+                        return state.pairedDevices
+                            .where((device) => device.isConnected)
+                            .toList();
+                      },
+                      builder: (context, connectedDevices) {
+                        if (connectedDevices.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+
                         return Column(
                           children: [
-                            BluetoothDeviceListItem(
-                              device: device,
-                              onTap: () => _connectToDevice(context, device),
-                              onSettingsTap: () =>
-                                  _navigateToDetails(context, device),
+                            ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: connectedDevices.length,
+                              itemBuilder: (context, index) {
+                                final device = connectedDevices[index];
+
+                                return BluetoothDeviceListItem(
+                                  device: device,
+                                  onTap: () {},
+                                  onSettingsTap: () =>
+                                      _navigateToDetails(context, device),
+                                );
+                              },
                             ),
+
+                            const CustomDivider(verticalPadding: 0),
                           ],
                         );
                       },
                     ),
+
+                    // My Devices
+                    SettingsSectionHeader(title: l10n.myDevices),
+
+                    BlocSelector<
+                      BluetoothBloc,
+                      BluetoothState,
+                      ({
+                        List<BluetoothDevice> devices,
+                        Set<String> connectingDevices,
+                      })
+                    >(
+                      selector: (state) => (
+                        devices: state.pairedDevices
+                            .where((device) => !device.isConnected)
+                            .map(
+                              (device) => device.copyWith(
+                                isConnecting: state.connectingDevices.contains(
+                                  device.macAddress,
+                                ),
+                              ),
+                            )
+                            .toList(),
+                        connectingDevices: state.connectingDevices,
+                      ),
+                      builder: (context, data) {
+                        return ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: data.devices.length,
+                          itemBuilder: (context, index) {
+                            final device = data.devices[index];
+
+                            return BluetoothDeviceListItem(
+                              device: device,
+                              onTap: () => _connectToDevice(context, device),
+                              onSettingsTap: () =>
+                                  _navigateToDetails(context, device),
+                            );
+                          },
+                        );
+                      },
+                    ),
+
                     const CustomDivider(verticalPadding: 16),
 
-                    // Discovered/Other Devices List
+                    // Other devices
                     SettingsSectionHeader(title: l10n.otherDevices),
-                    if (isScanning) ...[
-                      const Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Row(
-                          children: [
-                            SizedBox(
+
+                    BlocSelector<
+                      BluetoothBloc,
+                      BluetoothState,
+                      ({List<BluetoothDevice> devices, bool scanning})
+                    >(
+                      selector: (state) => (
+                        devices: state.discoveredDevices,
+                        scanning: state.isScanning,
+                      ),
+                      builder: (context, data) {
+                        final devices = data.devices;
+                        final scanning = data.scanning;
+
+                        if (scanning && devices.isEmpty) {
+                          return const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: SizedBox(
                               width: 18,
                               height: 18,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
+                                valueColor: AlwaysStoppedAnimation(
                                   AppColors.onSurfaceVariant,
                                 ),
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                    ] else ...[
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: discoveredDevices.length,
-                        itemBuilder: (context, index) {
-                          final device = discoveredDevices[index];
-                          return Column(
-                            children: [
-                              BluetoothDeviceListItem(
-                                device: device,
-                                onTap: () => _connectToDevice(context, device),
-                              ),
-                              const SizedBox(height: 12),
-                            ],
                           );
-                        },
-                      ),
-                    ],
+                        }
+
+                        return Column(
+                          children: [
+                            ListView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: devices.length,
+                              itemBuilder: (context, index) {
+                                final device = devices[index];
+
+                                return Column(
+                                  children: [
+                                    BluetoothDeviceListItem(
+                                      device: device,
+                                      onTap: () =>
+                                          _connectToDevice(context, device),
+                                    ),
+
+                                    const SizedBox(height: 12),
+                                  ],
+                                );
+                              },
+                            ),
+
+                            if (scanning)
+                              const Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 8,
+                                ),
+                                child: Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 14,
+                                      height: 14,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 1.5,
+                                        valueColor: AlwaysStoppedAnimation(
+                                          AppColors.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        );
+                      },
+                    ),
+
                     const CustomDivider(verticalPadding: 16),
                   ],
-                ],
-              ),
+                );
+              },
             ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }

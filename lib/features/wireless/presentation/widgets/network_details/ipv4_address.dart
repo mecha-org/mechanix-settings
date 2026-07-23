@@ -8,6 +8,7 @@ import 'package:mechanix_settings/core/widgets/custom_divider.dart';
 import 'package:mechanix_settings/core/widgets/custom_icon_button.dart';
 import 'package:mechanix_settings/core/widgets/custom_text_field.dart';
 import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
+import 'package:mechanix_settings/features/wireless/data/utils/ip_validation_utils.dart';
 import 'package:mechanix_settings/features/wireless/presentation/screens/network_detail.dart';
 import 'package:mechanix_settings/features/wireless/presentation/widgets/wireless_settings/settings_section_header.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
@@ -194,15 +195,29 @@ class _IPv4AddressScreenState extends State<IPv4AddressScreen> {
             Navigator.of(context).pop();
           },
         ),
-
         trailing: [
           CustomIconButton.asset(
             assetPath: SettingIcons.check,
             enabled: true,
             onPressed: () {
+              if (_configType == IPv4ConfigType.manual) {
+                final error = IpValidationUtils.validateManualIpConfig(
+                  ip: _ipController.text.trim(),
+                  subnetMask: _subnetController.text.trim(),
+                  gateway: _routerController.text.trim(),
+                  l10n: l10n,
+                );
+
+                if (error != null) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text(error)));
+                  return;
+                }
+              }
+
               connectToNetwork(context, widget.network);
               _saveAndPop();
-              Navigator.of(context).pop();
             },
           ),
         ],

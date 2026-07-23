@@ -8,8 +8,6 @@ import 'package:mechanix_settings/features/wireless/blocs/wireless_bloc.dart';
 import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
 import 'package:mechanix_settings/features/wireless/presentation/widgets/network_details/dns.dart';
 import 'package:mechanix_settings/features/wireless/presentation/widgets/network_details/ipv4_address.dart';
-import 'package:mechanix_settings/features/wireless/presentation/widgets/network_details/private_address.dart';
-import 'package:mechanix_settings/features/wireless/presentation/widgets/network_details/proxy.dart';
 import 'package:mechanix_settings/features/wireless/presentation/widgets/wireless_settings/settings_info_row.dart';
 import 'package:mechanix_settings/features/wireless/presentation/widgets/wireless_settings/settings_config_row.dart';
 import 'package:mechanix_settings/features/wireless/presentation/widgets/wireless_settings/settings_section_header.dart';
@@ -30,8 +28,6 @@ class NetworkDetailsBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final bloc = context.read<WirelessBloc>();
-    final privateAddressType = network.privateAddressType;
-    final proxyType = network.proxyConfigType;
     final ipv4ConfigType = network.ipConfigType;
     final dnsConfigType = network.dnsConfigType;
 
@@ -56,8 +52,8 @@ class NetworkDetailsBody extends StatelessWidget {
 
               SettingsInfoRow(
                 title: l10n.password,
-                value: network.password,
-                obscureValue: true,
+                value: network.password.isEmpty ? "-" : network.password,
+                obscureValue: network.password.isNotEmpty,
               ),
               const CustomDivider(verticalPadding: 0),
 
@@ -75,51 +71,12 @@ class NetworkDetailsBody extends StatelessWidget {
               const CustomDivider(verticalPadding: 0),
             ],
 
-            // Private wireless address
-            SettingsConfigRow(
-              title: l10n.privateWirelessAddress,
-              value: privateAddressType.label(l10n),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => PrivateWirelessAddressScreen(
-                      networkName: network.name,
-                      currentValue: privateAddressType,
-                      onSaved: (value) {
-                        bloc.add(
-                          UpdateNetworkSettingsEvent(
-                            network.copyWith(privateAddressType: value),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                );
-              },
-            ),
-
             // Wireless Address
             SettingsInfoRow(
               title: l10n.wirelessAddress,
               value: network.wirelessAddress,
             ),
             const CustomDivider(verticalPadding: 0),
-
-            if (network.isConnected) ...[
-              // Limit IP Address Tracking Switch
-              SettingsToggleRow(
-                title: l10n.limitIpAddressTracking,
-                value: network.limitIpAddressTracking,
-                onChanged: (val) {
-                  bloc.add(
-                    UpdateNetworkSettingsEvent(
-                      network.copyWith(limitIpAddressTracking: val),
-                    ),
-                  );
-                },
-              ),
-              const CustomDivider(verticalPadding: 0),
-            ],
 
             SettingsSectionHeader(title: l10n.ipv4Address),
 
@@ -137,13 +94,12 @@ class NetworkDetailsBody extends StatelessWidget {
                       gateway: network.router,
                       onSaved: (data) {
                         bloc.add(
-                          UpdateNetworkSettingsEvent(
-                            network.copyWith(
-                              ipConfigType: data['config'] as IPv4ConfigType,
-                              ipAddress: data['ipAddress'] as String,
-                              subnetMask: data['subnetMask'] as String,
-                              router: data['gateway'] as String,
-                            ),
+                          UpdateIPSettingsEvent(
+                            network: network,
+                            ipConfigType: data['config'] as IPv4ConfigType,
+                            ipAddress: data['ipAddress'] as String,
+                            subnetMask: data['subnetMask'] as String,
+                            router: data['gateway'] as String,
                           ),
                         );
                       },
@@ -183,15 +139,14 @@ class NetworkDetailsBody extends StatelessWidget {
                       servers: network.dnsServers,
                       onSaved: (data) {
                         bloc.add(
-                          UpdateNetworkSettingsEvent(
-                            network.copyWith(
-                              dnsConfigType: data['config'] as DNSConfigType,
-                              dnsServers: List<String>.from(
-                                data['servers'] as List,
-                              ),
-                              dnsSearchDomains: List<String>.from(
-                                data['searchDomains'] as List,
-                              ),
+                          UpdateDNSSettingsEvent(
+                            network: network,
+                            dnsConfigType: data['config'] as DNSConfigType,
+                            dnsServers: List<String>.from(
+                              data['servers'] as List,
+                            ),
+                            dnsSearchDomains: List<String>.from(
+                              data['searchDomains'] as List,
                             ),
                           ),
                         );
@@ -201,42 +156,6 @@ class NetworkDetailsBody extends StatelessWidget {
                 );
               },
             ),
-            const CustomDivider(verticalPadding: 0),
-
-            SettingsSectionHeader(title: l10n.httpProxy),
-
-            // Configure Proxy Navigation Row
-            SettingsConfigRow(
-              title: l10n.configureProxy,
-              value: proxyType.label(l10n),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => ProxyScreen(
-                      network: network,
-                      currentConfig: proxyType,
-                      onSaved: (data) {
-                        bloc.add(
-                          UpdateNetworkSettingsEvent(
-                            network.copyWith(
-                              proxyConfigType: data['config'] as ProxyType,
-                              proxyUrl: data['url'] as String,
-                              proxyServer: data['server'] as String,
-                              proxyPort: data['port'] as String,
-                              proxyUseAuth: data['useAuth'] as bool,
-                              proxyUsername: data['username'] as String,
-                              proxyPassword: data['password'] as String,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                );
-              },
-            ),
-            const CustomDivider(verticalPadding: 0),
-
             const SizedBox(height: 20),
           ],
         ),

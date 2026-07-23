@@ -36,10 +36,10 @@ class _BluetoothRenameScreenState extends State<BluetoothRenameScreen> {
 
   void _saveAndPop() {
     final newName = _controller.text.trim();
-    if (newName.isNotEmpty) {
+    if (newName.isNotEmpty && newName.length <= 30) {
       context.read<BluetoothBloc>().add(RenameLocalDeviceEvent(newName));
+      Navigator.of(context).pop();
     }
-    Navigator.of(context).pop();
   }
 
   @override
@@ -77,11 +77,22 @@ class _BluetoothRenameScreenState extends State<BluetoothRenameScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: CustomTextField(
-          controller: _controller,
-          hintText: l10n.deviceName,
-          textInputAction: TextInputAction.done,
-          onSubmitted: (_) => _saveAndPop(),
+        child: ValueListenableBuilder<TextEditingValue>(
+          valueListenable: _controller,
+          builder: (context, value, _) {
+            final text = value.text.trim();
+            final String? errorText = text.length > 30
+                ? l10n.deviceNameLimit
+                : null;
+
+            return CustomTextField(
+              controller: _controller,
+              hintText: l10n.deviceName,
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) => _saveAndPop(),
+              errorText: errorText,
+            );
+          },
         ),
       ),
 
@@ -97,7 +108,8 @@ class _BluetoothRenameScreenState extends State<BluetoothRenameScreen> {
           ValueListenableBuilder<TextEditingValue>(
             valueListenable: _controller,
             builder: (context, value, _) {
-              final isEnabled = value.text.trim().isNotEmpty;
+              final text = value.text.trim();
+              final isEnabled = text.isNotEmpty && text.length <= 30;
               return CustomIconButton.asset(
                 assetPath: SettingIcons.check,
                 enabled: isEnabled,

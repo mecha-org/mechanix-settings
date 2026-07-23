@@ -8,12 +8,13 @@ import 'package:mechanix_settings/core/widgets/custom_divider.dart';
 import 'package:mechanix_settings/core/widgets/custom_image_asset.dart';
 import 'package:mechanix_settings/core/widgets/custom_toggle.dart';
 import 'package:mechanix_settings/features/wireless/blocs/wireless_bloc.dart';
+import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
 import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
+import 'package:mechanix_settings/features/wireless/presentation/screens/add_network.dart';
 import 'package:mechanix_settings/features/wireless/presentation/screens/manage_network.dart';
 import 'package:mechanix_settings/features/wireless/presentation/screens/network_detail.dart';
-import 'package:mechanix_settings/features/wireless/presentation/widgets/wireless_password.dart';
-import 'package:mechanix_settings/features/wireless/presentation/widgets/add_network.dart';
 import 'package:mechanix_settings/features/wireless/presentation/widgets/network_list_item.dart';
+import 'package:mechanix_settings/features/wireless/presentation/widgets/wireless/enterprise_connection_sheet.dart';
 import 'package:mechanix_settings/features/wireless/presentation/widgets/wireless_settings/settings_section_header.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
 
@@ -22,242 +23,365 @@ class WirelessBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return ScrollConfiguration(
+      behavior: ScrollConfiguration.of(context).copyWith(
+        dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.mouse},
+      ),
+      child: const SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _WirelessToggle(),
+            CustomDivider(verticalPadding: 0),
+            _WirelessContent(),
+            _ManageNetworksTile(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+void _connectToNetwork(BuildContext context, WifiNetwork network) async {
+  final bloc = context.read<WirelessBloc>();
+
+  if (bloc.state.connectedNetworkName == network.name) {
+    return;
+  }
+
+  if (network.isSecured) {
+    // If it's already a saved network, we can connect directly (NetworkManager will use saved credentials)
+    final isSaved = bloc.state.myNetworks.any((n) => n.name == network.name);
+    if (isSaved) {
+      bloc.add(ConnectToNetworkEvent(network.name, null));
+      return;
+    }
+
+    // For unsaved secured networks:
+    if (network.security == WirelessSecurity.wpawpa2Enterprise ||
+        network.security == WirelessSecurity.leap) {
+      final config = await showEnterpriseConnectionBottomSheet(
+        context,
+        network,
+      );
+      if (config != null && context.mounted) {
+        bloc.add(
+          ConnectToNetworkEvent(
+            network.name,
+            config.password,
+            enterpriseConfig: config,
+          ),
+        );
+      }
+    } else {
+      // For personal/WEP networks, delegate to GNOME agent (system dialog)
+      bloc.add(ConnectToNetworkEvent(network.name, null));
+    }
+  } else {
+    // Open network, connect directly
+    bloc.add(ConnectToNetworkEvent(network.name, null));
+  }
+}
+
+class _WirelessToggle extends StatelessWidget {
+  const _WirelessToggle();
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return BlocBuilder<WirelessBloc, WirelessState>(
-      builder: (context, state) {
-        final isWirelessOn = state.isWirelessOn;
-        final isScanning = state.isScanning;
-        final myNetworks = state.savedNetworks;
-        final availableNetworks = state.availableNetworks;
-        final connectingNetwork = state.connectingNetworkName;
-        final connectedNetwork = state.connectedNetworkName;
-
-        final savedNetworks = myNetworks
-            .where((network) => network.name != connectedNetwork)
-            .toList();
-        final connected = myNetworks
-            .where((n) => n.name == connectedNetwork)
-            .firstOrNull;
-
-        return ScrollConfiguration(
-          behavior: ScrollConfiguration.of(context).copyWith(
-            dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.mouse},
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Wireless Toggle Row
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 20,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        l10n.wireless,
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                      CustomToggle(
-                        value: isWirelessOn,
-                        onChanged: (val) {
-                          context.read<WirelessBloc>().add(
-                            ToggleWirelessPower(val),
-                          );
-                        },
-                        l10n: AppLocalizations.of(context)!,
-                      ),
-                    ],
-                  ),
-                ),
-                const CustomDivider(verticalPadding: 0),
-                if (isWirelessOn) ...[
-                  // Toggled ON Section
-
-                  // Scanning indicator
-                  if (isScanning) ...[
-                    SettingsSectionHeader(title: l10n.myNetworks),
-                    const Padding(
-                      padding: EdgeInsets.all(16.0),
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                AppColors.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const CustomDivider(verticalPadding: 0),
-                    SettingsSectionHeader(title: l10n.avaialableNetworks),
-                  ] else ...[
-                    // Connected Network Section
-                    if (connected != null) ...[
-                      NetworkListItem(
-                        name: connected.name,
-                        signalType: connected.signalType,
-                        isConnected: true,
-                        isConnecting: false,
-                        isSelected: false,
-                        onTap: () {},
-                        onSettingsTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => NetworkDetailScreen(
-                                networkName: connected.name,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                      const CustomDivider(verticalPadding: 0),
-                    ],
-                    // Scanned Networks List
-                    SettingsSectionHeader(title: l10n.myNetworks),
-
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: savedNetworks.length,
-                      itemBuilder: (context, index) {
-                        final network = savedNetworks[index];
-                        final isNetConnected = connectedNetwork == network.name;
-                        final isNetConnecting =
-                            connectingNetwork == network.name;
-
-                        return Column(
-                          children: [
-                            NetworkListItem(
-                              name: network.name,
-                              isConnected: isNetConnected,
-                              isConnecting: isNetConnecting,
-                              isSelected: isNetConnecting,
-                              signalType: network.signalType,
-                              onTap: () => _connectToNetwork(context, network),
-                              onSettingsTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => NetworkDetailScreen(
-                                      networkName: network.name,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                    const CustomDivider(verticalPadding: 16),
-
-                    SettingsSectionHeader(title: l10n.avaialableNetworks),
-                    ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: availableNetworks.length,
-                      itemBuilder: (context, index) {
-                        final network = availableNetworks[index];
-                        final isNetConnecting =
-                            connectingNetwork == network.name;
-
-                        return Column(
-                          children: [
-                            NetworkListItem(
-                              name: network.name,
-                              isConnected: false,
-                              isConnecting: isNetConnecting,
-                              isSelected: isNetConnecting,
-                              signalType: network.signalType,
-                              onTap: () => _connectToNetwork(context, network),
-                            ),
-                            const SizedBox(height: 12),
-                          ],
-                        );
-                      },
-                    ),
-
-                    const CustomDivider(verticalPadding: 16),
-                  ],
-                  ListTile(
-                    minTileHeight: 56,
-                    leading: const CustomImage(assetPath: SettingIcons.add),
-                    title: Text(
-                      l10n.addWireless,
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                    onTap: () => showAddNetworkBottomSheet(context),
-                  ),
-
-                  const CustomDivider(verticalPadding: 16),
-                ],
-
-                ListTile(
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  title: Text(
-                    l10n.manageWireless,
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                  trailing: const Icon(
-                    Icons.chevron_right,
-                    color: AppColors.onSurfaceVariant,
-                    size: 30,
-                  ),
-                  onTap: () {
-                    Navigator.of(context).push<String>(
-                      MaterialPageRoute(
-                        builder: (context) => const ManageNetworksScreen(),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
+    return BlocSelector<WirelessBloc, WirelessState, bool>(
+      selector: (state) => state.isWirelessOn,
+      builder: (context, isWirelessOn) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(l10n.wireless, style: Theme.of(context).textTheme.bodyLarge),
+              CustomToggle(
+                value: isWirelessOn,
+                l10n: l10n,
+                onChanged: (value) {
+                  context.read<WirelessBloc>().add(ToggleWirelessPower(value));
+                },
+              ),
+            ],
           ),
         );
       },
     );
   }
+}
 
-  void _connectToNetwork(BuildContext context, WifiNetwork network) async {
-    final bloc = context.read<WirelessBloc>();
+class _WirelessContent extends StatelessWidget {
+  const _WirelessContent();
 
-    // Already connected
-    if (bloc.state.connectedNetworkName == network.name) {
-      return;
-    }
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
 
-    final isSaved = bloc.state.savedNetworks.any((n) => n.name == network.name);
-
-    String? password;
-
-    if (network.isSecured) {
-      if (isSaved && network.password.isNotEmpty) {
-        // Saved network
-        password = network.password;
-      } else {
-        // Not saved OR no password
-        password = await showPasswordBottomSheet(context, network.name);
-
-        // user cancelled or empty input
-        if (password == null || password.trim().isEmpty) {
-          return;
+    return BlocSelector<
+      WirelessBloc,
+      WirelessState,
+      ({bool isWirelessOn, bool isScanning})
+    >(
+      selector: (state) =>
+          (isWirelessOn: state.isWirelessOn, isScanning: state.isScanning),
+      builder: (context, state) {
+        if (!state.isWirelessOn) {
+          return const SizedBox.shrink();
         }
-      }
-    }
 
-    // Dispatch connect event
-    bloc.add(ConnectToNetworkEvent(network.name, password));
+        if (state.isScanning) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SettingsSectionHeader(title: l10n.myNetworks),
+              const Padding(
+                padding: EdgeInsets.all(16),
+                child: SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+              const CustomDivider(verticalPadding: 0),
+              SettingsSectionHeader(title: l10n.avaialableNetworks),
+              const _AddNetworkTile(),
+            ],
+          );
+        }
+
+        return const Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _ConnectedNetworkTile(),
+            _MyNetworksList(),
+            _AvailableNetworksList(),
+            _AddNetworkTile(),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _AddNetworkTile extends StatelessWidget {
+  const _AddNetworkTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Column(
+      children: [
+        const CustomDivider(verticalPadding: 16),
+        ListTile(
+          minTileHeight: 56,
+          leading: const CustomImage(assetPath: SettingIcons.add),
+          title: Text(
+            l10n.addWireless,
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => AddNetworkPage()),
+            );
+          },
+        ),
+        const CustomDivider(verticalPadding: 16),
+      ],
+    );
+  }
+}
+
+class _ManageNetworksTile extends StatelessWidget {
+  const _ManageNetworksTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      title: Text(
+        l10n.manageWireless,
+        style: Theme.of(context).textTheme.bodyLarge,
+      ),
+      trailing: const Icon(
+        Icons.chevron_right,
+        color: AppColors.onSurfaceVariant,
+        size: 30,
+      ),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ManageNetworksScreen()),
+        );
+      },
+    );
+  }
+}
+
+class _ConnectedNetworkTile extends StatelessWidget {
+  const _ConnectedNetworkTile();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocSelector<WirelessBloc, WirelessState, WifiNetwork?>(
+      selector: (state) {
+        return state.myNetworks
+                .firstWhere(
+                  (n) => n.name == state.connectedNetworkName,
+                  orElse: () => const WifiNetwork(name: ''),
+                )
+                .name
+                .isEmpty
+            ? null
+            : state.myNetworks.firstWhere(
+                (n) => n.name == state.connectedNetworkName,
+              );
+      },
+      builder: (context, connected) {
+        if (connected == null) {
+          return const SizedBox.shrink();
+        }
+
+        return Column(
+          children: [
+            NetworkListItem(
+              name: connected.name,
+              signalType: connected.signalType,
+              isConnected: true,
+              isConnecting: false,
+              isSelected: false,
+              onTap: () {},
+              onSettingsTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        NetworkDetailScreen(networkName: connected.name),
+                  ),
+                );
+              },
+            ),
+            const CustomDivider(verticalPadding: 0),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _MyNetworksList extends StatelessWidget {
+  const _MyNetworksList();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return BlocSelector<
+      WirelessBloc,
+      WirelessState,
+      ({List<WifiNetwork> networks, String? connected, String? connecting})
+    >(
+      selector: (state) => (
+        networks: state.myNetworks,
+        connected: state.connectedNetworkName,
+        connecting: state.connectingNetworkName,
+      ),
+      builder: (context, state) {
+        final myNetworks = state.networks
+            .where((e) => e.name != state.connected)
+            .toList();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SettingsSectionHeader(title: l10n.myNetworks),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: myNetworks.length,
+              itemBuilder: (context, index) {
+                final network = myNetworks[index];
+
+                return NetworkListItem(
+                  name: network.name,
+                  signalType: network.signalType,
+                  isConnected: network.name == state.connected,
+                  isConnecting: network.name == state.connecting,
+                  isSelected: network.name == state.connecting,
+                  onTap: () => _connectToNetwork(context, network),
+                  onSettingsTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            NetworkDetailScreen(networkName: network.name),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+            const CustomDivider(verticalPadding: 16),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _AvailableNetworksList extends StatelessWidget {
+  const _AvailableNetworksList();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return BlocSelector<
+      WirelessBloc,
+      WirelessState,
+      ({List<WifiNetwork> networks, String? connecting})
+    >(
+      selector: (state) => (
+        networks: state.availableNetworks,
+        connecting: state.connectingNetworkName,
+      ),
+      builder: (context, state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SettingsSectionHeader(title: l10n.avaialableNetworks),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: state.networks.length,
+              itemBuilder: (context, index) {
+                final network = state.networks[index];
+
+                return Column(
+                  children: [
+                    NetworkListItem(
+                      name: network.name,
+                      signalType: network.signalType,
+                      isConnected: false,
+                      isConnecting: network.name == state.connecting,
+                      isSelected: network.name == state.connecting,
+                      onTap: () => _connectToNetwork(context, network),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                );
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }
