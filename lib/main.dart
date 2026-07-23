@@ -40,9 +40,9 @@ void main() {
           ),
           BlocProvider<BluetoothBloc>(
             create: (context) =>
-                BluetoothBloc(bluetoothRepository)..add(const LoadBluetooth()),
+                BluetoothBloc(context.read<BluetoothRepository>())
+                  ..add(const LoadBluetooth()),
           ),
-
           BlocProvider<DateTimeBloc>(
             create: (context) =>
                 DateTimeBloc()..add(const InitializeDateTimeEvent()),

@@ -230,8 +230,7 @@
     }
   },
   "deviceNameLimit": "Device name cannot exceed 30 characters",
-  "unknownError": "An unknown error occurred"
-  "pair": "Pair",
+  "unknownError": "An unknown error occurred",
 
   "autoTime": "Auto time",
   "timezone": "Timezone",
