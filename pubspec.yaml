@@ -46,6 +46,7 @@ dependencies:
   nm: ^0.5.0
   bluez: ^0.8.3
   intl: ^0.20.2
+  timezone: ^0.10.1
 
 dev_dependencies:
   flutter_test:

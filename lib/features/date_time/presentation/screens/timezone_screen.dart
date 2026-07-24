@@ -98,7 +98,11 @@ class _TimezoneScreenState extends State<TimezoneScreen> {
                           children: [
                             CustomCircleCheckbox(
                               isChecked: isSelected,
-                              onTap: () {},
+                              onTap: () {
+                                context.read<DateTimeBloc>().add(
+                                  UpdateTimezoneEvent(timezone.id),
+                                );
+                              },
                             ),
                             const SizedBox(width: 16),
                             Expanded(

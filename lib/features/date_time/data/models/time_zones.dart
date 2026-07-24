@@ -21,29 +21,29 @@ extension TimezoneItemLocalization on TimezoneItem {
       case "Pacific/Honolulu":
         return l10n.timezoneHst;
       case "America/Anchorage":
-        return l10n.timezoneAkst;
+        return l10n.timezoneAkdt;
       case "America/Los_Angeles":
-        return l10n.timezonePst;
+        return l10n.timezonePdt;
       case "America/Denver":
-        return l10n.timezoneMst;
+        return l10n.timezoneMdt;
       case "America/Chicago":
-        return l10n.timezoneCstMinus6;
+        return l10n.timezoneCdt;
       case "America/New_York":
-        return l10n.timezoneEst;
+        return l10n.timezoneEdt;
       case "America/Halifax":
-        return l10n.timezoneAst;
+        return l10n.timezoneAdt;
       case "America/Sao_Paulo":
         return l10n.timezoneBrt;
       case "Europe/Paris":
-        return l10n.timezoneCet;
+        return l10n.timezoneCest;
       case "Europe/Helsinki":
-        return l10n.timezoneEet;
+        return l10n.timezoneEest;
       case "Asia/Dubai":
         return l10n.timezoneGst;
       case "Asia/Bangkok":
         return l10n.timezoneIct;
       case "Asia/Shanghai":
-        return l10n.timezoneCstPlus8;
+        return l10n.timezoneCst;
       case "Asia/Tokyo":
         return l10n.timezoneJst;
       case "Australia/Sydney":

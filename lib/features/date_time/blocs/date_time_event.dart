@@ -65,3 +65,10 @@ class InitializeDateTimeEvent extends DateTimeEvent {
   @override
   List<Object?> get props => [];
 }
+
+class RefreshDateTimeEvent extends DateTimeEvent {
+  const RefreshDateTimeEvent();
+
+  @override
+  List<Object?> get props => [];
+}

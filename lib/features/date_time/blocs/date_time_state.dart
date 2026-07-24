@@ -12,7 +12,6 @@ class DateTimeState extends Equatable {
   final int month;
   final int day;
   final String timeFormat;
-  final String dateFormat;
 
   const DateTimeState({
     required this.autoTime,
@@ -24,7 +23,6 @@ class DateTimeState extends Equatable {
     required this.month,
     required this.day,
     required this.timeFormat,
-    required this.dateFormat,
   });
 
   factory DateTimeState.initial() {
@@ -32,7 +30,7 @@ class DateTimeState extends Equatable {
 
     return DateTimeState(
       autoTime: true,
-      timezone: "Asia/Kolkata",
+      timezone: "",
       hour: int.parse(DateFormat("h").format(now)),
       minute: now.minute,
       isAm: now.hour < 12,
@@ -40,7 +38,6 @@ class DateTimeState extends Equatable {
       month: now.month,
       day: now.day,
       timeFormat: TimeFormats.hour12,
-      dateFormat: "MM/dd/yy",
     );
   }
 
@@ -54,7 +51,6 @@ class DateTimeState extends Equatable {
     int? month,
     int? day,
     String? timeFormat,
-    String? dateFormat,
   }) {
     return DateTimeState(
       autoTime: autoTime ?? this.autoTime,
@@ -66,7 +62,6 @@ class DateTimeState extends Equatable {
       month: month ?? this.month,
       day: day ?? this.day,
       timeFormat: timeFormat ?? this.timeFormat,
-      dateFormat: dateFormat ?? this.dateFormat,
     );
   }
 
@@ -81,6 +76,5 @@ class DateTimeState extends Equatable {
     month,
     day,
     timeFormat,
-    dateFormat,
   ];
 }

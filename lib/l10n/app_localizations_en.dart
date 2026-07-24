@@ -489,55 +489,55 @@ class AppLocalizationsEn extends AppLocalizations {
   String get timezoneGmt => 'GMT (UTC 0)';
 
   @override
-  String get timezoneIst => 'IST (UTC +5:30)';
+  String get timezoneIst => 'Kolkata (IST, UTC+5:30)';
 
   @override
-  String get timezoneHst => 'HST (UTC -10)';
+  String get timezoneHst => 'Honolulu (HST, UTC-10:00)';
 
   @override
-  String get timezoneAkst => 'AKST (UTC -9)';
+  String get timezoneAkdt => 'Anchorage (AKDT, UTC-08:00)';
 
   @override
-  String get timezonePst => 'PST (UTC -8)';
+  String get timezonePdt => 'Los Angeles (PDT, UTC-07:00)';
 
   @override
-  String get timezoneMst => 'MST (UTC -7)';
+  String get timezoneMdt => 'Denever (MDT, UTC-06:00)';
 
   @override
-  String get timezoneCstMinus6 => 'CST (UTC -6)';
+  String get timezoneCdt => 'Chicago (CDT, UTC-05:00)';
 
   @override
-  String get timezoneEst => 'EST (UTC -5)';
+  String get timezoneEdt => 'New York (EDT, UTC-04:00)';
 
   @override
-  String get timezoneAst => 'AST (UTC -4)';
+  String get timezoneAdt => 'Halifax (ADT, UTC-03:00)';
 
   @override
-  String get timezoneBrt => 'BRT (UTC -3)';
+  String get timezoneBrt => 'Sao Paulo (BRT, UTC-03:00)';
 
   @override
-  String get timezoneCet => 'CET (UTC +1)';
+  String get timezoneCest => 'Paris (CEST, UTC+02:00)';
 
   @override
-  String get timezoneEet => 'EET (UTC +2)';
+  String get timezoneEest => 'Helsinki (EEST, UTC+03:00)';
 
   @override
-  String get timezoneGst => 'GST (UTC +4)';
+  String get timezoneGst => 'Dubai (GST, UTC+04:00)';
 
   @override
-  String get timezoneIct => 'ICT (UTC +7)';
+  String get timezoneIct => 'Bangkok (ICT, UTC+07:00)';
 
   @override
-  String get timezoneCstPlus8 => 'CST (UTC +8)';
+  String get timezoneCst => 'Shanghai (CST, UTC+08:00)';
 
   @override
-  String get timezoneJst => 'JST (UTC +9)';
+  String get timezoneJst => 'Tokyo (JST, UTC+09:00)';
 
   @override
-  String get timezoneAest => 'AEST (UTC +10)';
+  String get timezoneAest => 'Sydney (AEST, UTC+10:00)';
 
   @override
-  String get timezoneNzst => 'NZST (UTC +12)';
+  String get timezoneNzst => 'Auckland, (NZST, UTC+12:00)';
 
   @override
   String get dateFormatDmy => 'dd/MM/yyyy';

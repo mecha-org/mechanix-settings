@@ -5,7 +5,6 @@ import 'package:intl/intl.dart';
 import 'package:mechanix_settings/core/constants/date_time.dart';
 import 'package:mechanix_settings/core/theme/app_theme.dart';
 import 'package:mechanix_settings/core/constants/icons.dart';
-import 'package:mechanix_settings/core/utils/date_time_utils.dart';
 import 'package:mechanix_settings/core/widgets/bottom_bar/bottom_bar.dart';
 import 'package:mechanix_settings/core/widgets/custom_icon_button.dart';
 import 'package:mechanix_settings/core/widgets/custom_divider.dart';
@@ -21,7 +20,6 @@ import 'package:mechanix_settings/features/date_time/presentation/screens/timezo
 import 'package:mechanix_settings/features/date_time/presentation/screens/time_picker_screen.dart';
 import 'package:mechanix_settings/features/date_time/presentation/screens/date_picker_screen.dart';
 import 'package:mechanix_settings/features/date_time/presentation/screens/time_format_screen.dart';
-import 'package:mechanix_settings/features/date_time/presentation/screens/date_format_screen.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
 
 class DateTimeScreen extends StatefulWidget {
@@ -65,7 +63,7 @@ class _DateTimeScreenState extends State<DateTimeScreen> {
   String _formatDate(DateTimeState state) {
     final date = DateTime(state.year, state.month, state.day);
 
-    return DateFormat(state.dateFormat).format(date);
+    return DateFormat("dd MMMM yyyy").format(date);
   }
 
   @override
@@ -229,30 +227,6 @@ class _DateTimeScreenState extends State<DateTimeScreen> {
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (_) => const TimeFormatScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      SectionItem(
-                        title: l10n.dateFormat,
-                        titleStyle: theme.textTheme.bodyLarge!.copyWith(
-                          color: AppColors.onSurfaceVariant,
-                        ),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              getDateFormatLabel(l10n, state.dateFormat),
-                              style: theme.textTheme.bodyLarge,
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.chevron_right, size: 24),
-                          ],
-                        ),
-                        onTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const DateFormatScreen(),
                             ),
                           );
                         },

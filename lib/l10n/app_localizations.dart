@@ -1021,103 +1021,103 @@ abstract class AppLocalizations {
   /// No description provided for @timezoneIst.
   ///
   /// In en, this message translates to:
-  /// **'IST (UTC +5:30)'**
+  /// **'Kolkata (IST, UTC+5:30)'**
   String get timezoneIst;
 
   /// No description provided for @timezoneHst.
   ///
   /// In en, this message translates to:
-  /// **'HST (UTC -10)'**
+  /// **'Honolulu (HST, UTC-10:00)'**
   String get timezoneHst;
 
-  /// No description provided for @timezoneAkst.
+  /// No description provided for @timezoneAkdt.
   ///
   /// In en, this message translates to:
-  /// **'AKST (UTC -9)'**
-  String get timezoneAkst;
+  /// **'Anchorage (AKDT, UTC-08:00)'**
+  String get timezoneAkdt;
 
-  /// No description provided for @timezonePst.
+  /// No description provided for @timezonePdt.
   ///
   /// In en, this message translates to:
-  /// **'PST (UTC -8)'**
-  String get timezonePst;
+  /// **'Los Angeles (PDT, UTC-07:00)'**
+  String get timezonePdt;
 
-  /// No description provided for @timezoneMst.
+  /// No description provided for @timezoneMdt.
   ///
   /// In en, this message translates to:
-  /// **'MST (UTC -7)'**
-  String get timezoneMst;
+  /// **'Denever (MDT, UTC-06:00)'**
+  String get timezoneMdt;
 
-  /// No description provided for @timezoneCstMinus6.
+  /// No description provided for @timezoneCdt.
   ///
   /// In en, this message translates to:
-  /// **'CST (UTC -6)'**
-  String get timezoneCstMinus6;
+  /// **'Chicago (CDT, UTC-05:00)'**
+  String get timezoneCdt;
 
-  /// No description provided for @timezoneEst.
+  /// No description provided for @timezoneEdt.
   ///
   /// In en, this message translates to:
-  /// **'EST (UTC -5)'**
-  String get timezoneEst;
+  /// **'New York (EDT, UTC-04:00)'**
+  String get timezoneEdt;
 
-  /// No description provided for @timezoneAst.
+  /// No description provided for @timezoneAdt.
   ///
   /// In en, this message translates to:
-  /// **'AST (UTC -4)'**
-  String get timezoneAst;
+  /// **'Halifax (ADT, UTC-03:00)'**
+  String get timezoneAdt;
 
   /// No description provided for @timezoneBrt.
   ///
   /// In en, this message translates to:
-  /// **'BRT (UTC -3)'**
+  /// **'Sao Paulo (BRT, UTC-03:00)'**
   String get timezoneBrt;
 
-  /// No description provided for @timezoneCet.
+  /// No description provided for @timezoneCest.
   ///
   /// In en, this message translates to:
-  /// **'CET (UTC +1)'**
-  String get timezoneCet;
+  /// **'Paris (CEST, UTC+02:00)'**
+  String get timezoneCest;
 
-  /// No description provided for @timezoneEet.
+  /// No description provided for @timezoneEest.
   ///
   /// In en, this message translates to:
-  /// **'EET (UTC +2)'**
-  String get timezoneEet;
+  /// **'Helsinki (EEST, UTC+03:00)'**
+  String get timezoneEest;
 
   /// No description provided for @timezoneGst.
   ///
   /// In en, this message translates to:
-  /// **'GST (UTC +4)'**
+  /// **'Dubai (GST, UTC+04:00)'**
   String get timezoneGst;
 
   /// No description provided for @timezoneIct.
   ///
   /// In en, this message translates to:
-  /// **'ICT (UTC +7)'**
+  /// **'Bangkok (ICT, UTC+07:00)'**
   String get timezoneIct;
 
-  /// No description provided for @timezoneCstPlus8.
+  /// No description provided for @timezoneCst.
   ///
   /// In en, this message translates to:
-  /// **'CST (UTC +8)'**
-  String get timezoneCstPlus8;
+  /// **'Shanghai (CST, UTC+08:00)'**
+  String get timezoneCst;
 
   /// No description provided for @timezoneJst.
   ///
   /// In en, this message translates to:
-  /// **'JST (UTC +9)'**
+  /// **'Tokyo (JST, UTC+09:00)'**
   String get timezoneJst;
 
   /// No description provided for @timezoneAest.
   ///
   /// In en, this message translates to:
-  /// **'AEST (UTC +10)'**
+  /// **'Sydney (AEST, UTC+10:00)'**
   String get timezoneAest;
 
   /// No description provided for @timezoneNzst.
   ///
   /// In en, this message translates to:
-  /// **'NZST (UTC +12)'**
+  /// **'Auckland, (NZST, UTC+12:00)'**
   String get timezoneNzst;
 
   /// No description provided for @dateFormatDmy.
