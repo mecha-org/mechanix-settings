@@ -96,12 +96,16 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
       final isDiscoverable = isPowered
           ? await _repository.isDiscoverable()
           : false;
+      final List<BluetoothDevice> pairedDevices = isPowered
+          ? await _repository.getPairedDevices()
+          : <BluetoothDevice>[];
 
       emit(
         state.copyWith(
           isBluetoothOn: isPowered,
           localDeviceName: localDeviceName,
           isDiscoverable: isDiscoverable,
+          pairedDevices: pairedDevices,
         ),
       );
 
@@ -383,9 +387,6 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
       await Future.delayed(const Duration(seconds: 15));
 
       await _repository.stopDiscovery();
-
-      final devices = await _repository.getPairedDevices();
-      add(BluetoothDevicesUpdated(devices));
     } catch (e, stack) {
       AppLogger.e('Error refreshing device list', error: e, stack: stack);
       emit(state.copyWith(error: e.toString()));
