@@ -270,5 +270,51 @@
   "pm": "PM",
   "@pm": {
     "description": "Post meridiem time indicator"
-  }
+  },
+    "failedToInitializeDateTime": "Failed to initialize date and time settings.",
+  "@failedToInitializeDateTime": {
+    "description": "Shown when the date and time service could not be initialized."
+  },
+
+  "failedToUpdateTime": "Failed to update time.",
+  "@failedToUpdateTime": {
+    "description": "Shown when updating the system time fails."
+  },
+
+  "failedToGetTimezone": "Failed to get time zone.",
+  "@failedToGetTimezone": {
+    "description": "Shown when the current system time zone cannot be retrieved."
+  },
+
+  "failedToUpdateTimezone": "Failed to update time zone.",
+  "@failedToUpdateTimezone": {
+    "description": "Shown when updating the system time zone fails."
+  },
+
+  "failedToUpdateAutomaticTime": "Failed to update automatic time.",
+  "@failedToUpdateAutomaticTime": {
+    "description": "Shown when enabling or disabling automatic network time fails."
+  },
+
+  "failedToUpdateTimeFormat": "Failed to update time format.",
+  "@failedToUpdateTimeFormat": {
+    "description": "Shown when updating the clock format (12-hour/24-hour) fails."
+  },
+
+  "failedToGetAutomaticTime": "Failed to get automatic time status.",
+  "@failedToGetAutomaticTime": {
+    "description": "Shown when the automatic time (NTP) status could not be retrieved."
+  },
+
+  "failedToGetSystemTime": "Failed to get system time.",
+  "@failedToGetSystemTime": {
+    "description": "Shown when the current system time could not be retrieved."
+  },
+
+  "failedToGetTimeFormat": "Failed to get time format.",
+  "@failedToGetTimeFormat": {
+    "description": "Shown when the current time format could not be retrieved."
+  },
+
+  "somethingWentWrong": "Something went wrong."
 }

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mechanix_settings/core/constants/date_time.dart';
+import 'package:mechanix_settings/features/date_time/data/models/enums.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:mechanix_settings/features/date_time/data/repositories/date_time_repository.dart';
@@ -102,6 +103,8 @@ class DateTimeBloc extends Bloc<DateTimeEvent, DateTimeState> {
 
       emit(
         state.copyWith(
+          status: DateTimeStatus.loaded,
+          error: null,
           autoTime: autoTime,
           timezone: timezone,
           hour: _hour24to12(tzDateTime.hour),
@@ -124,7 +127,14 @@ class DateTimeBloc extends Bloc<DateTimeEvent, DateTimeState> {
         }
       });
     } catch (e, stack) {
-      AppLogger.e('Error during DateTimeBloc initialization: $e', stack: stack);
+      AppLogger.e('Failed to initialize date time: $e', stack: stack);
+
+      emit(
+        state.copyWith(
+          status: DateTimeStatus.error,
+          error: DateTimeError.initializationFailed,
+        ),
+      );
     }
   }
 
@@ -145,6 +155,8 @@ class DateTimeBloc extends Bloc<DateTimeEvent, DateTimeState> {
 
       emit(
         state.copyWith(
+          status: DateTimeStatus.loaded,
+          error: null,
           autoTime: autoTime,
           timezone: timezone,
           hour: _hour24to12(tzDateTime.hour),
@@ -158,8 +170,15 @@ class DateTimeBloc extends Bloc<DateTimeEvent, DateTimeState> {
               : TimeFormats.hour24,
         ),
       );
-    } catch (e) {
-      AppLogger.e('Error refreshing date/time settings: $e');
+    } catch (e, stack) {
+      AppLogger.e('Failed to refresh date/time: $e', stack: stack);
+
+      emit(
+        state.copyWith(
+          status: DateTimeStatus.error,
+          error: DateTimeError.unknown,
+        ),
+      );
     }
   }
 
@@ -172,10 +191,24 @@ class DateTimeBloc extends Bloc<DateTimeEvent, DateTimeState> {
     Emitter<DateTimeState> emit,
   ) async {
     try {
-      emit(state.copyWith(autoTime: event.value));
       await _repository.setNtpEnabled(event.value);
-    } catch (e) {
-      AppLogger.e('Error setting autoTime to ${event.value}: $e');
+
+      emit(
+        state.copyWith(
+          status: DateTimeStatus.loaded,
+          error: null,
+          autoTime: event.value,
+        ),
+      );
+    } catch (e, stack) {
+      AppLogger.e('Failed to update automatic time: $e', stack: stack);
+
+      emit(
+        state.copyWith(
+          status: DateTimeStatus.error,
+          error: DateTimeError.ntpUpdateFailed,
+        ),
+      );
     }
   }
 
@@ -195,6 +228,8 @@ class DateTimeBloc extends Bloc<DateTimeEvent, DateTimeState> {
 
       emit(
         state.copyWith(
+          status: DateTimeStatus.loaded,
+          error: null,
           timezone: timezone,
           hour: _hour24to12(tzDateTime.hour),
           minute: tzDateTime.minute,
@@ -205,7 +240,14 @@ class DateTimeBloc extends Bloc<DateTimeEvent, DateTimeState> {
         ),
       );
     } catch (e, stack) {
-      AppLogger.e('Error setting timezone: $e', stack: stack);
+      AppLogger.e('Failed to update timezone: $e', stack: stack);
+
+      emit(
+        state.copyWith(
+          status: DateTimeStatus.error,
+          error: DateTimeError.timezoneUpdateFailed,
+        ),
+      );
     }
   }
 
@@ -215,10 +257,12 @@ class DateTimeBloc extends Bloc<DateTimeEvent, DateTimeState> {
   ) async {
     try {
       int hour24 = event.hour;
+
       if (!event.isAm && event.hour < 12) hour24 += 12;
       if (event.isAm && event.hour == 12) hour24 = 0;
 
       final location = _getLocation(state.timezone);
+
       final localTime = tz.TZDateTime(
         location,
         state.year,
@@ -229,17 +273,26 @@ class DateTimeBloc extends Bloc<DateTimeEvent, DateTimeState> {
         0,
       );
 
+      await _repository.setTime(localTime.microsecondsSinceEpoch);
+
       emit(
         state.copyWith(
+          status: DateTimeStatus.loaded,
+          error: null,
           hour: event.hour,
           minute: event.minute,
           isAm: event.isAm,
         ),
       );
+    } catch (e, stack) {
+      AppLogger.e('Failed to update time: $e', stack: stack);
 
-      await _repository.setTime(localTime.microsecondsSinceEpoch);
-    } catch (e) {
-      AppLogger.e('Error updating time: $e');
+      emit(
+        state.copyWith(
+          status: DateTimeStatus.error,
+          error: DateTimeError.timeUpdateFailed,
+        ),
+      );
     }
   }
 
@@ -264,17 +317,29 @@ class DateTimeBloc extends Bloc<DateTimeEvent, DateTimeState> {
         0,
       );
 
-      emit(
-        state.copyWith(year: event.year, month: event.month, day: event.day),
-      );
-
       await _repository.setTime(localTime.microsecondsSinceEpoch);
-    } catch (e) {
-      AppLogger.e('Error updating date: $e');
+
+      emit(
+        state.copyWith(
+          status: DateTimeStatus.loaded,
+          error: null,
+          year: event.year,
+          month: event.month,
+          day: event.day,
+        ),
+      );
+    } catch (e, stack) {
+      AppLogger.e('Failed to update date: $e', stack: stack);
+
+      emit(
+        state.copyWith(
+          status: DateTimeStatus.error,
+          error: DateTimeError.timeUpdateFailed,
+        ),
+      );
     }
   }
 
-  /// Updates the preferred system time format (12-hour or 24-hour).
   Future<void> _onUpdateTimeFormat(
     UpdateTimeFormatEvent event,
     Emitter<DateTimeState> emit,
@@ -284,9 +349,22 @@ class DateTimeBloc extends Bloc<DateTimeEvent, DateTimeState> {
         event.timeFormat == TimeFormats.hour12 ? '12h' : '24h',
       );
 
-      emit(state.copyWith(timeFormat: event.timeFormat));
+      emit(
+        state.copyWith(
+          status: DateTimeStatus.loaded,
+          error: null,
+          timeFormat: event.timeFormat,
+        ),
+      );
     } catch (e, stack) {
-      AppLogger.e('Error updating time format: $e', stack: stack);
+      AppLogger.e('Failed to update time format: $e', stack: stack);
+
+      emit(
+        state.copyWith(
+          status: DateTimeStatus.error,
+          error: DateTimeError.timeFormatUpdateFailed,
+        ),
+      );
     }
   }
 

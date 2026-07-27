@@ -559,4 +559,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pm => 'PM';
+
+  @override
+  String get failedToInitializeDateTime =>
+      'Failed to initialize date and time settings.';
+
+  @override
+  String get failedToUpdateTime => 'Failed to update time.';
+
+  @override
+  String get failedToGetTimezone => 'Failed to get time zone.';
+
+  @override
+  String get failedToUpdateTimezone => 'Failed to update time zone.';
+
+  @override
+  String get failedToUpdateAutomaticTime => 'Failed to update automatic time.';
+
+  @override
+  String get failedToUpdateTimeFormat => 'Failed to update time format.';
+
+  @override
+  String get failedToGetAutomaticTime => 'Failed to get automatic time status.';
+
+  @override
+  String get failedToGetSystemTime => 'Failed to get system time.';
+
+  @override
+  String get failedToGetTimeFormat => 'Failed to get time format.';
+
+  @override
+  String get somethingWentWrong => 'Something went wrong.';
 }

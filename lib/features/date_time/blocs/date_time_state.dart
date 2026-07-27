@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:intl/intl.dart';
 import 'package:mechanix_settings/core/constants/date_time.dart';
+import 'package:mechanix_settings/features/date_time/data/models/enums.dart';
 
 class DateTimeState extends Equatable {
   final bool autoTime;
@@ -13,6 +14,9 @@ class DateTimeState extends Equatable {
   final int day;
   final String timeFormat;
 
+  final DateTimeStatus status;
+  final DateTimeError? error;
+
   const DateTimeState({
     required this.autoTime,
     required this.timezone,
@@ -23,6 +27,8 @@ class DateTimeState extends Equatable {
     required this.month,
     required this.day,
     required this.timeFormat,
+    required this.status,
+    this.error,
   });
 
   factory DateTimeState.initial() {
@@ -38,6 +44,7 @@ class DateTimeState extends Equatable {
       month: now.month,
       day: now.day,
       timeFormat: TimeFormats.hour12,
+      status: DateTimeStatus.initial,
     );
   }
 
@@ -51,6 +58,8 @@ class DateTimeState extends Equatable {
     int? month,
     int? day,
     String? timeFormat,
+    DateTimeStatus? status,
+    DateTimeError? error,
   }) {
     return DateTimeState(
       autoTime: autoTime ?? this.autoTime,
@@ -62,6 +71,8 @@ class DateTimeState extends Equatable {
       month: month ?? this.month,
       day: day ?? this.day,
       timeFormat: timeFormat ?? this.timeFormat,
+      status: status ?? this.status,
+      error: error,
     );
   }
 
@@ -76,5 +87,7 @@ class DateTimeState extends Equatable {
     month,
     day,
     timeFormat,
+    status,
+    error,
   ];
 }

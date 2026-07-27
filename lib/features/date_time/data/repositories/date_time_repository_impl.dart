@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:dbus/dbus.dart';
+import 'package:mechanix_settings/core/exceptions/date_time_exceptions.dart';
 import 'package:mechanix_settings/core/utils/app_logger.dart';
 import 'date_time_repository.dart';
 import 'dart:io';
@@ -62,100 +63,104 @@ class DateTimeRepositoryImpl implements DateTimeRepository {
         'Failed to initialize DateTime D-Bus client: $e',
         stack: stackTrace,
       );
+
+      throw const DateTimeInitializationException();
     }
   }
 
   /// Returns whether automatic network time (NTP) synchronization is enabled.
   @override
   Future<bool> getNtpEnabled() async {
-    await init();
-    if (_object == null) return false;
+    final object = await _getObject();
+
     try {
-      final property = await _object!.getProperty(_interface, 'NTP');
+      final property = await object.getProperty(_interface, 'NTP');
       return (property as DBusBoolean).value;
-    } catch (e) {
-      AppLogger.e('Error getting NTP property: $e');
-      return false;
+    } catch (e, stackTrace) {
+      AppLogger.e('Failed to get NTP status: $e', stack: stackTrace);
+      throw const GetNtpException();
     }
   }
 
   @override
   Future<void> setNtpEnabled(bool enabled) async {
-    await init();
-    if (_object == null) return;
+    final object = await _getObject();
+
     try {
-      await _object!.callMethod(_interface, 'SetNTP', [
+      await object.callMethod(_interface, 'SetNTP', [
         DBusBoolean(enabled),
         const DBusBoolean(_interactive),
       ]);
       AppLogger.i('SetNTP successfully called: $enabled');
-    } catch (e) {
-      AppLogger.e('Error calling SetNTP: $e');
+    } catch (e, stackTrace) {
+      AppLogger.e('Error calling SetNTP: $e', stack: stackTrace);
+      throw const SetNtpException();
     }
   }
 
   /// Returns the current system timezone.
   @override
   Future<String> getTimezone() async {
-    await init();
-    if (_object == null) return 'Asia/Kolkata';
+    final object = await _getObject();
+
     try {
-      final property = await _object!.getProperty(_interface, 'Timezone');
+      final property = await object.getProperty(_interface, 'Timezone');
       return (property as DBusString).value;
-    } catch (e) {
-      AppLogger.e('Error getting Timezone property: $e');
-      return 'Asia/Kolkata';
+    } catch (e, stackTrace) {
+      AppLogger.e('Failed to get timezone: $e', stack: stackTrace);
+      throw const GetTimezoneException();
     }
   }
 
   @override
   Future<void> setTimezone(String timezone) async {
-    await init();
-    if (_object == null) return;
+    final object = await _getObject();
+
     try {
-      await _object!.callMethod(_interface, 'SetTimezone', [
+      await object.callMethod(_interface, 'SetTimezone', [
         DBusString(timezone),
         const DBusBoolean(_interactive),
       ]);
       AppLogger.i('SetTimezone successfully called: $timezone');
-    } catch (e) {
-      AppLogger.e('Error calling SetTimezone: $e');
+    } catch (e, stackTrace) {
+      AppLogger.e('Failed to set timezone: $e', stack: stackTrace);
+
+      throw const SetTimezoneException();
     }
   }
 
   /// Sets the system time using microseconds since the Unix epoch.
   @override
   Future<void> setTime(int microsecondsSinceEpoch) async {
-    await init();
-    if (_object == null) return;
+    final object = await _getObject();
+
     try {
-      await _object!.callMethod(_interface, 'SetTime', [
+      await object.callMethod(_interface, 'SetTime', [
         DBusInt64(microsecondsSinceEpoch),
         const DBusBoolean(false), // relative
         const DBusBoolean(_interactive),
       ]);
       AppLogger.i('SetTime successfully called: $microsecondsSinceEpoch');
-    } catch (e) {
-      AppLogger.e('Error calling SetTime: $e');
+    } catch (e, stackTrace) {
+      AppLogger.e('Error calling SetTime: $e', stack: stackTrace);
+      throw const SetTimeException();
     }
   }
 
   /// Returns the current system time from systemd-timedated.
   ///
-  /// Falls back to the local system clock if the D-Bus property cannot be read.
+  /// Throws [GetTimeException] if the system time cannot be retrieved.
   @override
   Future<DateTime> getSystemTime() async {
-    await init();
-    if (_object == null) return DateTime.now();
+    final object = await _getObject();
+
     try {
-      final property = await _object!.getProperty(_interface, 'TimeUSec');
+      final property = await object.getProperty(_interface, 'TimeUSec');
       final timeMillis = property.asUint64() ~/ 1000;
       return DateTime.fromMillisecondsSinceEpoch(timeMillis);
-    } catch (e) {
-      AppLogger.e(
-        'Error getting TimeUSec property, falling back to local time: $e',
-      );
-      return DateTime.now();
+    } catch (e, stackTrace) {
+      AppLogger.e('Failed to get system time: $e', stack: stackTrace);
+      throw const GetTimeException();
     }
   }
 
@@ -173,14 +178,13 @@ class DateTimeRepositoryImpl implements DateTimeRepository {
       ]);
 
       if (result.exitCode != 0) {
-        AppLogger.e('Failed to get time format: ${result.stderr}');
-        return '24h'; // default fallback
+        throw Exception(result.stderr.toString());
       }
 
       return result.stdout.toString().trim().replaceAll("'", "");
     } catch (e, stackTrace) {
-      AppLogger.e('Error getting time format: $e', stack: stackTrace);
-      return '24h';
+      AppLogger.e('Failed to get time format: $e', stack: stackTrace);
+      throw const GetTimeFormatException();
     }
   }
 
@@ -199,13 +203,13 @@ class DateTimeRepositoryImpl implements DateTimeRepository {
       ]);
 
       if (result.exitCode != 0) {
-        AppLogger.e('Failed to set time format: ${result.stderr}');
-        return;
+        throw Exception(result.stderr.toString());
       }
 
       AppLogger.i('Time format set successfully: $format');
     } catch (e, stackTrace) {
       AppLogger.e('Error setting time format: $e', stack: stackTrace);
+      throw const SetTimeFormatException();
     }
   }
 
@@ -223,5 +227,15 @@ class DateTimeRepositoryImpl implements DateTimeRepository {
       _object = null;
       _initialized = false;
     }
+  }
+
+  Future<DBusRemoteObject> _getObject() async {
+    await init();
+
+    if (_object == null) {
+      throw const DateTimeInitializationException();
+    }
+
+    return _object!;
   }
 }

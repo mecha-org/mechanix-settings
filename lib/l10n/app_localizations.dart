@@ -1161,6 +1161,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'PM'**
   String get pm;
+
+  /// Shown when the date and time service could not be initialized.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to initialize date and time settings.'**
+  String get failedToInitializeDateTime;
+
+  /// Shown when updating the system time fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update time.'**
+  String get failedToUpdateTime;
+
+  /// Shown when the current system time zone cannot be retrieved.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to get time zone.'**
+  String get failedToGetTimezone;
+
+  /// Shown when updating the system time zone fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update time zone.'**
+  String get failedToUpdateTimezone;
+
+  /// Shown when enabling or disabling automatic network time fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update automatic time.'**
+  String get failedToUpdateAutomaticTime;
+
+  /// Shown when updating the clock format (12-hour/24-hour) fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update time format.'**
+  String get failedToUpdateTimeFormat;
+
+  /// Shown when the automatic time (NTP) status could not be retrieved.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to get automatic time status.'**
+  String get failedToGetAutomaticTime;
+
+  /// Shown when the current system time could not be retrieved.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to get system time.'**
+  String get failedToGetSystemTime;
+
+  /// Shown when the current time format could not be retrieved.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to get time format.'**
+  String get failedToGetTimeFormat;
+
+  /// No description provided for @somethingWentWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong.'**
+  String get somethingWentWrong;
 }
 
 class _AppLocalizationsDelegate
