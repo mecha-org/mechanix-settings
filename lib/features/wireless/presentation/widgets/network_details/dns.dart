@@ -77,6 +77,7 @@ class _DNSScreenState extends State<DNSScreen> {
     final controller = TextEditingController(text: text);
     controller.addListener(() {
       onChanged(controller);
+      setState(() {});
     });
     controllers.add(controller);
   }
@@ -181,16 +182,44 @@ class _DNSScreenState extends State<DNSScreen> {
       }
     }
 
-    widget.onSaved({
-      'config': _configType,
-      'servers': servers,
-      'searchDomains': searchDomains,
-    });
+    final hasChanged = _configType != widget.currentConfig ||
+        !_listEquals(servers, widget.servers) ||
+        !_listEquals(searchDomains, widget.network.dnsSearchDomains);
+
+    if (hasChanged) {
+      widget.onSaved({
+        'config': _configType,
+        'servers': servers,
+        'searchDomains': searchDomains,
+      });
+    }
     Navigator.of(context).pop();
+  }
+
+  bool _listEquals(List<String> a, List<String> b) {
+    if (identical(a, b)) return true;
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
   }
 
   @override
   Widget build(BuildContext context) {
+    final servers = _serverControllers
+        .map((c) => c.text.trim())
+        .where((text) => text.isNotEmpty)
+        .toList();
+    final searchDomains = _domainControllers
+        .map((c) => c.text.trim())
+        .where((text) => text.isNotEmpty)
+        .toList();
+
+    final hasChanged = _configType != widget.currentConfig ||
+        !_listEquals(servers, widget.servers) ||
+        !_listEquals(searchDomains, widget.network.dnsSearchDomains);
+
     return Scaffold(
       appBar: DNSAppBar(
         networkName: widget.network.name,
@@ -240,8 +269,8 @@ class _DNSScreenState extends State<DNSScreen> {
         trailing: [
           CustomIconButton.asset(
             assetPath: SettingIcons.check,
-            enabled: true,
-            onPressed: _saveAndPop,
+            enabled: hasChanged,
+            onPressed: hasChanged ? _saveAndPop : null,
           ),
         ],
       ),

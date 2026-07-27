@@ -539,6 +539,57 @@ class WirelessRepositoryImpl implements WirelessRepository {
 
         updatedSettings["ipv4"] = ipv4;
 
+        final oldIpv4 = settings["ipv4"] ?? {};
+        bool ipSettingsChanged = false;
+
+        final oldMethod = oldIpv4["method"]?.toNative();
+        final newMethod = ipv4["method"]?.toNative();
+        if (oldMethod != newMethod) {
+          ipSettingsChanged = true;
+        }
+
+        if (!ipSettingsChanged && newMethod == "manual") {
+          final oldGateway = oldIpv4["gateway"]?.toNative();
+          final newGateway = ipv4["gateway"]?.toNative();
+          if (oldGateway != newGateway) {
+            ipSettingsChanged = true;
+          }
+
+          if (!ipSettingsChanged) {
+            final oldAddr = oldIpv4["address-data"]?.toNative();
+            final newAddr = ipv4["address-data"]?.toNative();
+
+            bool isSameAddressData(dynamic a, dynamic b) {
+              if (a == null && b == null) return true;
+              if (a == null || b == null) return false;
+              if (a is List && b is List) {
+                if (a.isEmpty && b.isEmpty) return true;
+                if (a.length != b.length) return false;
+                final mapA = a.first;
+                final mapB = b.first;
+                if (mapA is Map && mapB is Map) {
+                  return mapA["address"] == mapB["address"] &&
+                      mapA["prefix"] == mapB["prefix"];
+                }
+              }
+              return false;
+            }
+
+            if (!isSameAddressData(oldAddr, newAddr)) {
+              ipSettingsChanged = true;
+            }
+          }
+        }
+
+        if (oldIpv4.containsKey("addresses") != ipv4.containsKey("addresses")) {
+          ipSettingsChanged = true;
+        }
+
+        if (!ipSettingsChanged) {
+          AppLogger.i("IP settings did not change. Skipping update.");
+          break;
+        }
+
         await cn.update(updatedSettings);
 
         try {
@@ -610,6 +661,57 @@ class WirelessRepositoryImpl implements WirelessRepository {
               }
 
               updatedSettings['ipv4'] = ipv4Map;
+
+              final oldIpv4 = settings['ipv4'] ?? {};
+              bool dnsSettingsChanged = false;
+
+              final oldIgnoreAuto = oldIpv4['ignore-auto-dns']?.toNative();
+              final newIgnoreAuto = ipv4Map['ignore-auto-dns']?.toNative();
+              if (oldIgnoreAuto != newIgnoreAuto) {
+                dnsSettingsChanged = true;
+              }
+
+              if (!dnsSettingsChanged &&
+                  dnsConfigType == DNSConfigType.manual) {
+                final oldDns = oldIpv4['dns']?.toNative();
+                final newDns = ipv4Map['dns']?.toNative();
+
+                bool isSameList(dynamic a, dynamic b) {
+                  if (a == null && b == null) return true;
+                  if (a == null || b == null) return false;
+                  if (a is List && b is List) {
+                    if (a.length != b.length) return false;
+                    for (int i = 0; i < a.length; i++) {
+                      if (a[i] != b[i]) return false;
+                    }
+                    return true;
+                  }
+                  return false;
+                }
+
+                if (!isSameList(oldDns, newDns)) {
+                  dnsSettingsChanged = true;
+                }
+
+                if (!dnsSettingsChanged) {
+                  final oldSearch = oldIpv4['dns-search']?.toNative();
+                  final newSearch = ipv4Map['dns-search']?.toNative();
+                  if (!isSameList(oldSearch, newSearch)) {
+                    dnsSettingsChanged = true;
+                  }
+                }
+              } else if (!dnsSettingsChanged) {
+                if (oldIpv4.containsKey('dns') ||
+                    oldIpv4.containsKey('dns-search')) {
+                  dnsSettingsChanged = true;
+                }
+              }
+
+              if (!dnsSettingsChanged) {
+                AppLogger.i("DNS settings did not change. Skipping update.");
+                break;
+              }
+
               await cn.update(updatedSettings);
 
               final wifiDevice = await getWifiDevice();
@@ -864,7 +966,7 @@ class WirelessRepositoryImpl implements WirelessRepository {
       if (secrets.isNotEmpty) {
         var security = secrets['802-11-wireless-security'];
         if (security != null) {
-          var psk = security['psk'];
+          var psk = security['psk'] ?? security['wep-key0'];
           if (psk != null) {
             return psk.toNative();
           }
@@ -1110,21 +1212,30 @@ class WirelessRepositoryImpl implements WirelessRepository {
     }
 
     try {
-      if (ap != null && wifiDevice != null) {
-        return await getSavedWifiPsk(wifiDevice, ap) ?? "";
-      }
-
-      if (connection != null) {
-        final secrets = await connection.getSecrets('802-11-wireless-security');
-
+      final conn =
+          connection ??
+          await _findExistingConnection(accessPoint: ap, ssid: name);
+      if (conn != null) {
+        final secrets = await conn.getSecrets('802-11-wireless-security');
         final security = secrets['802-11-wireless-security'];
-
-        final psk = security?['psk'];
-
-        return psk?.toNative() ?? "";
+        final psk = security?['psk'] ?? security?['wep-key0'];
+        if (psk != null) {
+          final val = psk.toNative();
+          if (val != null && val.toString().isNotEmpty) {
+            return val.toString();
+          }
+        }
       }
     } catch (e, stack) {
       AppLogger.e('Failed to retrieve PSK for "$name"', error: e, stack: stack);
+    }
+
+    try {
+      if (ap != null && wifiDevice != null) {
+        return await getSavedWifiPsk(wifiDevice, ap) ?? "";
+      }
+    } catch (e) {
+      AppLogger.e('Failed to get saved PSK', error: e);
     }
 
     return "";
