@@ -590,4 +590,92 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get somethingWentWrong => 'Something went wrong.';
+
+  @override
+  String get batterySaver => 'Battery saver';
+
+  @override
+  String get usage => 'USAGE';
+
+  @override
+  String get untilFull => 'until full';
+
+  @override
+  String get left => 'left';
+
+  @override
+  String get batteryStatus => 'Status';
+
+  @override
+  String get charging => 'Charging';
+
+  @override
+  String get discharging => 'Discharging';
+
+  @override
+  String get fullCharged => 'Fully charged';
+
+  @override
+  String get empty => 'Empty';
+
+  @override
+  String get unknown => 'Unknown';
+
+  @override
+  String get pendingCharge => 'Pending charge';
+
+  @override
+  String get pendingDischarge => 'Pending discharge';
+
+  @override
+  String get high => 'High';
+
+  @override
+  String get normal => 'Normal';
+
+  @override
+  String batteryPercentage(int percentage) {
+    return '$percentage%';
+  }
+
+  @override
+  String batteryHours(int count) {
+    return '${count}h';
+  }
+
+  @override
+  String batteryMinutes(int count) {
+    return '${count}m';
+  }
+
+  @override
+  String batteryTimeRemaining(String time) {
+    return '$time left';
+  }
+
+  @override
+  String batteryTimeUntilFull(String time) {
+    return '$time until full';
+  }
+
+  @override
+  String get failedToInitializeBattery =>
+      'Failed to initialize battery service.';
+
+  @override
+  String get failedToGetBatteryInfo => 'Failed to get battery information.';
+
+  @override
+  String get failedToUpdateBatteryMode => 'Failed to update battery mode.';
+
+  @override
+  String get failedToGetBatteryMode => 'Failed to get battery mode.';
+
+  @override
+  String get failedToGetAvailableBatteryModes =>
+      'Failed to get available battery modes.';
+
+  @override
+  String get failedToInitializeBatteryEvents =>
+      'Failed to initialize battery event listener.';
 }

@@ -316,5 +316,94 @@
     "description": "Shown when the current time format could not be retrieved."
   },
 
-  "somethingWentWrong": "Something went wrong."
+  "somethingWentWrong": "Something went wrong.",
+
+
+  "batterySaver": "Battery saver",
+  "usage": "USAGE",
+  "untilFull": "until full",
+  "left": "left",
+  "batteryStatus": "Status",
+  "charging" : "Charging",
+  "discharging" : "Discharging",
+  "fullCharged": "Fully charged",
+  "empty": "Empty",
+  "unknown": "Unknown",
+  "pendingCharge": "Pending charge",
+  "pendingDischarge": "Pending discharge",
+  "high" : "High",
+  "normal" : "Normal",
+  "batteryPercentage": "{percentage}%",
+  "@batteryPercentage": {
+    "description": "Battery percentage display",
+    "placeholders": {
+      "percentage": {
+        "type": "int"
+      }
+    }
+  },
+  
+  "batteryHours": "{count}h",
+  "@batteryHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "batteryMinutes": "{count}m",
+  "@batteryMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "batteryTimeRemaining": "{time} left",
+  "@batteryTimeRemaining": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "batteryTimeUntilFull": "{time} until full",
+  "@batteryTimeUntilFull": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+
+  "failedToInitializeBattery": "Failed to initialize battery service.",
+  "@failedToInitializeBattery": {
+    "description": "Error message shown when the battery service fails to initialize."
+  },
+
+  "failedToGetBatteryInfo": "Failed to get battery information.",
+  "@failedToGetBatteryInfo": {
+    "description": "Error message shown when battery information cannot be retrieved."
+  },
+
+  "failedToUpdateBatteryMode": "Failed to update battery mode.",
+  "@failedToUpdateBatteryMode": {
+    "description": "Error message shown when changing the battery power mode fails."
+  },
+
+  "failedToGetBatteryMode": "Failed to get battery mode.",
+  "@failedToGetBatteryMode": {
+    "description": "Error message shown when the current battery power mode cannot be retrieved."
+  },
+
+  "failedToGetAvailableBatteryModes": "Failed to get available battery modes.",
+  "@failedToGetAvailableBatteryModes": {
+    "description": "Error message shown when the list of supported battery power modes cannot be retrieved."
+  },
+
+  "failedToInitializeBatteryEvents": "Failed to initialize battery event listener.",
+  "@failedToInitializeBatteryEvents": {
+    "description": "Error message shown when listening for battery state changes cannot be initialized."
+  }
+
 }

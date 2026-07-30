@@ -1221,6 +1221,156 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Something went wrong.'**
   String get somethingWentWrong;
+
+  /// No description provided for @batterySaver.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery saver'**
+  String get batterySaver;
+
+  /// No description provided for @usage.
+  ///
+  /// In en, this message translates to:
+  /// **'USAGE'**
+  String get usage;
+
+  /// No description provided for @untilFull.
+  ///
+  /// In en, this message translates to:
+  /// **'until full'**
+  String get untilFull;
+
+  /// No description provided for @left.
+  ///
+  /// In en, this message translates to:
+  /// **'left'**
+  String get left;
+
+  /// No description provided for @batteryStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get batteryStatus;
+
+  /// No description provided for @charging.
+  ///
+  /// In en, this message translates to:
+  /// **'Charging'**
+  String get charging;
+
+  /// No description provided for @discharging.
+  ///
+  /// In en, this message translates to:
+  /// **'Discharging'**
+  String get discharging;
+
+  /// No description provided for @fullCharged.
+  ///
+  /// In en, this message translates to:
+  /// **'Fully charged'**
+  String get fullCharged;
+
+  /// No description provided for @empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty'**
+  String get empty;
+
+  /// No description provided for @unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get unknown;
+
+  /// No description provided for @pendingCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending charge'**
+  String get pendingCharge;
+
+  /// No description provided for @pendingDischarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending discharge'**
+  String get pendingDischarge;
+
+  /// No description provided for @high.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get high;
+
+  /// No description provided for @normal.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal'**
+  String get normal;
+
+  /// Battery percentage display
+  ///
+  /// In en, this message translates to:
+  /// **'{percentage}%'**
+  String batteryPercentage(int percentage);
+
+  /// No description provided for @batteryHours.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}h'**
+  String batteryHours(int count);
+
+  /// No description provided for @batteryMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count}m'**
+  String batteryMinutes(int count);
+
+  /// No description provided for @batteryTimeRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{time} left'**
+  String batteryTimeRemaining(String time);
+
+  /// No description provided for @batteryTimeUntilFull.
+  ///
+  /// In en, this message translates to:
+  /// **'{time} until full'**
+  String batteryTimeUntilFull(String time);
+
+  /// Error message shown when the battery service fails to initialize.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to initialize battery service.'**
+  String get failedToInitializeBattery;
+
+  /// Error message shown when battery information cannot be retrieved.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to get battery information.'**
+  String get failedToGetBatteryInfo;
+
+  /// Error message shown when changing the battery power mode fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update battery mode.'**
+  String get failedToUpdateBatteryMode;
+
+  /// Error message shown when the current battery power mode cannot be retrieved.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to get battery mode.'**
+  String get failedToGetBatteryMode;
+
+  /// Error message shown when the list of supported battery power modes cannot be retrieved.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to get available battery modes.'**
+  String get failedToGetAvailableBatteryModes;
+
+  /// Error message shown when listening for battery state changes cannot be initialized.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to initialize battery event listener.'**
+  String get failedToInitializeBatteryEvents;
 }
 
 class _AppLocalizationsDelegate

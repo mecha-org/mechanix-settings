@@ -11,6 +11,7 @@ import 'package:mechanix_settings/features/bluetooth/presentation/screens/blueto
 import 'package:mechanix_settings/features/settings_menu/presentation/widgets/settings_menu_bottombar.dart';
 import 'package:mechanix_settings/features/wireless/presentation/screens/wireless.dart';
 import 'package:mechanix_settings/features/date_time/presentation/screens/date_time_screen.dart';
+import 'package:mechanix_settings/features/battery/presentation/screens/battery_screen.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
 
 class SettingsMenuScreen extends StatefulWidget {
@@ -165,7 +166,13 @@ class SettingsMenuScreenState extends State<SettingsMenuScreen> {
                       assetPath: SettingIcons.battery,
                       color: AppColors.onSurfaceVariant,
                     ),
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const BatteryScreen(),
+                        ),
+                      );
+                    },
                   ),
 
                   SectionItem(
