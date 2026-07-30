@@ -8,7 +8,6 @@ class BatteryState extends Equatable {
   final int? batteryChargingTime;
   final int? batteryRemainingTime;
   final PowerProfileMode? performanceMode;
-  final bool isBatterySaverOn;
   final List<String> availableBatteryModes;
   final BatteryStatus status;
   final BatteryError? error;
@@ -20,7 +19,6 @@ class BatteryState extends Equatable {
     this.batteryChargingTime = 0,
     this.batteryRemainingTime = 0,
     this.performanceMode = PowerProfileMode.balanced,
-    this.isBatterySaverOn = false,
     this.availableBatteryModes = const [],
     this.error,
   });
@@ -32,7 +30,6 @@ class BatteryState extends Equatable {
     int? batteryChargingTime,
     int? batteryRemainingTime,
     PowerProfileMode? performanceMode,
-    bool? isBatterySaverOn,
     List<String>? availableBatteryModes,
     BatteryError? error,
   }) {
@@ -43,7 +40,6 @@ class BatteryState extends Equatable {
       batteryChargingTime: batteryChargingTime ?? this.batteryChargingTime,
       batteryRemainingTime: batteryRemainingTime ?? this.batteryRemainingTime,
       performanceMode: performanceMode ?? this.performanceMode,
-      isBatterySaverOn: isBatterySaverOn ?? this.isBatterySaverOn,
       availableBatteryModes:
           availableBatteryModes ?? this.availableBatteryModes,
       error: error,
@@ -58,7 +54,6 @@ class BatteryState extends Equatable {
     batteryChargingTime,
     batteryRemainingTime,
     performanceMode,
-    isBatterySaverOn,
     availableBatteryModes,
     error,
   ];

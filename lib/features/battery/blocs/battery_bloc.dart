@@ -23,7 +23,7 @@ class BatteryBloc extends Bloc<BatteryEvent, BatteryState> {
 
       await batteryRepository.init();
       await _initializeBatteryStream();
-      add(const BatteryInfoRequested());
+      await _loadBatteryInfo(emit);
     } catch (e, stack) {
       AppLogger.e("Failed to initialize battery", error: e, stack: stack);
 
@@ -41,21 +41,7 @@ class BatteryBloc extends Bloc<BatteryEvent, BatteryState> {
     Emitter<BatteryState> emit,
   ) async {
     try {
-      final info = await batteryRepository.getBatteryInfo();
-
-      emit(
-        state.copyWith(
-          status: BatteryStatus.loaded,
-          batteryPercentage: info.batteryPercentage,
-          batteryStatus: info.status,
-          performanceMode: info.mode,
-          isBatterySaverOn: info.mode == PowerProfileMode.powerSaver,
-          batteryChargingTime: info.batteryChargingTime,
-          batteryRemainingTime: info.batteryRemainingTime,
-          availableBatteryModes: info.availableBatteryModes,
-          error: null,
-        ),
-      );
+      await _loadBatteryInfo(emit);
     } catch (e, stack) {
       AppLogger.e("Failed to get battery info", error: e, stack: stack);
 
@@ -73,18 +59,8 @@ class BatteryBloc extends Bloc<BatteryEvent, BatteryState> {
     Emitter<BatteryState> emit,
   ) async {
     try {
-      final newMode = await batteryRepository.setBatteryMode(event.mode);
-
-      emit(
-        state.copyWith(
-          status: BatteryStatus.loaded,
-          performanceMode: newMode,
-          isBatterySaverOn: newMode == PowerProfileMode.powerSaver,
-          error: null,
-        ),
-      );
-
-      add(const BatteryInfoRequested());
+      await batteryRepository.setBatteryMode(event.mode);
+      await _loadBatteryInfo(emit);
     } catch (e, stack) {
       AppLogger.e("Failed to update battery mode", error: e, stack: stack);
 
@@ -106,18 +82,8 @@ class BatteryBloc extends Bloc<BatteryEvent, BatteryState> {
           ? PowerProfileMode.powerSaver
           : PowerProfileMode.balanced;
 
-      final newMode = await batteryRepository.setBatteryMode(targetMode);
-
-      emit(
-        state.copyWith(
-          status: BatteryStatus.loaded,
-          isBatterySaverOn: newMode == PowerProfileMode.powerSaver,
-          performanceMode: newMode,
-          error: null,
-        ),
-      );
-
-      add(const BatteryInfoRequested());
+      await batteryRepository.setBatteryMode(targetMode);
+      await _loadBatteryInfo(emit);
     } catch (e, stack) {
       AppLogger.e("Failed to toggle battery saver", error: e, stack: stack);
 
@@ -155,6 +121,23 @@ class BatteryBloc extends Bloc<BatteryEvent, BatteryState> {
         stack: stack,
       );
     }
+  }
+
+  Future<void> _loadBatteryInfo(Emitter<BatteryState> emit) async {
+    final info = await batteryRepository.getBatteryInfo();
+
+    emit(
+      state.copyWith(
+        status: BatteryStatus.loaded,
+        batteryPercentage: info.batteryPercentage,
+        batteryStatus: info.status,
+        performanceMode: info.mode,
+        batteryChargingTime: info.batteryChargingTime,
+        batteryRemainingTime: info.batteryRemainingTime,
+        availableBatteryModes: info.availableBatteryModes,
+        error: null,
+      ),
+    );
   }
 
   @override

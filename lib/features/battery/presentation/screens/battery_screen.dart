@@ -13,6 +13,7 @@ import 'package:mechanix_settings/core/widgets/breadcrumbs.dart';
 import 'package:mechanix_settings/features/battery/blocs/battery_bloc.dart';
 import 'package:mechanix_settings/features/battery/blocs/battery_state.dart';
 import 'package:mechanix_settings/features/battery/blocs/battery_event.dart';
+import 'package:mechanix_settings/features/battery/data/models/enums.dart';
 import 'package:mechanix_settings/features/battery/presentation/widgets/battery_progress_bar.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
 import 'package:upower/upower.dart';
@@ -274,7 +275,9 @@ class _BatteryScreenState extends State<BatteryScreen> {
                             ),
                           ),
                           CustomToggle(
-                            value: state.isBatterySaverOn,
+                            value:
+                                state.performanceMode ==
+                                PowerProfileMode.powerSaver,
                             onChanged: (val) {
                               context.read<BatteryBloc>().add(
                                 ToggleBatterySaver(val),
