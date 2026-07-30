@@ -44,11 +44,11 @@ class _BatteryScreenState extends State<BatteryScreen> {
       case UPowerDeviceState.empty:
         return l10n.empty;
       case UPowerDeviceState.unknown:
-        return l10n.charging;
+        return l10n.unknown;
       case UPowerDeviceState.pendingCharge:
-        return l10n.charging;
+        return l10n.pendingCharge;
       case UPowerDeviceState.pendingDischarge:
-        return l10n.charging;
+        return l10n.pendingDischarge;
     }
   }
 
@@ -183,7 +183,7 @@ class _BatteryScreenState extends State<BatteryScreen> {
                               Text(
                                 l10n.batteryPercentage(displayPercentage),
                                 style: theme.textTheme.bodyLarge?.copyWith(
-                                  color: Colors.white,
+                                  color: AppColors.onSurface,
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                 ),
