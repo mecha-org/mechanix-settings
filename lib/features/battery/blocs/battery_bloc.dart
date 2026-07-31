@@ -23,7 +23,6 @@ class BatteryBloc extends Bloc<BatteryEvent, BatteryState> {
 
       await batteryRepository.init();
       await _initializeBatteryStream();
-      await _loadBatteryInfo(emit);
     } catch (e, stack) {
       AppLogger.e("Failed to initialize battery", error: e, stack: stack);
 

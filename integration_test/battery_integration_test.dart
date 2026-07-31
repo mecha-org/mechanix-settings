@@ -197,9 +197,17 @@ void main() {
                     ..add(const InitializeDateTimeEvent()),
             ),
             BlocProvider<BatteryBloc>(
-              create: (context) => BatteryBloc(
-                batteryRepository: context.read<BatteryRepository>(),
-              )..add(const BatteryInit()),
+              create: (context) {
+                final bloc = BatteryBloc(
+                  batteryRepository: context.read<BatteryRepository>(),
+                );
+
+                bloc
+                  ..add(const BatteryInit())
+                  ..add(const BatteryInfoRequested());
+
+                return bloc;
+              },
             ),
           ],
           child: const MechanixSettingsApp(),

@@ -54,7 +54,7 @@ void main() {
 
   group('BatteryInit Event', () {
     blocTest<BatteryBloc, BatteryState>(
-      'initializes repository and requests info',
+      'initializes repository and battery stream',
       build: () => batteryBloc,
       act: (bloc) => bloc.add(const BatteryInit()),
       expect: () => [
@@ -63,34 +63,14 @@ void main() {
           'status',
           BatteryStatus.loading,
         ),
-
-        isA<BatteryState>()
-            .having((s) => s.status, 'status', BatteryStatus.loaded)
-            .having((s) => s.batteryPercentage, 'batteryPercentage', 75.0)
-            .having(
-              (s) => s.batteryStatus,
-              'batteryStatus',
-              UPowerDeviceState.discharging,
-            )
-            .having(
-              (s) => s.performanceMode,
-              'performanceMode',
-              PowerProfileMode.balanced,
-            )
-            .having(
-              (s) => s.performanceMode == PowerProfileMode.powerSaver,
-              'isBatterySaverOn',
-              false,
-            ),
       ],
       verify: (_) {
         verify(() => mockBatteryRepository.init()).called(1);
         verify(() => mockBatteryRepository.streamBatteryEvents()).called(1);
-        verify(() => mockBatteryRepository.getBatteryInfo()).called(1);
+        verifyNever(() => mockBatteryRepository.getBatteryInfo());
       },
     );
   });
-
   group('ToggleBatterySaver Event', () {
     blocTest<BatteryBloc, BatteryState>(
       'toggles battery saver to true and sets power-saver mode',
