@@ -286,17 +286,42 @@ class _MyNetworksList extends StatelessWidget {
     return BlocSelector<
       WirelessBloc,
       WirelessState,
-      ({List<WifiNetwork> networks, String? connected, String? connecting})
+      ({
+        List<WifiNetwork> networks,
+        String? connected,
+        String? connecting,
+        List<WifiNetwork> savedNetworks,
+      })
     >(
       selector: (state) => (
         networks: state.myNetworks,
         connected: state.connectedNetworkName,
         connecting: state.connectingNetworkName,
+        savedNetworks: state.savedNetworks,
       ),
       builder: (context, state) {
-        final myNetworks = state.networks
+        var myNetworks = state.networks
             .where((e) => e.name != state.connected)
             .toList();
+
+        // If a network is currently connecting but not in myNetworks (e.g. because it's not visible yet),
+        // we should still show it in the My Networks list to indicate connection progress.
+        if (state.connecting != null &&
+            state.connecting != state.connected &&
+            !myNetworks.any((e) => e.name == state.connecting)) {
+          final WifiNetwork? saved = state.savedNetworks.cast<WifiNetwork?>().firstWhere(
+            (e) => e?.name == state.connecting,
+            orElse: () => null,
+          );
+          final connectingNetwork = saved ?? WifiNetwork(
+            name: state.connecting!,
+            signalLevel: 0,
+            isSecured: true,
+            isConnected: false,
+            isConnecting: true,
+          );
+          myNetworks = [connectingNetwork, ...myNetworks];
+        }
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
