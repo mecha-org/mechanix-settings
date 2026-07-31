@@ -230,5 +230,91 @@
     }
   },
   "deviceNameLimit": "Device name cannot exceed 30 characters",
-  "unknownError": "An unknown error occurred"
+  "unknownError": "An unknown error occurred",
+
+  "autoTime": "Auto time",
+  "timezone": "Timezone",
+  "setTime": "Set time",
+  "setDate": "Set date",
+  "timeFormat": "Time Format",
+  "dateFormat": "Date Format",
+  "format12Hour": "12 hour clock",
+  "format24Hour": "24 hour clock",
+  "timezoneGmt": "GMT (UTC 0)",
+  "timezoneIst": "Kolkata (IST, UTC+5:30)",
+  "timezoneHst": "Honolulu (HST, UTC-10:00)",
+  "timezoneAkdt": "Anchorage (AKDT, UTC-08:00)",
+  "timezonePdt": "Los Angeles (PDT, UTC-07:00)",
+  "timezoneMdt": "Denever (MDT, UTC-06:00)",
+  "timezoneCdt": "Chicago (CDT, UTC-05:00)",
+  "timezoneEdt": "New York (EDT, UTC-04:00)",
+  "timezoneAdt": "Halifax (ADT, UTC-03:00)",
+  "timezoneBrt": "Sao Paulo (BRT, UTC-03:00)",
+  "timezoneCest": "Paris (CEST, UTC+02:00)",
+  "timezoneEest": "Helsinki (EEST, UTC+03:00)",
+  "timezoneGst": "Dubai (GST, UTC+04:00)",
+  "timezoneIct": "Bangkok (ICT, UTC+07:00)",
+  "timezoneCst": "Shanghai (CST, UTC+08:00)",
+  "timezoneJst": "Tokyo (JST, UTC+09:00)",
+  "timezoneAest": "Sydney (AEST, UTC+10:00)",
+  "timezoneNzst": "Auckland, (NZST, UTC+12:00)",
+  "dateFormatDmy": "dd/MM/yyyy",
+  "dateFormatMdy": "MM/dd/yy",
+  "dateFormatYmd": "yyyy-MM-dd",
+  "dateFormatDmyShort": "dd MMM yyyy",
+  "dateFormatDmyLong": "dd MMMM yyyy",
+  "am": "AM",
+  "@am": {
+    "description": "Ante meridiem time indicator"
+  },
+  "pm": "PM",
+  "@pm": {
+    "description": "Post meridiem time indicator"
+  },
+    "failedToInitializeDateTime": "Failed to initialize date and time settings.",
+  "@failedToInitializeDateTime": {
+    "description": "Shown when the date and time service could not be initialized."
+  },
+
+  "failedToUpdateTime": "Failed to update time.",
+  "@failedToUpdateTime": {
+    "description": "Shown when updating the system time fails."
+  },
+
+  "failedToGetTimezone": "Failed to get time zone.",
+  "@failedToGetTimezone": {
+    "description": "Shown when the current system time zone cannot be retrieved."
+  },
+
+  "failedToUpdateTimezone": "Failed to update time zone.",
+  "@failedToUpdateTimezone": {
+    "description": "Shown when updating the system time zone fails."
+  },
+
+  "failedToUpdateAutomaticTime": "Failed to update automatic time.",
+  "@failedToUpdateAutomaticTime": {
+    "description": "Shown when enabling or disabling automatic network time fails."
+  },
+
+  "failedToUpdateTimeFormat": "Failed to update time format.",
+  "@failedToUpdateTimeFormat": {
+    "description": "Shown when updating the clock format (12-hour/24-hour) fails."
+  },
+
+  "failedToGetAutomaticTime": "Failed to get automatic time status.",
+  "@failedToGetAutomaticTime": {
+    "description": "Shown when the automatic time (NTP) status could not be retrieved."
+  },
+
+  "failedToGetSystemTime": "Failed to get system time.",
+  "@failedToGetSystemTime": {
+    "description": "Shown when the current system time could not be retrieved."
+  },
+
+  "failedToGetTimeFormat": "Failed to get time format.",
+  "@failedToGetTimeFormat": {
+    "description": "Shown when the current time format could not be retrieved."
+  },
+
+  "somethingWentWrong": "Something went wrong."
 }

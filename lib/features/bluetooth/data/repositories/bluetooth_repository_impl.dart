@@ -7,9 +7,12 @@ import 'package:mechanix_settings/features/bluetooth/data/models/enums.dart';
 import 'package:mechanix_settings/features/bluetooth/data/repositories/bluetooth_repository.dart';
 
 class BluetoothRepositoryImpl implements BluetoothRepository {
+  final BlueZClient? _injectedClient;
   late BlueZClient _client;
   BlueZAdapter? _adapter;
   bool _connected = false;
+
+  BluetoothRepositoryImpl({BlueZClient? client}) : _injectedClient = client;
 
   final _powerController = StreamController<bool>.broadcast();
   final _discoverableController = StreamController<bool>.broadcast();
@@ -43,8 +46,10 @@ class BluetoothRepositoryImpl implements BluetoothRepository {
     if (_connected) return;
 
     try {
-      _client = BlueZClient();
-      await _client.connect();
+      _client = _injectedClient ?? BlueZClient();
+      if (_injectedClient == null) {
+        await _client.connect();
+      }
       _connected = true;
 
       if (_client.adapters.isEmpty) {
@@ -476,11 +481,17 @@ class BluetoothRepositoryImpl implements BluetoothRepository {
   Future<String> getLocalDeviceName() async {
     await _ensureConnected();
 
-    final name = _adapter?.alias ?? _adapter?.name ?? 'comet';
+    final alias = _adapter?.alias;
+    final name = _adapter?.name;
+    final displayName = (alias != null && alias.isNotEmpty)
+        ? alias
+        : (name != null && name.isNotEmpty)
+            ? name
+            : 'comet';
 
-    AppLogger.i('Local bluetooth device name: $name');
+    AppLogger.i('Local bluetooth device name: $displayName');
 
-    return name;
+    return displayName;
   }
 
   @override

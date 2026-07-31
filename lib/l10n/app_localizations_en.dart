@@ -460,4 +460,134 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get unknownError => 'An unknown error occurred';
+
+  @override
+  String get autoTime => 'Auto time';
+
+  @override
+  String get timezone => 'Timezone';
+
+  @override
+  String get setTime => 'Set time';
+
+  @override
+  String get setDate => 'Set date';
+
+  @override
+  String get timeFormat => 'Time Format';
+
+  @override
+  String get dateFormat => 'Date Format';
+
+  @override
+  String get format12Hour => '12 hour clock';
+
+  @override
+  String get format24Hour => '24 hour clock';
+
+  @override
+  String get timezoneGmt => 'GMT (UTC 0)';
+
+  @override
+  String get timezoneIst => 'Kolkata (IST, UTC+5:30)';
+
+  @override
+  String get timezoneHst => 'Honolulu (HST, UTC-10:00)';
+
+  @override
+  String get timezoneAkdt => 'Anchorage (AKDT, UTC-08:00)';
+
+  @override
+  String get timezonePdt => 'Los Angeles (PDT, UTC-07:00)';
+
+  @override
+  String get timezoneMdt => 'Denever (MDT, UTC-06:00)';
+
+  @override
+  String get timezoneCdt => 'Chicago (CDT, UTC-05:00)';
+
+  @override
+  String get timezoneEdt => 'New York (EDT, UTC-04:00)';
+
+  @override
+  String get timezoneAdt => 'Halifax (ADT, UTC-03:00)';
+
+  @override
+  String get timezoneBrt => 'Sao Paulo (BRT, UTC-03:00)';
+
+  @override
+  String get timezoneCest => 'Paris (CEST, UTC+02:00)';
+
+  @override
+  String get timezoneEest => 'Helsinki (EEST, UTC+03:00)';
+
+  @override
+  String get timezoneGst => 'Dubai (GST, UTC+04:00)';
+
+  @override
+  String get timezoneIct => 'Bangkok (ICT, UTC+07:00)';
+
+  @override
+  String get timezoneCst => 'Shanghai (CST, UTC+08:00)';
+
+  @override
+  String get timezoneJst => 'Tokyo (JST, UTC+09:00)';
+
+  @override
+  String get timezoneAest => 'Sydney (AEST, UTC+10:00)';
+
+  @override
+  String get timezoneNzst => 'Auckland, (NZST, UTC+12:00)';
+
+  @override
+  String get dateFormatDmy => 'dd/MM/yyyy';
+
+  @override
+  String get dateFormatMdy => 'MM/dd/yy';
+
+  @override
+  String get dateFormatYmd => 'yyyy-MM-dd';
+
+  @override
+  String get dateFormatDmyShort => 'dd MMM yyyy';
+
+  @override
+  String get dateFormatDmyLong => 'dd MMMM yyyy';
+
+  @override
+  String get am => 'AM';
+
+  @override
+  String get pm => 'PM';
+
+  @override
+  String get failedToInitializeDateTime =>
+      'Failed to initialize date and time settings.';
+
+  @override
+  String get failedToUpdateTime => 'Failed to update time.';
+
+  @override
+  String get failedToGetTimezone => 'Failed to get time zone.';
+
+  @override
+  String get failedToUpdateTimezone => 'Failed to update time zone.';
+
+  @override
+  String get failedToUpdateAutomaticTime => 'Failed to update automatic time.';
+
+  @override
+  String get failedToUpdateTimeFormat => 'Failed to update time format.';
+
+  @override
+  String get failedToGetAutomaticTime => 'Failed to get automatic time status.';
+
+  @override
+  String get failedToGetSystemTime => 'Failed to get system time.';
+
+  @override
+  String get failedToGetTimeFormat => 'Failed to get time format.';
+
+  @override
+  String get somethingWentWrong => 'Something went wrong.';
 }

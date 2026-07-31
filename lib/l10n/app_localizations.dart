@@ -963,6 +963,264 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'An unknown error occurred'**
   String get unknownError;
+
+  /// No description provided for @autoTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto time'**
+  String get autoTime;
+
+  /// No description provided for @timezone.
+  ///
+  /// In en, this message translates to:
+  /// **'Timezone'**
+  String get timezone;
+
+  /// No description provided for @setTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Set time'**
+  String get setTime;
+
+  /// No description provided for @setDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Set date'**
+  String get setDate;
+
+  /// No description provided for @timeFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Time Format'**
+  String get timeFormat;
+
+  /// No description provided for @dateFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Date Format'**
+  String get dateFormat;
+
+  /// No description provided for @format12Hour.
+  ///
+  /// In en, this message translates to:
+  /// **'12 hour clock'**
+  String get format12Hour;
+
+  /// No description provided for @format24Hour.
+  ///
+  /// In en, this message translates to:
+  /// **'24 hour clock'**
+  String get format24Hour;
+
+  /// No description provided for @timezoneGmt.
+  ///
+  /// In en, this message translates to:
+  /// **'GMT (UTC 0)'**
+  String get timezoneGmt;
+
+  /// No description provided for @timezoneIst.
+  ///
+  /// In en, this message translates to:
+  /// **'Kolkata (IST, UTC+5:30)'**
+  String get timezoneIst;
+
+  /// No description provided for @timezoneHst.
+  ///
+  /// In en, this message translates to:
+  /// **'Honolulu (HST, UTC-10:00)'**
+  String get timezoneHst;
+
+  /// No description provided for @timezoneAkdt.
+  ///
+  /// In en, this message translates to:
+  /// **'Anchorage (AKDT, UTC-08:00)'**
+  String get timezoneAkdt;
+
+  /// No description provided for @timezonePdt.
+  ///
+  /// In en, this message translates to:
+  /// **'Los Angeles (PDT, UTC-07:00)'**
+  String get timezonePdt;
+
+  /// No description provided for @timezoneMdt.
+  ///
+  /// In en, this message translates to:
+  /// **'Denever (MDT, UTC-06:00)'**
+  String get timezoneMdt;
+
+  /// No description provided for @timezoneCdt.
+  ///
+  /// In en, this message translates to:
+  /// **'Chicago (CDT, UTC-05:00)'**
+  String get timezoneCdt;
+
+  /// No description provided for @timezoneEdt.
+  ///
+  /// In en, this message translates to:
+  /// **'New York (EDT, UTC-04:00)'**
+  String get timezoneEdt;
+
+  /// No description provided for @timezoneAdt.
+  ///
+  /// In en, this message translates to:
+  /// **'Halifax (ADT, UTC-03:00)'**
+  String get timezoneAdt;
+
+  /// No description provided for @timezoneBrt.
+  ///
+  /// In en, this message translates to:
+  /// **'Sao Paulo (BRT, UTC-03:00)'**
+  String get timezoneBrt;
+
+  /// No description provided for @timezoneCest.
+  ///
+  /// In en, this message translates to:
+  /// **'Paris (CEST, UTC+02:00)'**
+  String get timezoneCest;
+
+  /// No description provided for @timezoneEest.
+  ///
+  /// In en, this message translates to:
+  /// **'Helsinki (EEST, UTC+03:00)'**
+  String get timezoneEest;
+
+  /// No description provided for @timezoneGst.
+  ///
+  /// In en, this message translates to:
+  /// **'Dubai (GST, UTC+04:00)'**
+  String get timezoneGst;
+
+  /// No description provided for @timezoneIct.
+  ///
+  /// In en, this message translates to:
+  /// **'Bangkok (ICT, UTC+07:00)'**
+  String get timezoneIct;
+
+  /// No description provided for @timezoneCst.
+  ///
+  /// In en, this message translates to:
+  /// **'Shanghai (CST, UTC+08:00)'**
+  String get timezoneCst;
+
+  /// No description provided for @timezoneJst.
+  ///
+  /// In en, this message translates to:
+  /// **'Tokyo (JST, UTC+09:00)'**
+  String get timezoneJst;
+
+  /// No description provided for @timezoneAest.
+  ///
+  /// In en, this message translates to:
+  /// **'Sydney (AEST, UTC+10:00)'**
+  String get timezoneAest;
+
+  /// No description provided for @timezoneNzst.
+  ///
+  /// In en, this message translates to:
+  /// **'Auckland, (NZST, UTC+12:00)'**
+  String get timezoneNzst;
+
+  /// No description provided for @dateFormatDmy.
+  ///
+  /// In en, this message translates to:
+  /// **'dd/MM/yyyy'**
+  String get dateFormatDmy;
+
+  /// No description provided for @dateFormatMdy.
+  ///
+  /// In en, this message translates to:
+  /// **'MM/dd/yy'**
+  String get dateFormatMdy;
+
+  /// No description provided for @dateFormatYmd.
+  ///
+  /// In en, this message translates to:
+  /// **'yyyy-MM-dd'**
+  String get dateFormatYmd;
+
+  /// No description provided for @dateFormatDmyShort.
+  ///
+  /// In en, this message translates to:
+  /// **'dd MMM yyyy'**
+  String get dateFormatDmyShort;
+
+  /// No description provided for @dateFormatDmyLong.
+  ///
+  /// In en, this message translates to:
+  /// **'dd MMMM yyyy'**
+  String get dateFormatDmyLong;
+
+  /// Ante meridiem time indicator
+  ///
+  /// In en, this message translates to:
+  /// **'AM'**
+  String get am;
+
+  /// Post meridiem time indicator
+  ///
+  /// In en, this message translates to:
+  /// **'PM'**
+  String get pm;
+
+  /// Shown when the date and time service could not be initialized.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to initialize date and time settings.'**
+  String get failedToInitializeDateTime;
+
+  /// Shown when updating the system time fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update time.'**
+  String get failedToUpdateTime;
+
+  /// Shown when the current system time zone cannot be retrieved.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to get time zone.'**
+  String get failedToGetTimezone;
+
+  /// Shown when updating the system time zone fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update time zone.'**
+  String get failedToUpdateTimezone;
+
+  /// Shown when enabling or disabling automatic network time fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update automatic time.'**
+  String get failedToUpdateAutomaticTime;
+
+  /// Shown when updating the clock format (12-hour/24-hour) fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update time format.'**
+  String get failedToUpdateTimeFormat;
+
+  /// Shown when the automatic time (NTP) status could not be retrieved.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to get automatic time status.'**
+  String get failedToGetAutomaticTime;
+
+  /// Shown when the current system time could not be retrieved.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to get system time.'**
+  String get failedToGetSystemTime;
+
+  /// Shown when the current time format could not be retrieved.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to get time format.'**
+  String get failedToGetTimeFormat;
+
+  /// No description provided for @somethingWentWrong.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong.'**
+  String get somethingWentWrong;
 }
 
 class _AppLocalizationsDelegate

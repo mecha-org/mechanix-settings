@@ -5,6 +5,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mechanix_settings/core/constants/app_routes.dart';
 import 'package:mechanix_settings/core/theme/app_theme.dart';
 import 'package:mechanix_settings/features/bluetooth/data/repositories/bluetooth_repository_impl.dart';
+import 'package:mechanix_settings/features/date_time/data/repositories/date_time_repository.dart';
+import 'package:mechanix_settings/features/date_time/data/repositories/date_time_repository_impl.dart';
+import 'package:mechanix_settings/features/date_time/blocs/date_time_bloc.dart';
+import 'package:mechanix_settings/features/date_time/blocs/date_time_event.dart';
 import 'package:mechanix_settings/features/settings_menu/presentation/screens/settings_menu_screen.dart';
 import 'package:mechanix_settings/features/wireless/data/repositories/wireless_repository.dart';
 import 'package:mechanix_settings/features/wireless/data/repositories/wireless_repository_impl.dart';
@@ -28,6 +32,9 @@ void main() {
         RepositoryProvider<BluetoothRepository>(
           create: (_) => BluetoothRepositoryImpl(),
         ),
+        RepositoryProvider<DateTimeRepository>(
+          create: (_) => DateTimeRepositoryImpl(),
+        ),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -40,6 +47,11 @@ void main() {
             create: (context) =>
                 BluetoothBloc(context.read<BluetoothRepository>())
                   ..add(const LoadBluetooth()),
+          ),
+          BlocProvider<DateTimeBloc>(
+            create: (context) =>
+                DateTimeBloc(context.read<DateTimeRepository>())
+                  ..add(const InitializeDateTimeEvent()),
           ),
         ],
         child: const MechanixSettingsApp(),
