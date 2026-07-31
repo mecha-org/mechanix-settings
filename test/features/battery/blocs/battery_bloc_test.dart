@@ -77,7 +77,11 @@ void main() {
               'performanceMode',
               PowerProfileMode.balanced,
             )
-            .having((s) => s.isBatterySaverOn, 'isBatterySaverOn', false),
+            .having(
+              (s) => s.performanceMode == PowerProfileMode.powerSaver,
+              'isBatterySaverOn',
+              false,
+            ),
       ],
       verify: (_) {
         verify(() => mockBatteryRepository.init()).called(1);
@@ -103,7 +107,11 @@ void main() {
       act: (bloc) => bloc.add(const ToggleBatterySaver(true)),
       expect: () => [
         isA<BatteryState>()
-            .having((s) => s.isBatterySaverOn, 'isBatterySaverOn', true)
+            .having(
+              (s) => s.performanceMode == PowerProfileMode.powerSaver,
+              'isBatterySaverOn',
+              true,
+            )
             .having(
               (s) => s.performanceMode,
               'performanceMode',
@@ -111,7 +119,11 @@ void main() {
             ),
         isA<BatteryState>()
             .having((s) => s.batteryPercentage, 'batteryPercentage', 75.0)
-            .having((s) => s.isBatterySaverOn, 'isBatterySaverOn', true)
+            .having(
+              (s) => s.performanceMode == PowerProfileMode.powerSaver,
+              'isBatterySaverOn',
+              true,
+            )
             .having(
               (s) => s.performanceMode,
               'performanceMode',
@@ -141,7 +153,11 @@ void main() {
       act: (bloc) => bloc.add(const ToggleBatterySaver(false)),
       expect: () => [
         isA<BatteryState>()
-            .having((s) => s.isBatterySaverOn, 'isBatterySaverOn', false)
+            .having(
+              (s) => s.performanceMode == PowerProfileMode.powerSaver,
+              'isBatterySaverOn',
+              false,
+            )
             .having(
               (s) => s.performanceMode,
               'performanceMode',
@@ -149,7 +165,11 @@ void main() {
             ),
         isA<BatteryState>()
             .having((s) => s.batteryPercentage, 'batteryPercentage', 75.0)
-            .having((s) => s.isBatterySaverOn, 'isBatterySaverOn', false)
+            .having(
+              (s) => s.performanceMode == PowerProfileMode.powerSaver,
+              'isBatterySaverOn',
+              false,
+            )
             .having(
               (s) => s.performanceMode,
               'performanceMode',

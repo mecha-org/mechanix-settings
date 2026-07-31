@@ -5,18 +5,17 @@ import 'package:mechanix_settings/core/constants/icons.dart';
 import 'package:mechanix_settings/core/theme/app_theme.dart';
 import 'package:mechanix_settings/core/utils/helper.dart';
 import 'package:mechanix_settings/core/widgets/bottom_bar/bottom_bar.dart';
-import 'package:mechanix_settings/core/widgets/custom_icon_button.dart';
 import 'package:mechanix_settings/core/widgets/custom_divider.dart';
-import 'package:mechanix_settings/core/widgets/custom_image_asset.dart';
-import 'package:mechanix_settings/core/widgets/custom_toggle.dart';
+import 'package:mechanix_settings/core/widgets/custom_icon_button.dart';
 import 'package:mechanix_settings/core/widgets/breadcrumbs.dart';
+
 import 'package:mechanix_settings/features/battery/blocs/battery_bloc.dart';
 import 'package:mechanix_settings/features/battery/blocs/battery_state.dart';
-import 'package:mechanix_settings/features/battery/blocs/battery_event.dart';
-import 'package:mechanix_settings/features/battery/data/models/enums.dart';
 import 'package:mechanix_settings/features/battery/presentation/widgets/battery_progress_bar.dart';
+import 'package:mechanix_settings/features/battery/presentation/widgets/battery_status_section.dart';
+import 'package:mechanix_settings/features/battery/presentation/widgets/battery_saver_card.dart';
+
 import 'package:mechanix_settings/l10n/app_localizations.dart';
-import 'package:upower/upower.dart';
 
 class BatteryScreen extends StatefulWidget {
   const BatteryScreen({super.key});
@@ -32,25 +31,6 @@ class _BatteryScreenState extends State<BatteryScreen> {
   void dispose() {
     _breadcrumbController.dispose();
     super.dispose();
-  }
-
-  String _formatBatteryStatus(UPowerDeviceState state, AppLocalizations l10n) {
-    switch (state) {
-      case UPowerDeviceState.charging:
-        return l10n.charging;
-      case UPowerDeviceState.fullyCharged:
-        return l10n.fullCharged;
-      case UPowerDeviceState.discharging:
-        return l10n.discharging;
-      case UPowerDeviceState.empty:
-        return l10n.empty;
-      case UPowerDeviceState.unknown:
-        return l10n.unknown;
-      case UPowerDeviceState.pendingCharge:
-        return l10n.pendingCharge;
-      case UPowerDeviceState.pendingDischarge:
-        return l10n.pendingDischarge;
-    }
   }
 
   String _formatDuration(int totalSeconds, AppLocalizations l10n) {
@@ -77,22 +57,9 @@ class _BatteryScreenState extends State<BatteryScreen> {
     return "";
   }
 
-  String _getChargingTimeText(BatteryState state, AppLocalizations l10n) {
-    final chargingTime = state.batteryChargingTime;
-
-    if (state.batteryStatus != UPowerDeviceState.charging ||
-        chargingTime == null ||
-        chargingTime <= 0) {
-      return '';
-    }
-
-    return l10n.batteryTimeUntilFull(_formatDuration(chargingTime, l10n));
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
 
     return BlocListener<BatteryBloc, BatteryState>(
       listenWhen: (previous, current) =>
@@ -113,12 +80,10 @@ class _BatteryScreenState extends State<BatteryScreen> {
       },
       child: BlocBuilder<BatteryBloc, BatteryState>(
         builder: (context, state) {
-          final isCharging = state.batteryStatus == UPowerDeviceState.charging;
+          final theme = Theme.of(context);
+
           final timeText = _getTimeText(state, l10n);
           final displayPercentage = state.batteryPercentage.toInt();
-
-          // Calculate time details to render under the Status title if charging
-          final chargeTimeRemainingStr = _getChargingTimeText(state, l10n);
 
           return Scaffold(
             appBar: AppBar(
@@ -143,6 +108,7 @@ class _BatteryScreenState extends State<BatteryScreen> {
                 child: CustomDivider(verticalPadding: 0),
               ),
             ),
+
             body: ScrollConfiguration(
               behavior: ScrollConfiguration.of(context).copyWith(
                 scrollbars: false,
@@ -154,6 +120,7 @@ class _BatteryScreenState extends State<BatteryScreen> {
                   vertical: 16,
                 ),
                 physics: const BouncingScrollPhysics(),
+
                 child: Column(
                   children: [
                     // Card 1: Battery Telemetry Detail
@@ -164,12 +131,15 @@ class _BatteryScreenState extends State<BatteryScreen> {
                         color: AppColors.backgroundVariantDark,
                         borderRadius: BorderRadius.circular(8),
                       ),
+
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+
                         children: [
-                          // Row 1: Time Left & Percentage Text
+                          // Row 1: Remaining Time + Percentage
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
                             children: [
                               if (timeText.isNotEmpty)
                                 Text(
@@ -181,6 +151,7 @@ class _BatteryScreenState extends State<BatteryScreen> {
                                 )
                               else
                                 const SizedBox.shrink(),
+
                               Text(
                                 l10n.batteryPercentage(displayPercentage),
                                 style: theme.textTheme.bodyLarge?.copyWith(
@@ -191,108 +162,33 @@ class _BatteryScreenState extends State<BatteryScreen> {
                               ),
                             ],
                           ),
+
                           const SizedBox(height: 12),
 
-                          // Row 2: Battery Progress Bar
+                          // Row 2: Battery Progress
                           BatteryProgressBar(
                             percentage: state.batteryPercentage,
                           ),
+
                           const SizedBox(height: 16),
 
-                          // Row 3: Status
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                l10n.batteryStatus,
-                                style: theme.textTheme.bodyLarge?.copyWith(
-                                  color: AppColors.onSurfaceVariant,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      if (isCharging) ...[
-                                        const CustomImage(
-                                          assetPath: SettingIcons.charging,
-                                        ),
-
-                                        const SizedBox(width: 4),
-                                      ],
-                                      Text(
-                                        _formatBatteryStatus(
-                                          state.batteryStatus,
-                                          l10n,
-                                        ),
-                                        style: theme.textTheme.bodyLarge,
-                                      ),
-                                    ],
-                                  ),
-                                  if (chargeTimeRemainingStr.isNotEmpty) ...[
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      chargeTimeRemainingStr,
-                                      style: theme.textTheme.bodySmall
-                                          ?.copyWith(
-                                            color: AppColors.onSurfaceVariant,
-                                            fontSize: 14,
-                                          ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ],
-                          ),
+                          // Row 3: Battery Status
+                          const BatteryStatusSection(),
                         ],
                       ),
                     ),
+
                     const SizedBox(height: 16),
 
-                    // Card 2: Battery Saver Toggle
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.backgroundVariantDark,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            l10n.batterySaver,
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              color: AppColors.onSurface,
-                              fontSize: 18,
-                            ),
-                          ),
-                          CustomToggle(
-                            value:
-                                state.performanceMode ==
-                                PowerProfileMode.powerSaver,
-                            onChanged: (val) {
-                              context.read<BatteryBloc>().add(
-                                ToggleBatterySaver(val),
-                              );
-                            },
-                            l10n: l10n,
-                          ),
-                        ],
-                      ),
-                    ),
+                    // Card 2: Battery Saver
+                    const BatterySaverCard(),
+
                     const SizedBox(height: 16),
                   ],
                 ),
               ),
             ),
+
             bottomNavigationBar: BottomBar(
               leading: CustomIconButton.asset(
                 assetPath: SettingIcons.back,

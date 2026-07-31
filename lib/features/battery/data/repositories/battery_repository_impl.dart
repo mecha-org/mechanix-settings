@@ -20,6 +20,12 @@ class BatteryRepositoryImpl implements BatteryRepository {
   final UPowerClient _client;
   final DBusClient Function() _dbusClientFactory;
 
+  DBusClient? _dbusClient;
+  DBusRemoteObject? _powerProfilesObject;
+  StreamSubscription? _powerProfilesSubscription;
+  StreamSubscription? _displayDeviceSubscription;
+  final _batteryEventsController = StreamController<List<String>>.broadcast();
+
   /// Initializes the UPower client connection.
   ///
   /// Establishes a connection to the UPower service if it has not already
@@ -33,6 +39,16 @@ class BatteryRepositoryImpl implements BatteryRepository {
         _connected = true;
       }
       AppLogger.d("After battery connect: _connected = $_connected");
+
+      _dbusClient ??= _dbusClientFactory();
+      await _initPowerProfilesListener();
+
+      if (_displayDeviceSubscription == null) {
+        final device = _client.displayDevice;
+        _displayDeviceSubscription = device.propertiesChanged.listen((properties) {
+          _batteryEventsController.add(properties);
+        });
+      }
     } catch (e, stack) {
       AppLogger.e(
         "Failed to initialize battery UPower client",
@@ -40,6 +56,44 @@ class BatteryRepositoryImpl implements BatteryRepository {
         stack: stack,
       );
       throw const BatteryInitializationException();
+    }
+  }
+
+  Future<void> _initPowerProfilesListener() async {
+    if (_powerProfilesSubscription != null) return;
+
+    try {
+      final object = DBusRemoteObject(
+        _dbusClient!,
+        name: 'net.hadess.PowerProfiles',
+        path: DBusObjectPath('/net/hadess/PowerProfiles'),
+      );
+      // Verify if the service exists by querying a property
+      await object.getProperty('net.hadess.PowerProfiles', 'ActiveProfile');
+      _powerProfilesObject = object;
+      AppLogger.d("Connected to net.hadess.PowerProfiles for notifications");
+    } catch (e) {
+      try {
+        final object = DBusRemoteObject(
+          _dbusClient!,
+          name: 'org.freedesktop.UPower.PowerProfiles',
+          path: DBusObjectPath('/org/freedesktop/UPower/PowerProfiles'),
+        );
+        await object.getProperty('org.freedesktop.UPower.PowerProfiles', 'ActiveProfile');
+        _powerProfilesObject = object;
+        AppLogger.d("Connected to org.freedesktop.UPower.PowerProfiles for notifications");
+      } catch (_) {
+        AppLogger.d("No power profiles service found for notifications");
+      }
+    }
+
+    if (_powerProfilesObject != null) {
+      _powerProfilesSubscription =
+          _powerProfilesObject!.propertiesChanged.listen((signal) {
+        final changed = signal.changedProperties.keys.toList();
+        AppLogger.d("Power profiles properties changed: $changed");
+        _batteryEventsController.add(changed);
+      });
     }
   }
 
@@ -51,6 +105,16 @@ class BatteryRepositoryImpl implements BatteryRepository {
       if (!_connected) {
         await _client.connect();
         _connected = true;
+      }
+
+      _dbusClient ??= _dbusClientFactory();
+      await _initPowerProfilesListener();
+
+      if (_displayDeviceSubscription == null) {
+        final device = _client.displayDevice;
+        _displayDeviceSubscription = device.propertiesChanged.listen((properties) {
+          _batteryEventsController.add(properties);
+        });
       }
     } catch (e, stack) {
       AppLogger.e(
@@ -118,18 +182,9 @@ class BatteryRepositoryImpl implements BatteryRepository {
           DBusString(mode.value),
         );
 
-        final response = await object.getProperty(
+        final newMode = await _getActiveProfile(
+          object,
           'net.hadess.PowerProfiles',
-          'ActiveProfile',
-        );
-
-        var activeProfileVal = response;
-        if (activeProfileVal is DBusVariant) {
-          activeProfileVal = activeProfileVal.asVariant();
-        }
-
-        final newMode = PowerProfileModeExtension.fromValue(
-          (activeProfileVal as DBusString).value,
         );
 
         AppLogger.i('Updated power profile to: ${newMode.value}');
@@ -155,18 +210,9 @@ class BatteryRepositoryImpl implements BatteryRepository {
         DBusString(mode.value),
       );
 
-      final response = await object.getProperty(
+      final newMode = await _getActiveProfile(
+        object,
         'org.freedesktop.UPower.PowerProfiles',
-        'ActiveProfile',
-      );
-
-      var activeProfileVal = response;
-      if (activeProfileVal is DBusVariant) {
-        activeProfileVal = activeProfileVal.asVariant();
-      }
-
-      final newMode = PowerProfileModeExtension.fromValue(
-        (activeProfileVal as DBusString).value,
       );
 
       AppLogger.i('Updated power profile to: ${newMode.value}');
@@ -193,19 +239,7 @@ class BatteryRepositoryImpl implements BatteryRepository {
         path: DBusObjectPath('/net/hadess/PowerProfiles'),
       );
 
-      final prop = await object.getProperty(
-        'net.hadess.PowerProfiles',
-        'ActiveProfile',
-      );
-
-      var activeProfileVal = prop;
-      if (activeProfileVal is DBusVariant) {
-        activeProfileVal = activeProfileVal.asVariant();
-      }
-
-      if (activeProfileVal is DBusString) {
-        return PowerProfileModeExtension.fromValue(activeProfileVal.value);
-      }
+      return await _getActiveProfile(object, 'net.hadess.PowerProfiles');
     } catch (e) {
       try {
         final object = DBusRemoteObject(
@@ -214,19 +248,10 @@ class BatteryRepositoryImpl implements BatteryRepository {
           path: DBusObjectPath('/org/freedesktop/UPower/PowerProfiles'),
         );
 
-        final prop = await object.getProperty(
+        return await _getActiveProfile(
+          object,
           'org.freedesktop.UPower.PowerProfiles',
-          'ActiveProfile',
         );
-
-        var activeProfileVal = prop;
-        if (activeProfileVal is DBusVariant) {
-          activeProfileVal = activeProfileVal.asVariant();
-        }
-
-        if (activeProfileVal is DBusString) {
-          return PowerProfileModeExtension.fromValue(activeProfileVal.value);
-        }
       } catch (_) {}
     } finally {
       await client.close();
@@ -309,8 +334,7 @@ class BatteryRepositoryImpl implements BatteryRepository {
   Future<Stream<List<String>>?> streamBatteryEvents() async {
     try {
       await _ensureConnected();
-      final device = _client.displayDevice;
-      return device.propertiesChanged;
+      return _batteryEventsController.stream;
     } catch (e, stackTrace) {
       AppLogger.e(
         'Error initializing battery events stream',
@@ -321,12 +345,33 @@ class BatteryRepositoryImpl implements BatteryRepository {
     }
   }
 
+  Future<PowerProfileMode> _getActiveProfile(
+    DBusRemoteObject object,
+    String interface,
+  ) async {
+    final response = await object.getProperty(interface, 'ActiveProfile');
+
+    var value = response;
+    if (value is DBusVariant) {
+      value = value.asVariant();
+    }
+
+    return PowerProfileModeExtension.fromValue((value as DBusString).value);
+  }
+
   /// Closes the UPower client connection and releases resources.
   @override
   Future<void> close() async {
     try {
       AppLogger.d("Closing battery repository...");
       _connected = false;
+      await _displayDeviceSubscription?.cancel();
+      _displayDeviceSubscription = null;
+      await _powerProfilesSubscription?.cancel();
+      _powerProfilesSubscription = null;
+      _powerProfilesObject = null;
+      await _dbusClient?.close();
+      _dbusClient = null;
       await _client.close();
     } catch (e, stack) {
       AppLogger.e("Error closing battery client", error: e, stack: stack);

@@ -82,6 +82,7 @@ class BatteryBloc extends Bloc<BatteryEvent, BatteryState> {
           ? PowerProfileMode.powerSaver
           : PowerProfileMode.balanced;
 
+      emit(state.copyWith(performanceMode: targetMode));
       await batteryRepository.setBatteryMode(targetMode);
       await _loadBatteryInfo(emit);
     } catch (e, stack) {
@@ -109,7 +110,8 @@ class BatteryBloc extends Bloc<BatteryEvent, BatteryState> {
           if (properties.contains("TimeToFull") ||
               properties.contains("Percentage") ||
               properties.contains("TimeToEmpty") ||
-              properties.contains("State")) {
+              properties.contains("State") ||
+              properties.contains("ActiveProfile")) {
             add(const BatteryInfoRequested());
           }
         });
