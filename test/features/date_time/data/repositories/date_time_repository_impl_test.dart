@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mechanix_settings/core/exceptions/date_time_exceptions.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:dbus/dbus.dart';
 import 'package:mechanix_settings/features/date_time/data/repositories/date_time_repository_impl.dart';
@@ -132,13 +133,12 @@ void main() {
       ).called(1);
     });
 
-    test('getNtpEnabled returns false on error', () async {
+    test('getNtpEnabled throws GetNtpException on D-Bus error', () async {
       when(
         () => mockObject.getProperty(any(), 'NTP'),
       ).thenThrow(Exception('D-Bus failed'));
 
-      final ntpEnabled = await repository.getNtpEnabled();
-      expect(ntpEnabled, isFalse);
+      expect(repository.getNtpEnabled(), throwsA(isA<GetNtpException>()));
     });
 
     test(
@@ -154,19 +154,21 @@ void main() {
         verify(
           () => mockObject.callMethod('org.freedesktop.timedate1', 'SetNTP', [
             const DBusBoolean(true),
-            const DBusBoolean(false),
+            const DBusBoolean(true),
           ]),
         ).called(1);
       },
     );
 
-    test('setNtpEnabled logs error on failure', () async {
+    test('setNtpEnabled throws SetNtpException on D-Bus failure', () async {
       when(
         () => mockObject.callMethod(any(), 'SetNTP', any()),
       ).thenThrow(Exception('D-Bus failure'));
 
-      // Should handle exception without crashing
-      await expectLater(repository.setNtpEnabled(true), completes);
+      await expectLater(
+        repository.setNtpEnabled(true),
+        throwsA(isA<SetNtpException>()),
+      );
     });
   });
 
@@ -184,17 +186,13 @@ void main() {
       ).called(1);
     });
 
-    test(
-      'getTimezone returns default Asia/Kolkata fallback on failure',
-      () async {
-        when(
-          () => mockObject.getProperty(any(), 'Timezone'),
-        ).thenThrow(Exception('D-Bus error'));
+    test('getTimezone throws GetTimezoneException on failure', () async {
+      when(
+        () => mockObject.getProperty(any(), 'Timezone'),
+      ).thenThrow(Exception('D-Bus error'));
 
-        final timezone = await repository.getTimezone();
-        expect(timezone, equals('Asia/Kolkata'));
-      },
-    );
+      expect(repository.getTimezone(), throwsA(isA<GetTimezoneException>()));
+    });
 
     test(
       'setTimezone calls D-Bus SetTimezone method with correct parameters',
@@ -210,7 +208,7 @@ void main() {
           () => mockObject.callMethod(
             'org.freedesktop.timedate1',
             'SetTimezone',
-            [const DBusString('America/New_York'), const DBusBoolean(false)],
+            [const DBusString('America/New_York'), const DBusBoolean(true)],
           ),
         ).called(1);
       },
@@ -232,7 +230,7 @@ void main() {
           () => mockObject.callMethod('org.freedesktop.timedate1', 'SetTime', [
             const DBusInt64(1620000000000000),
             const DBusBoolean(false),
-            const DBusBoolean(false),
+            const DBusBoolean(true),
           ]),
         ).called(1);
       },
@@ -253,16 +251,12 @@ void main() {
       },
     );
 
-    test('getSystemTime falls back to local time on error', () async {
+    test('getSystemTime throws GetTimeException on error', () async {
       when(
         () => mockObject.getProperty(any(), 'TimeUSec'),
       ).thenThrow(Exception('D-Bus failure'));
 
-      final systemTime = await repository.getSystemTime();
-      final now = DateTime.now();
-
-      // Should return a time close to now (within 1 second)
-      expect(systemTime.difference(now).inSeconds.abs(), lessThanOrEqualTo(1));
+      expect(repository.getSystemTime(), throwsA(isA<GetTimeException>()));
     });
   });
 

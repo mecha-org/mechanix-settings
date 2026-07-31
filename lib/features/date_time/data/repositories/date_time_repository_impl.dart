@@ -11,7 +11,8 @@ class DateTimeRepositoryImpl implements DateTimeRepository {
   static const _service = 'org.freedesktop.timedate1';
   static const _path = '/org/freedesktop/timedate1';
   static const _interface = 'org.freedesktop.timedate1';
-  static const _interactive = false;
+  static const _interactive =
+      true; // Allow interactive authentication (PolicyKit) if required.
 
   DBusClient? _client;
   DBusRemoteObject? _object;
