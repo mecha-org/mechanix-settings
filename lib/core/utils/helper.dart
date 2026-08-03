@@ -1,3 +1,4 @@
+import 'package:mechanix_settings/features/battery/data/models/enums.dart';
 import 'package:mechanix_settings/features/date_time/data/models/enums.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
 
@@ -31,6 +32,31 @@ String getDateTimeErrorMessage(AppLocalizations l10n, DateTimeError error) {
       return l10n.failedToGetTimeFormat;
 
     case DateTimeError.unknown:
+      return l10n.somethingWentWrong;
+  }
+}
+
+String getBatteryErrorMessage(AppLocalizations l10n, BatteryError error) {
+  switch (error) {
+    case BatteryError.initializationFailed:
+      return l10n.failedToInitializeBattery;
+
+    case BatteryError.batteryInfoLoadFailed:
+      return l10n.failedToGetBatteryInfo;
+
+    case BatteryError.batteryModeUpdateFailed:
+      return l10n.failedToUpdateBatteryMode;
+
+    case BatteryError.batteryModeLoadFailed:
+      return l10n.failedToGetBatteryMode;
+
+    case BatteryError.batteryModesLoadFailed:
+      return l10n.failedToGetAvailableBatteryModes;
+
+    case BatteryError.batteryEventsInitializationFailed:
+      return l10n.failedToInitializeBatteryEvents;
+
+    case BatteryError.unknown:
       return l10n.somethingWentWrong;
   }
 }

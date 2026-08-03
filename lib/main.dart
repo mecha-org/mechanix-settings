@@ -17,6 +17,11 @@ import 'package:mechanix_settings/features/wireless/presentation/screens/wireles
 import 'package:mechanix_settings/features/bluetooth/data/repositories/bluetooth_repository.dart';
 import 'package:mechanix_settings/features/bluetooth/blocs/bluetooth_bloc.dart';
 import 'package:mechanix_settings/features/bluetooth/presentation/screens/bluetooth.dart';
+import 'package:mechanix_settings/features/battery/data/repositories/battery_repository.dart';
+import 'package:mechanix_settings/features/battery/data/repositories/battery_repository_impl.dart';
+import 'package:mechanix_settings/features/battery/blocs/battery_bloc.dart';
+import 'package:mechanix_settings/features/battery/blocs/battery_event.dart';
+import 'package:mechanix_settings/features/battery/presentation/screens/battery_screen.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
 import 'package:show_fps/show_fps.dart';
 
@@ -35,6 +40,9 @@ void main() {
         RepositoryProvider<DateTimeRepository>(
           create: (_) => DateTimeRepositoryImpl(),
         ),
+        RepositoryProvider<BatteryRepository>(
+          create: (_) => BatteryRepositoryImpl(),
+        ),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -52,6 +60,19 @@ void main() {
             create: (context) =>
                 DateTimeBloc(context.read<DateTimeRepository>())
                   ..add(const InitializeDateTimeEvent()),
+          ),
+          BlocProvider<BatteryBloc>(
+            create: (context) {
+              final bloc = BatteryBloc(
+                batteryRepository: context.read<BatteryRepository>(),
+              );
+
+              bloc
+                ..add(const BatteryInit())
+                ..add(const BatteryInfoRequested());
+
+              return bloc;
+            },
           ),
         ],
         child: const MechanixSettingsApp(),
@@ -86,6 +107,10 @@ class MechanixSettingsApp extends StatelessWidget {
         AppRoutes.bluetooth: (context) => BlocProvider.value(
           value: context.read<BluetoothBloc>(),
           child: const BluetoothScreen(),
+        ),
+        AppRoutes.battery: (context) => BlocProvider.value(
+          value: context.read<BatteryBloc>(),
+          child: const BatteryScreen(),
         ),
       },
     );

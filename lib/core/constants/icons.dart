@@ -37,4 +37,6 @@ class SettingIcons {
   static const String delete = 'assets/images/delete.png';
   static const String check = 'assets/images/check.png';
   static const String disconnect = 'assets/images/disconnect.png';
+
+  static const String charging = 'assets/images/charging.png';
 }
