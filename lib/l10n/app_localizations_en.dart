@@ -77,6 +77,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wirelessAddress => 'Wireless address';
 
   @override
+  String get signalStrength => 'Signal strength';
+
+  @override
+  String wifiSignalStrength(int strength) {
+    return '$strength%';
+  }
+
+  @override
+  String get speed => 'Speed';
+
+  @override
+  String wifiSpeed(int speed) {
+    return '$speed Mb/s';
+  }
+
+  @override
+  String wifiSpeedWithBand(int speed, String band) {
+    return '$speed Mb/s ($band)';
+  }
+
+  @override
+  String wifiFrequencyGHz(String frequency) {
+    return '$frequency GHz';
+  }
+
+  @override
+  String wifiFrequencyMHz(int frequency) {
+    return '$frequency MHz';
+  }
+
+  @override
   String get autoJoin => 'Auto join';
 
   @override

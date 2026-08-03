@@ -29,6 +29,62 @@
   "aboutNetwork": "About the network",
   "privateWirelessAddress": "Private Wireless address",
   "wirelessAddress": "Wireless address",
+  "signalStrength": "Signal strength",
+  "wifiSignalStrength": "{strength}%",
+  "@wifiSignalStrength": {
+    "description": "Wi-Fi signal strength as a percentage",
+    "placeholders": {
+      "strength": {
+        "type": "int",
+        "example": "87"
+      }
+    }
+  },
+  "speed": "Speed",
+  "wifiSpeed": "{speed} Mb/s",
+  "@wifiSpeed": {
+    "description": "Wi-Fi link speed",
+    "placeholders": {
+      "speed": {
+        "type": "int",
+        "example": "72"
+      }
+    }
+  },
+  "wifiSpeedWithBand": "{speed} Mb/s ({band})",
+  "@wifiSpeedWithBand": {
+    "placeholders": {
+      "speed": {
+        "type": "int",
+        "example": "72"
+      },
+      "band": {
+        "type": "String",
+        "example": "2.4 GHz"
+      }
+    }
+  },
+  "wifiFrequencyGHz": "{frequency} GHz",
+  "@wifiFrequencyGHz": {
+    "description": "Wi-Fi frequency displayed in GHz",
+    "placeholders": {
+      "frequency": {
+        "type": "String",
+        "example": "2.4"
+      }
+    }
+  },
+
+  "wifiFrequencyMHz": "{frequency} MHz",
+  "@wifiFrequencyMHz": {
+    "description": "Wi-Fi frequency displayed in MHz",
+    "placeholders": {
+      "frequency": {
+        "type": "int",
+        "example": "2412"
+      }
+    }
+  },
   "autoJoin": "Auto join",
   "password": "Password",
   "lowDataMode": "Low Data mode",

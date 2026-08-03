@@ -858,12 +858,17 @@ class WirelessRepositoryImpl implements WirelessRepository {
     final autoJoin = WifiParser.parseAutoConnect(settings);
     final lowDataMode = WifiParser.parseLowDataMode(settings);
 
+    final speedMbps = isConnected ? WifiParser.parseSpeedMbps(wifiDevice) : 0;
+
     return WifiNetwork(
       name: name,
       password: password,
       security: security,
       eapMethod: eapMethod,
       signalLevel: signalLevel,
+      rawSignalStrength: ap?.strength ?? 0,
+      speedMbps: speedMbps,
+      frequency: ap?.frequency ?? 0,
       isSecured: isSecured,
       isConnected: isConnected,
       isConnecting: false,

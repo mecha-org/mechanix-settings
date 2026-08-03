@@ -309,17 +309,21 @@ class _MyNetworksList extends StatelessWidget {
         if (state.connecting != null &&
             state.connecting != state.connected &&
             !myNetworks.any((e) => e.name == state.connecting)) {
-          final WifiNetwork? saved = state.savedNetworks.cast<WifiNetwork?>().firstWhere(
-            (e) => e?.name == state.connecting,
-            orElse: () => null,
-          );
-          final connectingNetwork = saved ?? WifiNetwork(
-            name: state.connecting!,
-            signalLevel: 0,
-            isSecured: true,
-            isConnected: false,
-            isConnecting: true,
-          );
+          final WifiNetwork? saved = state.savedNetworks
+              .cast<WifiNetwork?>()
+              .firstWhere(
+                (e) => e?.name == state.connecting,
+                orElse: () => null,
+              );
+          final connectingNetwork =
+              saved ??
+              WifiNetwork(
+                name: state.connecting!,
+                signalLevel: 0,
+                isSecured: true,
+                isConnected: false,
+                isConnecting: true,
+              );
           myNetworks = [connectingNetwork, ...myNetworks];
         }
 

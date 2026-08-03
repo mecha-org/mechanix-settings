@@ -6,6 +6,9 @@ class WifiNetwork extends Equatable {
   final String password;
 
   final int signalLevel;
+  final int rawSignalStrength;
+  final int speedMbps;
+  final int frequency;
   final bool isSecured;
   final WirelessSecurity security;
   final EnterpriseEapMethod? eapMethod;
@@ -32,6 +35,9 @@ class WifiNetwork extends Equatable {
     required this.name,
     this.password = '',
     this.signalLevel = 3,
+    this.rawSignalStrength = 0,
+    this.speedMbps = 0,
+    this.frequency = 0,
     this.isSecured = true,
     this.security = WirelessSecurity.none,
     this.eapMethod,
@@ -59,6 +65,9 @@ class WifiNetwork extends Equatable {
     String? name,
     String? password,
     int? signalLevel,
+    int? rawSignalStrength,
+    int? speedMbps,
+    int? frequency,
     bool? isSecured,
     WirelessSecurity? security,
     EnterpriseEapMethod? eapMethod,
@@ -83,6 +92,9 @@ class WifiNetwork extends Equatable {
       password: password ?? this.password,
 
       signalLevel: signalLevel ?? this.signalLevel,
+      rawSignalStrength: rawSignalStrength ?? this.rawSignalStrength,
+      speedMbps: speedMbps ?? this.speedMbps,
+      frequency: frequency ?? this.frequency,
       isSecured: isSecured ?? this.isSecured,
       security: security ?? this.security,
       eapMethod: eapMethod ?? this.eapMethod,
@@ -109,6 +121,9 @@ class WifiNetwork extends Equatable {
     name,
     password,
     signalLevel,
+    rawSignalStrength,
+    speedMbps,
+    frequency,
     isSecured,
     security,
     eapMethod,
