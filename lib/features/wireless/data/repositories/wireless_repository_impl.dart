@@ -1153,42 +1153,37 @@ class WirelessRepositoryImpl implements WirelessRepository {
       return;
     }
 
-    const defaultConnectivityCheckUri =
-        'http://nmcheck.gnome.org/check_network_status.txt';
+    final checkUri = _client.connectivityCheckUri;
+    AppLogger.i('Connectivity check URI: $checkUri');
+
+    if (checkUri.isEmpty) {
+      AppLogger.e('No connectivity check URI configured');
+      return;
+    }
+
+    final httpClient = HttpClient()
+      ..connectionTimeout = const Duration(seconds: 5);
 
     try {
-      final checkUri = _client.connectivityCheckUri.isNotEmpty
-          ? _client.connectivityCheckUri
-          : defaultConnectivityCheckUri;
-      AppLogger.i(
-        'Checking captive portal URL: ${_client.connectivityCheckUri}',
-      );
+      final request = await httpClient.getUrl(Uri.parse(checkUri));
 
-      final client = HttpClient()
-        ..connectionTimeout = const Duration(seconds: 5);
-
-      final request = await client.getUrl(Uri.parse(checkUri));
-
-      // Important: Do not follow redirects automatically.
+      // Do not follow redirects automatically.
       request.followRedirects = false;
 
       final response = await request.close();
 
-      String? portalUrl;
-
-      if (response.isRedirect) {
-        portalUrl = response.headers.value(HttpHeaders.locationHeader);
-      }
-
-      await _client.close();
+      final portalUrl = response.headers.value(HttpHeaders.locationHeader);
 
       final targetUrl = portalUrl ?? checkUri;
 
       AppLogger.i('Opening captive portal URL: $targetUrl');
 
+      // TODO: Implement platform-specific logic to open the URL
       await Process.run('xdg-open', [targetUrl]);
     } catch (e, stack) {
       AppLogger.e('Failed to open captive portal', error: e, stack: stack);
+    } finally {
+      httpClient.close();
     }
   }
 }

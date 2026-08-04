@@ -680,7 +680,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Failed to initialize battery event listener.';
 
   @override
-  String get captivePortalDetected => 'Captive Portal Detected';
+  String get signIn => 'Sign in';
 
   @override
   String get tapToSignIn => 'Sign in to network to access internet';
