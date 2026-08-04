@@ -230,24 +230,28 @@ class _ConnectedNetworkTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocSelector<WirelessBloc, WirelessState, WifiNetwork?>(
+    return BlocSelector<
+      WirelessBloc,
+      WirelessState,
+      ({WifiNetwork? connectedNetwork, bool isCaptivePortal})
+    >(
       selector: (state) {
-        return state.myNetworks
-                .firstWhere(
-                  (n) => n.name == state.connectedNetworkName,
-                  orElse: () => const WifiNetwork(name: ''),
-                )
-                .name
-                .isEmpty
-            ? null
-            : state.myNetworks.firstWhere(
-                (n) => n.name == state.connectedNetworkName,
-              );
+        final connected = state.myNetworks.firstWhere(
+          (n) => n.name == state.connectedNetworkName,
+          orElse: () => const WifiNetwork(name: ''),
+        );
+        return (
+          connectedNetwork: connected.name.isEmpty ? null : connected,
+          isCaptivePortal: state.isCaptivePortal,
+        );
       },
-      builder: (context, connected) {
+      builder: (context, data) {
+        final connected = data.connectedNetwork;
         if (connected == null) {
           return const SizedBox.shrink();
         }
+
+        final l10n = AppLocalizations.of(context)!;
 
         return Column(
           children: [
@@ -268,6 +272,57 @@ class _ConnectedNetworkTile extends StatelessWidget {
                 );
               },
             ),
+            if (data.isCaptivePortal) ...[
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.amber.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.warning_amber_rounded, color: Colors.amber, size: 24),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.captivePortalDetected,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.amber,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            l10n.tapToSignIn,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: AppColors.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        context.read<WirelessBloc>().add(const OpenCaptivePortal());
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.amber,
+                        foregroundColor: Colors.black,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      child: Text(l10n.connect),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             const CustomDivider(verticalPadding: 0),
           ],
         );

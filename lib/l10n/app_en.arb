@@ -404,6 +404,7 @@
   "failedToInitializeBatteryEvents": "Failed to initialize battery event listener.",
   "@failedToInitializeBatteryEvents": {
     "description": "Error message shown when listening for battery state changes cannot be initialized."
-  }
-
+  },
+  "captivePortalDetected": "Captive Portal Detected",
+  "tapToSignIn": "Sign in to network to access internet"
 }

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:dbus/dbus.dart';
 import 'package:flutter/foundation.dart';
@@ -1128,5 +1129,66 @@ class WirelessRepositoryImpl implements WirelessRepository {
     }
 
     return "";
+  }
+
+  @override
+  Future<bool> isCaptivePortal() async {
+    if (!_connected) return false;
+    try {
+      return _client.connectivity == NetworkManagerConnectivityState.portal;
+    } catch (e, stack) {
+      AppLogger.e(
+        'Failed to check captive portal state',
+        error: e,
+        stack: stack,
+      );
+      return false;
+    }
+  }
+
+  @override
+  Future<void> openCaptivePortal() async {
+    if (!_connected) {
+      AppLogger.e('Cannot open captive portal: Wi-Fi is not connected');
+      return;
+    }
+
+    const defaultConnectivityCheckUri =
+        'http://nmcheck.gnome.org/check_network_status.txt';
+
+    try {
+      final checkUri = _client.connectivityCheckUri.isNotEmpty
+          ? _client.connectivityCheckUri
+          : defaultConnectivityCheckUri;
+      AppLogger.i(
+        'Checking captive portal URL: ${_client.connectivityCheckUri}',
+      );
+
+      final client = HttpClient()
+        ..connectionTimeout = const Duration(seconds: 5);
+
+      final request = await client.getUrl(Uri.parse(checkUri));
+
+      // Important: Do not follow redirects automatically.
+      request.followRedirects = false;
+
+      final response = await request.close();
+
+      String? portalUrl;
+
+      if (response.isRedirect) {
+        portalUrl = response.headers.value(HttpHeaders.locationHeader);
+      }
+
+      await _client.close();
+
+      final targetUrl = portalUrl ?? checkUri;
+
+      AppLogger.i('Opening captive portal URL: $targetUrl');
+
+      await Process.run('xdg-open', [targetUrl]);
+    } catch (e, stack) {
+      AppLogger.e('Failed to open captive portal', error: e, stack: stack);
+    }
   }
 }

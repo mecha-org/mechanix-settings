@@ -1371,6 +1371,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to initialize battery event listener.'**
   String get failedToInitializeBatteryEvents;
+
+  /// No description provided for @captivePortalDetected.
+  ///
+  /// In en, this message translates to:
+  /// **'Captive Portal Detected'**
+  String get captivePortalDetected;
+
+  /// No description provided for @tapToSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to network to access internet'**
+  String get tapToSignIn;
 }
 
 class _AppLocalizationsDelegate

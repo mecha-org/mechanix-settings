@@ -23,6 +23,7 @@ class WirelessState extends Equatable {
   final List<WifiNetwork> myNetworks;
   final String? connectingNetworkName;
   final String? connectedNetworkName;
+  final bool isCaptivePortal;
   final WirelessFailure? error;
 
   const WirelessState({
@@ -33,6 +34,7 @@ class WirelessState extends Equatable {
     this.myNetworks = const [],
     this.connectingNetworkName,
     this.connectedNetworkName,
+    this.isCaptivePortal = false,
     this.error,
   });
 
@@ -44,6 +46,7 @@ class WirelessState extends Equatable {
     List<WifiNetwork>? myNetworks,
     Object? connectingNetworkName = _unset,
     Object? connectedNetworkName = _unset,
+    bool? isCaptivePortal,
     Object? error = _unset,
   }) {
     return WirelessState(
@@ -58,6 +61,7 @@ class WirelessState extends Equatable {
       connectedNetworkName: connectedNetworkName == _unset
           ? this.connectedNetworkName
           : connectedNetworkName as String?,
+      isCaptivePortal: isCaptivePortal ?? this.isCaptivePortal,
       error: error == _unset ? this.error : error as WirelessFailure?,
     );
   }
@@ -71,6 +75,7 @@ class WirelessState extends Equatable {
     myNetworks,
     connectingNetworkName,
     connectedNetworkName,
+    isCaptivePortal,
     error,
   ];
 }

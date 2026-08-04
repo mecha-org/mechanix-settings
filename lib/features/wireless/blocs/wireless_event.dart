@@ -117,3 +117,7 @@ class ForgetNetworkEvent extends WirelessEvent {
 
   const ForgetNetworkEvent(this.network);
 }
+
+class OpenCaptivePortal extends WirelessEvent {
+  const OpenCaptivePortal();
+}
