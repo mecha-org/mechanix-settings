@@ -240,7 +240,7 @@ class WifiParser {
   static int parseSpeedMbps(NetworkManagerDevice? wifiDevice) {
     final kbps = wifiDevice?.wireless?.bitrate ?? 0;
 
-    return kbps > 0 ? kbps ~/ 1000 : 0;
+    return kbps > 0 ? (kbps / 1000).round() : 0;
   }
 }
 

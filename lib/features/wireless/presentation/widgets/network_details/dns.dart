@@ -182,11 +182,7 @@ class _DNSScreenState extends State<DNSScreen> {
       }
     }
 
-    final hasChanged = _configType != widget.currentConfig ||
-        !_listEquals(servers, widget.servers) ||
-        !_listEquals(searchDomains, widget.network.dnsSearchDomains);
-
-    if (hasChanged) {
+    if (_hasDnsConfigurationChanged(servers, searchDomains)) {
       widget.onSaved({
         'config': _configType,
         'servers': servers,
@@ -196,13 +192,34 @@ class _DNSScreenState extends State<DNSScreen> {
     Navigator.of(context).pop();
   }
 
-  bool _listEquals(List<String> a, List<String> b) {
-    if (identical(a, b)) return true;
-    if (a.length != b.length) return false;
-    for (int i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) return false;
+  /// Returns true if the current DNS values match the previously saved DNS values
+  /// in the same order.
+  bool _hasSameDnsValues(List<String> currentValues, List<String> savedValues) {
+    if (identical(currentValues, savedValues)) {
+      return true;
     }
+
+    if (currentValues.length != savedValues.length) {
+      return false;
+    }
+
+    for (var index = 0; index < currentValues.length; index++) {
+      if (currentValues[index] != savedValues[index]) {
+        return false;
+      }
+    }
+
     return true;
+  }
+
+  /// Returns true if any DNS configuration value has changed.
+  bool _hasDnsConfigurationChanged(
+    List<String> servers,
+    List<String> searchDomains,
+  ) {
+    return _configType != widget.currentConfig ||
+        !_hasSameDnsValues(servers, widget.servers) ||
+        !_hasSameDnsValues(searchDomains, widget.network.dnsSearchDomains);
   }
 
   @override
@@ -216,9 +233,7 @@ class _DNSScreenState extends State<DNSScreen> {
         .where((text) => text.isNotEmpty)
         .toList();
 
-    final hasChanged = _configType != widget.currentConfig ||
-        !_listEquals(servers, widget.servers) ||
-        !_listEquals(searchDomains, widget.network.dnsSearchDomains);
+    final hasChanged = _hasDnsConfigurationChanged(servers, searchDomains);
 
     return Scaffold(
       appBar: DNSAppBar(

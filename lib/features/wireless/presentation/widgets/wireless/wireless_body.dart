@@ -157,6 +157,7 @@ class _WirelessContent extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _ConnectedNetworkTile(),
+            _ConnectingNetworkTile(),
             _MyNetworksList(),
             _AvailableNetworksList(),
             _AddNetworkTile(),
@@ -286,46 +287,17 @@ class _MyNetworksList extends StatelessWidget {
     return BlocSelector<
       WirelessBloc,
       WirelessState,
-      ({
-        List<WifiNetwork> networks,
-        String? connected,
-        String? connecting,
-        List<WifiNetwork> savedNetworks,
-      })
+      ({List<WifiNetwork> networks, String? connected, String? connecting})
     >(
       selector: (state) => (
         networks: state.myNetworks,
         connected: state.connectedNetworkName,
         connecting: state.connectingNetworkName,
-        savedNetworks: state.savedNetworks,
       ),
       builder: (context, state) {
-        var myNetworks = state.networks
+        final myNetworks = state.networks
             .where((e) => e.name != state.connected)
             .toList();
-
-        // If a network is currently connecting but not in myNetworks (e.g. because it's not visible yet),
-        // we should still show it in the My Networks list to indicate connection progress.
-        if (state.connecting != null &&
-            state.connecting != state.connected &&
-            !myNetworks.any((e) => e.name == state.connecting)) {
-          final WifiNetwork? saved = state.savedNetworks
-              .cast<WifiNetwork?>()
-              .firstWhere(
-                (e) => e?.name == state.connecting,
-                orElse: () => null,
-              );
-          final connectingNetwork =
-              saved ??
-              WifiNetwork(
-                name: state.connecting!,
-                signalLevel: 0,
-                isSecured: true,
-                isConnected: false,
-                isConnecting: true,
-              );
-          myNetworks = [connectingNetwork, ...myNetworks];
-        }
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -408,6 +380,63 @@ class _AvailableNetworksList extends StatelessWidget {
                 );
               },
             ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _ConnectingNetworkTile extends StatelessWidget {
+  const _ConnectingNetworkTile();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocSelector<WirelessBloc, WirelessState, WifiNetwork?>(
+      selector: (state) {
+        final name = state.connectingNetworkName;
+
+        if (name == null || name == state.connectedNetworkName) {
+          return null;
+        }
+
+        // Do not show separately if the network already exists in UI lists (My networks and available networks).
+        final isVisibleNetwork =
+            state.myNetworks.any((network) => network.name == name) ||
+            state.availableNetworks.any((network) => network.name == name);
+
+        if (isVisibleNetwork) {
+          return null;
+        }
+
+        // Hidden network: show connection progress separately.
+        return state.savedNetworks.firstWhere(
+          (network) => network.name == name,
+          orElse: () => WifiNetwork(
+            name: name,
+            isSecured: true,
+            signalLevel: 0,
+            isConnected: false,
+            isConnecting: true,
+          ),
+        );
+      },
+      builder: (context, network) {
+        if (network == null) {
+          return const SizedBox.shrink();
+        }
+
+        return Column(
+          children: [
+            NetworkListItem(
+              name: network.name,
+              signalType: network.signalType,
+              isConnected: false,
+              isConnecting: true,
+              isSelected: true,
+              onTap: () {},
+            ),
+            const CustomDivider(verticalPadding: 0),
           ],
         );
       },
