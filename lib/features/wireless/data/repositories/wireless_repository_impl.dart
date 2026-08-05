@@ -540,6 +540,13 @@ class WirelessRepositoryImpl implements WirelessRepository {
 
         updatedSettings["ipv4"] = ipv4;
 
+        final oldIpv4Settings = settings["ipv4"] ?? {};
+
+        if (!_hasIpv4SettingsChanged(oldIpv4Settings, ipv4)) {
+          AppLogger.i("IP settings did not change. Skipping update.");
+          break;
+        }
+
         await cn.update(updatedSettings);
 
         try {
@@ -611,6 +618,14 @@ class WirelessRepositoryImpl implements WirelessRepository {
               }
 
               updatedSettings['ipv4'] = ipv4Map;
+
+              final oldIpv4 = settings["ipv4"] ?? {};
+
+              if (!_hasDnsSettingsChanged(oldIpv4, ipv4Map, dnsConfigType)) {
+                AppLogger.i("DNS settings did not change. Skipping update.");
+                break;
+              }
+
               await cn.update(updatedSettings);
 
               final wifiDevice = await getWifiDevice();
@@ -757,12 +772,17 @@ class WirelessRepositoryImpl implements WirelessRepository {
     final autoJoin = WifiParser.parseAutoConnect(settings);
     final lowDataMode = WifiParser.parseLowDataMode(settings);
 
+    final speedMbps = isConnected ? WifiParser.parseSpeedMbps(wifiDevice) : 0;
+
     return WifiNetwork(
       name: name,
       password: password,
       security: security,
       eapMethod: eapMethod,
       signalLevel: signalLevel,
+      rawSignalStrength: ap?.strength ?? 0,
+      speedMbps: speedMbps,
+      frequency: ap?.frequency ?? 0,
       isSecured: isSecured,
       isConnected: isConnected,
       isConnecting: false,
@@ -865,7 +885,7 @@ class WirelessRepositoryImpl implements WirelessRepository {
       if (secrets.isNotEmpty) {
         var security = secrets['802-11-wireless-security'];
         if (security != null) {
-          var psk = security['psk'];
+          var psk = security['psk'] ?? security['wep-key0'];
           if (psk != null) {
             return psk.toNative();
           }
@@ -1111,24 +1131,160 @@ class WirelessRepositoryImpl implements WirelessRepository {
     }
 
     try {
-      if (ap != null && wifiDevice != null) {
-        return await getSavedWifiPsk(wifiDevice, ap) ?? "";
-      }
-
-      if (connection != null) {
-        final secrets = await connection.getSecrets('802-11-wireless-security');
-
+      final conn =
+          connection ??
+          await _findExistingConnection(accessPoint: ap, ssid: name);
+      if (conn != null) {
+        final secrets = await conn.getSecrets('802-11-wireless-security');
         final security = secrets['802-11-wireless-security'];
-
-        final psk = security?['psk'];
-
-        return psk?.toNative() ?? "";
+        final psk = security?['psk'] ?? security?['wep-key0'];
+        if (psk != null) {
+          final val = psk.toNative();
+          if (val != null && val.toString().isNotEmpty) {
+            return val.toString();
+          }
+        }
       }
     } catch (e, stack) {
       AppLogger.e('Failed to retrieve PSK for "$name"', error: e, stack: stack);
     }
 
+    try {
+      if (ap != null && wifiDevice != null) {
+        return await getSavedWifiPsk(wifiDevice, ap) ?? "";
+      }
+    } catch (e) {
+      AppLogger.e('Failed to get saved PSK', error: e);
+    }
+
     return "";
+  }
+
+  /// Returns true if both IPv4 address-data entries contain
+  /// identical address and prefix values.
+  bool _hasMatchingIpv4AddressData(
+    dynamic existingAddressData,
+    dynamic updatedAddressData,
+  ) {
+    if (existingAddressData == null && updatedAddressData == null) {
+      return true;
+    }
+
+    if (existingAddressData == null || updatedAddressData == null) {
+      return false;
+    }
+
+    if (existingAddressData is! List || updatedAddressData is! List) {
+      return false;
+    }
+
+    if (existingAddressData.length != updatedAddressData.length) {
+      return false;
+    }
+
+    if (existingAddressData.isEmpty) {
+      return true;
+    }
+
+    final existingAddress = existingAddressData.first;
+    final updatedAddress = updatedAddressData.first;
+
+    if (existingAddress is! Map || updatedAddress is! Map) {
+      return false;
+    }
+
+    return existingAddress["address"] == updatedAddress["address"] &&
+        existingAddress["prefix"] == updatedAddress["prefix"];
+  }
+
+  /// Returns true if the IPv4 configuration has changed.
+  bool _hasIpv4SettingsChanged(
+    Map<String, DBusValue> existingIpv4,
+    Map<String, DBusValue> updatedIpv4,
+  ) {
+    final existingMethod = existingIpv4["method"]?.toNative();
+    final updatedMethod = updatedIpv4["method"]?.toNative();
+
+    if (existingMethod != updatedMethod) {
+      return true;
+    }
+
+    if (updatedMethod == "manual") {
+      if (existingIpv4["gateway"]?.toNative() !=
+          updatedIpv4["gateway"]?.toNative()) {
+        return true;
+      }
+
+      if (!_hasMatchingIpv4AddressData(
+        existingIpv4["address-data"]?.toNative(),
+        updatedIpv4["address-data"]?.toNative(),
+      )) {
+        return true;
+      }
+    }
+
+    return existingIpv4.containsKey("addresses") !=
+        updatedIpv4.containsKey("addresses");
+  }
+
+  /// Returns true if DNS server or search domain lists differ.
+  bool _hasListChanged(dynamic existingList, dynamic updatedList) {
+    if (existingList == null && updatedList == null) {
+      return false;
+    }
+
+    if (existingList == null || updatedList == null) {
+      return true;
+    }
+
+    if (existingList is! List || updatedList is! List) {
+      return true;
+    }
+
+    if (existingList.length != updatedList.length) {
+      return true;
+    }
+
+    for (var index = 0; index < existingList.length; index++) {
+      if (existingList[index] != updatedList[index]) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /// Returns true if DNS configuration has changed.
+  bool _hasDnsSettingsChanged(
+    Map<String, DBusValue> existingIpv4,
+    Map<String, DBusValue> updatedIpv4,
+    DNSConfigType dnsConfigType,
+  ) {
+    if (existingIpv4["ignore-auto-dns"]?.toNative() !=
+        updatedIpv4["ignore-auto-dns"]?.toNative()) {
+      return true;
+    }
+
+    if (dnsConfigType == DNSConfigType.manual) {
+      if (_hasListChanged(
+        existingIpv4["dns"]?.toNative(),
+        updatedIpv4["dns"]?.toNative(),
+      )) {
+        return true;
+      }
+
+      if (_hasListChanged(
+        existingIpv4["dns-search"]?.toNative(),
+        updatedIpv4["dns-search"]?.toNative(),
+      )) {
+        return true;
+      }
+    } else {
+      return existingIpv4.containsKey("dns") ||
+          existingIpv4.containsKey("dns-search");
+    }
+
+    return false;
   }
 
   @override

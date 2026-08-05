@@ -77,6 +77,7 @@ class _DNSScreenState extends State<DNSScreen> {
     final controller = TextEditingController(text: text);
     controller.addListener(() {
       onChanged(controller);
+      setState(() {});
     });
     controllers.add(controller);
   }
@@ -181,16 +182,59 @@ class _DNSScreenState extends State<DNSScreen> {
       }
     }
 
-    widget.onSaved({
-      'config': _configType,
-      'servers': servers,
-      'searchDomains': searchDomains,
-    });
+    if (_hasDnsConfigurationChanged(servers, searchDomains)) {
+      widget.onSaved({
+        'config': _configType,
+        'servers': servers,
+        'searchDomains': searchDomains,
+      });
+    }
     Navigator.of(context).pop();
+  }
+
+  /// Returns true if the current DNS values match the previously saved DNS values
+  /// in the same order.
+  bool _hasSameDnsValues(List<String> currentValues, List<String> savedValues) {
+    if (identical(currentValues, savedValues)) {
+      return true;
+    }
+
+    if (currentValues.length != savedValues.length) {
+      return false;
+    }
+
+    for (var index = 0; index < currentValues.length; index++) {
+      if (currentValues[index] != savedValues[index]) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /// Returns true if any DNS configuration value has changed.
+  bool _hasDnsConfigurationChanged(
+    List<String> servers,
+    List<String> searchDomains,
+  ) {
+    return _configType != widget.currentConfig ||
+        !_hasSameDnsValues(servers, widget.servers) ||
+        !_hasSameDnsValues(searchDomains, widget.network.dnsSearchDomains);
   }
 
   @override
   Widget build(BuildContext context) {
+    final servers = _serverControllers
+        .map((c) => c.text.trim())
+        .where((text) => text.isNotEmpty)
+        .toList();
+    final searchDomains = _domainControllers
+        .map((c) => c.text.trim())
+        .where((text) => text.isNotEmpty)
+        .toList();
+
+    final hasChanged = _hasDnsConfigurationChanged(servers, searchDomains);
+
     return Scaffold(
       appBar: DNSAppBar(
         networkName: widget.network.name,
@@ -240,8 +284,8 @@ class _DNSScreenState extends State<DNSScreen> {
         trailing: [
           CustomIconButton.asset(
             assetPath: SettingIcons.check,
-            enabled: true,
-            onPressed: _saveAndPop,
+            enabled: hasChanged,
+            onPressed: hasChanged ? _saveAndPop : null,
           ),
         ],
       ),

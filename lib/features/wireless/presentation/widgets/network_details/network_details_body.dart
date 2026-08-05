@@ -24,6 +24,20 @@ class NetworkDetailsBody extends StatelessWidget {
     required this.networkName,
   });
 
+  /// Converts a Wi-Fi frequency in MHz to a user-friendly string.
+  /// Displays GHz for values >= 1000 MHz (e.g. 2412 → 2.4 GHz),
+  /// otherwise falls back to MHz.
+  String _formatFrequency(BuildContext context, int frequency) {
+    final l10n = AppLocalizations.of(context)!;
+
+    if (frequency >= 1000) {
+      final ghz = (frequency / 1000).toStringAsFixed(1);
+      return l10n.wifiFrequencyGHz(ghz);
+    }
+
+    return l10n.wifiFrequencyMHz(frequency);
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -56,6 +70,27 @@ class NetworkDetailsBody extends StatelessWidget {
                 obscureValue: network.password.isNotEmpty,
               ),
               const CustomDivider(verticalPadding: 0),
+
+              if (network.speedMbps > 0) ...[
+                SettingsInfoRow(
+                  title: l10n.speed,
+                  value: network.frequency > 0
+                      ? l10n.wifiSpeedWithBand(
+                          network.speedMbps,
+                          _formatFrequency(context, network.frequency),
+                        )
+                      : l10n.wifiSpeed(network.speedMbps),
+                ),
+                const CustomDivider(verticalPadding: 0),
+              ],
+
+              if (network.rawSignalStrength > 0) ...[
+                SettingsInfoRow(
+                  title: l10n.signalStrength,
+                  value: l10n.wifiSignalStrength(network.rawSignalStrength),
+                ),
+                const CustomDivider(verticalPadding: 0),
+              ],
 
               SettingsToggleRow(
                 title: l10n.lowDataMode,

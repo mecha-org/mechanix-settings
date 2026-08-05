@@ -105,8 +105,14 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
 
         final deviceState = await wirelessRepository.getWifiDeviceState();
 
-        // Ignore transient states while authentication is happening.
-        if (_connectionInProgress &&
+        final elapsed = _connectionStartTime != null
+            ? DateTime.now().difference(_connectionStartTime!)
+            : Duration.zero;
+        final bool isTransientStart =
+            _connectionInProgress && elapsed.inSeconds < 3;
+
+        // Ignore transient states while authentication is happening or connection is just starting.
+        if (isTransientStart || (_connectionInProgress &&
             const {
               NetworkManagerDeviceState.needAuth,
               NetworkManagerDeviceState.prepare,
@@ -114,11 +120,12 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
               NetworkManagerDeviceState.ipConfig,
               NetworkManagerDeviceState.ipCheck,
               NetworkManagerDeviceState.secondaries,
-            }.contains(deviceState)) {
+            }.contains(deviceState))) {
           return;
         }
 
         if (_connectionInProgress &&
+            !isTransientStart &&
             const {
               NetworkManagerDeviceState.activated,
               NetworkManagerDeviceState.failed,
@@ -238,6 +245,7 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
             connectedName == connectingName) {
           connectingName = null;
           failure = null;
+          _connectionStartTime = null;
         } else if (!isTransientStart &&
             (deviceState == NetworkManagerDeviceState.failed ||
                 deviceState == NetworkManagerDeviceState.disconnected ||
@@ -248,6 +256,7 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
             data: {'networkName': connectingName},
           );
           connectingName = null;
+          _connectionStartTime = null;
         }
       }
 
@@ -343,6 +352,7 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
   ) async {
     try {
       _connectionInProgress = true;
+      _connectionStartTime = DateTime.now();
       emit(state.copyWith(connectingNetworkName: event.name, error: null));
 
       await wirelessRepository.connectToNetwork(
@@ -352,6 +362,7 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
       );
     } catch (e, stackTrace) {
       _connectionInProgress = false;
+      _connectionStartTime = null;
       emit(
         state.copyWith(
           connectingNetworkName: null,
@@ -373,6 +384,7 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
   ) async {
     try {
       _connectionInProgress = true;
+      _connectionStartTime = DateTime.now();
       emit(state.copyWith(connectingNetworkName: event.name, error: null));
 
       await wirelessRepository.addNetwork(
@@ -396,6 +408,7 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
       );
     } catch (e, stackTrace) {
       _connectionInProgress = false;
+      _connectionStartTime = null;
       emit(
         state.copyWith(
           connectingNetworkName: null,

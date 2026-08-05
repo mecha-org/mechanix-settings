@@ -226,6 +226,48 @@ abstract class AppLocalizations {
   /// **'Wireless address'**
   String get wirelessAddress;
 
+  /// No description provided for @signalStrength.
+  ///
+  /// In en, this message translates to:
+  /// **'Signal strength'**
+  String get signalStrength;
+
+  /// Wi-Fi signal strength as a percentage
+  ///
+  /// In en, this message translates to:
+  /// **'{strength}%'**
+  String wifiSignalStrength(int strength);
+
+  /// No description provided for @speed.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed'**
+  String get speed;
+
+  /// Wi-Fi link speed
+  ///
+  /// In en, this message translates to:
+  /// **'{speed} Mb/s'**
+  String wifiSpeed(int speed);
+
+  /// No description provided for @wifiSpeedWithBand.
+  ///
+  /// In en, this message translates to:
+  /// **'{speed} Mb/s ({band})'**
+  String wifiSpeedWithBand(int speed, String band);
+
+  /// Wi-Fi frequency displayed in GHz
+  ///
+  /// In en, this message translates to:
+  /// **'{frequency} GHz'**
+  String wifiFrequencyGHz(String frequency);
+
+  /// Wi-Fi frequency displayed in MHz
+  ///
+  /// In en, this message translates to:
+  /// **'{frequency} MHz'**
+  String wifiFrequencyMHz(int frequency);
+
   /// No description provided for @autoJoin.
   ///
   /// In en, this message translates to:

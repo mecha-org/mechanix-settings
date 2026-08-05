@@ -21,7 +21,25 @@ class MockNetworkManagerSettingsConnection extends Mock
     implements NetworkManagerSettingsConnection {}
 
 class MockNetworkManagerAccessPoint extends Mock
-    implements NetworkManagerAccessPoint {}
+    implements NetworkManagerAccessPoint {
+  @override
+  int get strength {
+    try {
+      return super.noSuchMethod(Invocation.getter(#strength)) as int;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  @override
+  int get frequency {
+    try {
+      return super.noSuchMethod(Invocation.getter(#frequency)) as int;
+    } catch (_) {
+      return 0;
+    }
+  }
+}
 
 class MockNetworkManagerActiveConnection extends Mock
     implements NetworkManagerActiveConnection {}
@@ -136,6 +154,48 @@ void main() {
       expect(networks.length, 1);
       expect(networks.first.name, 'Saved_WiFi');
       expect(networks.first.isConnected, false);
+    });
+
+    test('populates rawSignalStrength and speedMbps when connected', () async {
+      final mockConnection = MockNetworkManagerSettingsConnection();
+      when(() => mockConnection.unsaved).thenReturn(false);
+
+      final dbusSsid = DBusArray(
+        DBusSignature.byte,
+        utf8.encode('Saved_WiFi').map((b) => DBusByte(b)).toList(),
+      );
+
+      final settingsMap = {
+        'connection': {'id': const DBusString('Saved_WiFi')},
+        '802-11-wireless': {'ssid': dbusSsid},
+      };
+
+      when(() => mockConnection.getSettings()).thenAnswer((_) async => settingsMap);
+      when(() => mockSettings.connections).thenReturn([mockConnection]);
+
+      final mockActiveConnection = MockNetworkManagerActiveConnection();
+      when(() => mockWifiDevice.activeConnection).thenReturn(mockActiveConnection);
+      when(() => mockWifiDevice.state).thenReturn(NetworkManagerDeviceState.activated);
+      
+      when(() => mockActiveConnection.devices).thenReturn([mockWifiDevice]);
+      when(() => mockWireless.bitrate).thenReturn(130000);
+      
+      final mockAp = MockNetworkManagerAccessPoint();
+      when(() => mockAp.ssid).thenReturn(utf8.encode('Saved_WiFi'));
+      when(() => mockAp.strength).thenReturn(78);
+      when(() => mockAp.frequency).thenReturn(2412);
+      when(() => mockAp.wpaFlags).thenReturn([]);
+      when(() => mockAp.rsnFlags).thenReturn([]);
+      when(() => mockWireless.activeAccessPoint).thenReturn(mockAp);
+      when(() => mockWireless.accessPoints).thenReturn([mockAp]);
+
+      final networks = await repository.getSavedNetworks();
+      expect(networks.length, 1);
+      expect(networks.first.name, 'Saved_WiFi');
+      expect(networks.first.isConnected, true);
+      expect(networks.first.rawSignalStrength, 78);
+      expect(networks.first.speedMbps, 130);
+      expect(networks.first.frequency, 2412);
     });
   });
 

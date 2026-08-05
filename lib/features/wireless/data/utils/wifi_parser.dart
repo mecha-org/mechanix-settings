@@ -235,6 +235,13 @@ class WifiParser {
       return false;
     }
   }
+
+  /// Parses the Wi-Fi link speed from kb/s to Mb/s.
+  static int parseSpeedMbps(NetworkManagerDevice? wifiDevice) {
+    final kbps = wifiDevice?.wireless?.bitrate ?? 0;
+
+    return kbps > 0 ? (kbps / 1000).round() : 0;
+  }
 }
 
 @immutable

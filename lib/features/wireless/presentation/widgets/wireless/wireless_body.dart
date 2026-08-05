@@ -158,6 +158,7 @@ class _WirelessContent extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _ConnectedNetworkTile(),
+            _ConnectingNetworkTile(),
             _MyNetworksList(),
             _AvailableNetworksList(),
             _AddNetworkTile(),
@@ -419,6 +420,63 @@ class _AvailableNetworksList extends StatelessWidget {
                 );
               },
             ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _ConnectingNetworkTile extends StatelessWidget {
+  const _ConnectingNetworkTile();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocSelector<WirelessBloc, WirelessState, WifiNetwork?>(
+      selector: (state) {
+        final name = state.connectingNetworkName;
+
+        if (name == null || name == state.connectedNetworkName) {
+          return null;
+        }
+
+        // Do not show separately if the network already exists in UI lists (My networks and available networks).
+        final isVisibleNetwork =
+            state.myNetworks.any((network) => network.name == name) ||
+            state.availableNetworks.any((network) => network.name == name);
+
+        if (isVisibleNetwork) {
+          return null;
+        }
+
+        // Hidden network: show connection progress separately.
+        return state.savedNetworks.firstWhere(
+          (network) => network.name == name,
+          orElse: () => WifiNetwork(
+            name: name,
+            isSecured: true,
+            signalLevel: 0,
+            isConnected: false,
+            isConnecting: true,
+          ),
+        );
+      },
+      builder: (context, network) {
+        if (network == null) {
+          return const SizedBox.shrink();
+        }
+
+        return Column(
+          children: [
+            NetworkListItem(
+              name: network.name,
+              signalType: network.signalType,
+              isConnected: false,
+              isConnecting: true,
+              isSelected: true,
+              onTap: () {},
+            ),
+            const CustomDivider(verticalPadding: 0),
           ],
         );
       },

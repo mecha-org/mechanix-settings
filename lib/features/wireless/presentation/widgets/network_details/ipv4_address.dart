@@ -50,10 +50,21 @@ class _IPv4AddressScreenState extends State<IPv4AddressScreen> {
     _ipController = TextEditingController(text: widget.ipAddress);
     _subnetController = TextEditingController(text: widget.network.subnetMask);
     _routerController = TextEditingController(text: widget.gateway);
+
+    _ipController.addListener(_onTextChanged);
+    _subnetController.addListener(_onTextChanged);
+    _routerController.addListener(_onTextChanged);
+  }
+
+  void _onTextChanged() {
+    setState(() {});
   }
 
   @override
   void dispose() {
+    _ipController.removeListener(_onTextChanged);
+    _subnetController.removeListener(_onTextChanged);
+    _routerController.removeListener(_onTextChanged);
     _ipController.dispose();
     _subnetController.dispose();
     _routerController.dispose();
@@ -75,6 +86,12 @@ class _IPv4AddressScreenState extends State<IPv4AddressScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final hasChanged = _configType != widget.currentConfig ||
+        (_configType == IPv4ConfigType.manual &&
+            (_ipController.text.trim() != widget.ipAddress ||
+                _subnetController.text.trim() !=
+                    widget.network.subnetMask ||
+                _routerController.text.trim() != widget.gateway));
 
     return Scaffold(
       appBar: AppBar(
@@ -198,27 +215,29 @@ class _IPv4AddressScreenState extends State<IPv4AddressScreen> {
         trailing: [
           CustomIconButton.asset(
             assetPath: SettingIcons.check,
-            enabled: true,
-            onPressed: () {
-              if (_configType == IPv4ConfigType.manual) {
-                final error = IpValidationUtils.validateManualIpConfig(
-                  ip: _ipController.text.trim(),
-                  subnetMask: _subnetController.text.trim(),
-                  gateway: _routerController.text.trim(),
-                  l10n: l10n,
-                );
+            enabled: hasChanged,
+            onPressed: hasChanged
+                ? () {
+                    if (_configType == IPv4ConfigType.manual) {
+                      final error = IpValidationUtils.validateManualIpConfig(
+                        ip: _ipController.text.trim(),
+                        subnetMask: _subnetController.text.trim(),
+                        gateway: _routerController.text.trim(),
+                        l10n: l10n,
+                      );
 
-                if (error != null) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text(error)));
-                  return;
-                }
-              }
+                      if (error != null) {
+                        ScaffoldMessenger.of(
+                          context,
+                        ).showSnackBar(SnackBar(content: Text(error)));
+                        return;
+                      }
+                    }
 
-              connectToNetwork(context, widget.network);
-              _saveAndPop();
-            },
+                    connectToNetwork(context, widget.network);
+                    _saveAndPop();
+                  }
+                : null,
           ),
         ],
       ),
