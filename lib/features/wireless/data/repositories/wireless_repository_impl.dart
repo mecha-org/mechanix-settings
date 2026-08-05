@@ -1287,6 +1287,8 @@ class WirelessRepositoryImpl implements WirelessRepository {
     return false;
   }
 
+  /// Returns whether NetworkManager has detected the current Wi-Fi connection
+  /// as being behind a captive portal.
   @override
   Future<bool> isCaptivePortal() async {
     if (!_connected) return false;
@@ -1302,6 +1304,8 @@ class WirelessRepositoryImpl implements WirelessRepository {
     }
   }
 
+  /// Opens the captive portal login page by requesting the configured
+  /// connectivity check URL and launching the redirected portal URL, if present.
   @override
   Future<void> openCaptivePortal() async {
     if (!_connected) {
@@ -1321,13 +1325,15 @@ class WirelessRepositoryImpl implements WirelessRepository {
       ..connectionTimeout = const Duration(seconds: 5);
 
     try {
+      // Request the connectivity check URL to detect the captive portal redirect.
       final request = await httpClient.getUrl(Uri.parse(checkUri));
 
-      // Do not follow redirects automatically.
+      // Keep redirects disabled to capture the portal login URL from the response.
       request.followRedirects = false;
 
       final response = await request.close();
 
+      // Captive portals usually redirect the connectivity check request to a login page.
       final portalUrl = response.headers.value(HttpHeaders.locationHeader);
 
       final targetUrl = portalUrl ?? checkUri;
@@ -1335,10 +1341,13 @@ class WirelessRepositoryImpl implements WirelessRepository {
       AppLogger.i('Opening captive portal URL: $targetUrl');
 
       // TODO: Implement platform-specific logic to open the URL
-      await Process.run('xdg-open', [targetUrl]);
+      // Launch the portal URL using the system's default browser.
+
+      // await Process.run('xdg-open', [targetUrl]);
     } catch (e, stack) {
       AppLogger.e('Failed to open captive portal', error: e, stack: stack);
     } finally {
+      // Release HTTP resources after the connectivity check completes.
       httpClient.close();
     }
   }

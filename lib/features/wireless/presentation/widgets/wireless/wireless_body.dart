@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mechanix_settings/core/constants/icons.dart';
 import 'package:mechanix_settings/core/theme/app_theme.dart';
-import 'package:mechanix_settings/core/widgets/custom_button.dart';
 import 'package:mechanix_settings/core/widgets/custom_divider.dart';
 import 'package:mechanix_settings/core/widgets/custom_image_asset.dart';
 import 'package:mechanix_settings/core/widgets/custom_toggle.dart';
@@ -24,19 +23,29 @@ class WirelessBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ScrollConfiguration(
-      behavior: ScrollConfiguration.of(context).copyWith(
-        dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.mouse},
-      ),
-      child: const SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _WirelessToggle(),
-            CustomDivider(verticalPadding: 0),
-            _WirelessContent(),
-            _ManageNetworksTile(),
-          ],
+    return BlocListener<WirelessBloc, WirelessState>(
+      listenWhen: (previous, current) =>
+          !previous.isCaptivePortal &&
+          current.isCaptivePortal &&
+          current.connectedNetworkName != null,
+      listener: (context, state) {
+        // Open the captive portal once after successfully connecting to a network.
+        context.read<WirelessBloc>().add(const OpenCaptivePortal());
+      },
+      child: ScrollConfiguration(
+        behavior: ScrollConfiguration.of(context).copyWith(
+          dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.mouse},
+        ),
+        child: const SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _WirelessToggle(),
+              CustomDivider(verticalPadding: 0),
+              _WirelessContent(),
+              _ManageNetworksTile(),
+            ],
+          ),
         ),
       ),
     );
@@ -232,28 +241,18 @@ class _ConnectedNetworkTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocSelector<
-      WirelessBloc,
-      WirelessState,
-      ({WifiNetwork? connectedNetwork, bool isCaptivePortal})
-    >(
+    return BlocSelector<WirelessBloc, WirelessState, WifiNetwork?>(
       selector: (state) {
         final connected = state.myNetworks.firstWhere(
           (n) => n.name == state.connectedNetworkName,
           orElse: () => const WifiNetwork(name: ''),
         );
-        return (
-          connectedNetwork: connected.name.isEmpty ? null : connected,
-          isCaptivePortal: state.isCaptivePortal,
-        );
+        return connected.name.isEmpty ? null : connected;
       },
-      builder: (context, data) {
-        final connected = data.connectedNetwork;
+      builder: (context, connected) {
         if (connected == null) {
           return const SizedBox.shrink();
         }
-
-        final l10n = AppLocalizations.of(context)!;
 
         return Column(
           children: [
@@ -274,41 +273,6 @@ class _ConnectedNetworkTile extends StatelessWidget {
                 );
               },
             ),
-            if (data.isCaptivePortal) ...[
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.backgroundVariant,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.onSurfaceVariantDark),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l10n.tapToSignIn,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: AppColors.onSurfaceVariant),
-                          ),
-                        ],
-                      ),
-                    ),
-                    CustomButton(
-                      onPressed: () {
-                        context.read<WirelessBloc>().add(
-                          const OpenCaptivePortal(),
-                        );
-                      },
-                      label: l10n.signIn,
-                    ),
-                  ],
-                ),
-              ),
-            ],
             const CustomDivider(verticalPadding: 0),
           ],
         );
