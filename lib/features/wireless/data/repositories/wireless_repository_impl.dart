@@ -1314,7 +1314,7 @@ class WirelessRepositoryImpl implements WirelessRepository {
     }
 
     final checkUri = _client.connectivityCheckUri;
-    AppLogger.i('Connectivity check URI: $checkUri');
+    AppLogger.d('Connectivity check URI: $checkUri');
 
     if (checkUri.isEmpty) {
       AppLogger.e('No connectivity check URI configured');
@@ -1338,7 +1338,7 @@ class WirelessRepositoryImpl implements WirelessRepository {
 
       final targetUrl = portalUrl ?? checkUri;
 
-      AppLogger.i('Opening captive portal URL: $targetUrl');
+      AppLogger.d('Opening captive portal URL: $targetUrl');
 
       // TODO: Implement platform-specific logic to open the URL
       // Launch the portal URL using the system's default browser.
