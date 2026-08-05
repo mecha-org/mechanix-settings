@@ -709,10 +709,4 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get failedToInitializeBatteryEvents =>
       'Failed to initialize battery event listener.';
-
-  @override
-  String get signIn => 'Sign in';
-
-  @override
-  String get tapToSignIn => 'Sign in to network to access internet';
 }

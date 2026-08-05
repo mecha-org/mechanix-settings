@@ -1413,18 +1413,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to initialize battery event listener.'**
   String get failedToInitializeBatteryEvents;
-
-  /// No description provided for @signIn.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign in'**
-  String get signIn;
-
-  /// No description provided for @tapToSignIn.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign in to network to access internet'**
-  String get tapToSignIn;
 }
 
 class _AppLocalizationsDelegate

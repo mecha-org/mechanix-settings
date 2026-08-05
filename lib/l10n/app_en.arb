@@ -460,7 +460,5 @@
   "failedToInitializeBatteryEvents": "Failed to initialize battery event listener.",
   "@failedToInitializeBatteryEvents": {
     "description": "Error message shown when listening for battery state changes cannot be initialized."
-  },
-  "signIn": "Sign in",
-  "tapToSignIn": "Sign in to network to access internet"
+  }
 }
