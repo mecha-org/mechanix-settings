@@ -1,19 +1,21 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:collection/collection.dart';
 import 'package:dbus/dbus.dart';
 import 'package:flutter/foundation.dart';
+import 'package:mechanix_settings/core/utils/app_logger.dart';
+import 'package:mechanix_settings/features/wireless/data/models/access_points.dart';
 import 'package:mechanix_settings/features/wireless/data/models/enterprise_config.dart';
+import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
+import 'package:mechanix_settings/features/wireless/data/models/saved_networks.dart';
+import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
 import 'package:mechanix_settings/features/wireless/data/utils/enterprise_connection_builder.dart';
 import 'package:mechanix_settings/features/wireless/data/utils/network_connection_builder.dart';
 import 'package:mechanix_settings/features/wireless/data/utils/network_manager_utils.dart';
 import 'package:mechanix_settings/features/wireless/data/utils/wifi_parser.dart';
 import 'package:nm/nm.dart';
-import 'package:mechanix_settings/core/utils/app_logger.dart';
-import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
-import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
-import 'package:mechanix_settings/features/wireless/data/models/access_points.dart';
-import 'package:mechanix_settings/features/wireless/data/models/saved_networks.dart';
+
 import 'wireless_repository.dart';
 
 class WirelessRepositoryImpl implements WirelessRepository {
@@ -1042,10 +1044,12 @@ class WirelessRepositoryImpl implements WirelessRepository {
   }
 
   @override
-  Future<List<WifiNetwork>> getMyNetworks() async {
+  Future<List<WifiNetwork>> getMyNetworks({
+    List<WifiNetwork>? savedNetworks,
+  }) async {
     if (!_connected) return [];
 
-    final savedNetworks = await getSavedNetworks();
+    final saved = savedNetworks ?? await getSavedNetworks();
     final wifiDevice = await getWifiDevice();
 
     if (wifiDevice == null) {
@@ -1060,12 +1064,12 @@ class WirelessRepositoryImpl implements WirelessRepository {
         .toSet();
 
     // Always include currently connected network
-    final connected = savedNetworks.firstWhereOrNull((n) => n.isConnected);
+    final connected = saved.firstWhereOrNull((n) => n.isConnected);
     if (connected != null) {
       visibleSsids.add(connected.name);
     }
 
-    final myNetworks = savedNetworks
+    final myNetworks = saved
         .where((network) => visibleSsids.contains(network.name))
         .toList();
 

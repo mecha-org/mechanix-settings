@@ -72,5 +72,5 @@ abstract class WirelessRepository {
 
   Future<NetworkManagerDeviceState?> getWifiDeviceState();
 
-  Future<List<WifiNetwork>> getMyNetworks();
+  Future<List<WifiNetwork>> getMyNetworks({List<WifiNetwork>? savedNetworks});
 }
