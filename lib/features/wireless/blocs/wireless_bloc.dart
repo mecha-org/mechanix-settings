@@ -173,23 +173,21 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
     _reloadScheduled = false;
 
     try {
-      unawaited(
-        wirelessRepository.isWirelessEnabled().then((isEnabled) {
-          if (!isEnabled) {
-            emit(
-              state.copyWith(
-                isWirelessOn: false,
-                isScanning: false,
-                savedNetworks: [],
-                myNetworks: [],
-                availableNetworks: [],
-                connectedNetworkName: null,
-                connectingNetworkName: null,
-              ),
-            );
-          }
-        }),
-      );
+      final isEnabled = await wirelessRepository.isWirelessEnabled();
+      if (!isEnabled) {
+        emit(
+          state.copyWith(
+            isWirelessOn: false,
+            isScanning: false,
+            savedNetworks: [],
+            myNetworks: [],
+            availableNetworks: [],
+            connectedNetworkName: null,
+            connectingNetworkName: null,
+          ),
+        );
+        return;
+      }
 
       if (_wifiEventsSub == null) {
         await _subscribeToStreams();
@@ -233,12 +231,6 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
       String? connectingName = state.connectingNetworkName;
       WirelessFailure? failure = state.error;
 
-      final elapsed = _connectionStartTime != null
-          ? DateTime.now().difference(_connectionStartTime!)
-          : Duration.zero;
-      final bool isTransientStart =
-          _connectionInProgress && elapsed.inSeconds < 3;
-
       // Clear the pending connection on success, or report an error if the
       // connection attempt failed or was terminated.
       if (connectingName != null) {
@@ -246,22 +238,20 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
             connectedName == connectingName) {
           connectingName = null;
           failure = null;
-          _connectionStartTime = null;
-        } else if (!isTransientStart &&
-            (deviceState == NetworkManagerDeviceState.failed ||
-                deviceState == NetworkManagerDeviceState.disconnected ||
-                deviceState == NetworkManagerDeviceState.deactivating)) {
+        } else if (deviceState == NetworkManagerDeviceState.failed ||
+            deviceState == NetworkManagerDeviceState.disconnected ||
+            deviceState == NetworkManagerDeviceState.deactivating) {
           failure = WirelessFailure(
             type: WirelessErrorType.connectionFailed,
             message: 'Failed to connect to $connectingName',
             data: {'networkName': connectingName},
           );
           connectingName = null;
-          _connectionStartTime = null;
         }
       }
 
       final newState = state.copyWith(
+        isWirelessOn: true,
         savedNetworks: savedNetworks,
         myNetworks: myNetworks,
         availableNetworks: availNets,

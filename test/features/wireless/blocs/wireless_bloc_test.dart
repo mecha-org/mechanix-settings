@@ -41,6 +41,19 @@ void main() {
     
     // Default mocks to prevent crashes on initialization
     when(() => mockWirelessRepository.init()).thenAnswer((_) async {});
+    when(() => mockWirelessRepository.isWirelessEnabled())
+        .thenAnswer((_) async => true);
+    when(() => mockWirelessRepository.getSavedNetworks())
+        .thenAnswer((_) async => []);
+    when(() => mockWirelessRepository.getMyNetworks())
+        .thenAnswer((_) async => []);
+    when(() => mockWirelessRepository.getMyNetworks(
+      savedNetworks: any(named: 'savedNetworks'),
+    )).thenAnswer((_) async => []);
+    when(() => mockWirelessRepository.getAvailableNetworks(
+      requestScan: any(named: 'requestScan'),
+      savedNetworks: any(named: 'savedNetworks'),
+    )).thenAnswer((_) async => []);
     when(() => mockWirelessRepository.getWifiEventsStream())
         .thenAnswer((_) async => const Stream<List<String>>.empty());
     when(() => mockWirelessRepository.getDeviceEventsStream())
