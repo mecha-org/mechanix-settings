@@ -460,6 +460,36 @@
   "failedToInitializeBatteryEvents": "Failed to initialize battery event listener.",
   "@failedToInitializeBatteryEvents": {
     "description": "Error message shown when listening for battery state changes cannot be initialized."
-  }
+  },
 
+  "id": "ID",
+  "osVersion": "OS Version",
+  "build": "Build",
+  "serialNumber": "Serial number",
+  "wirelessMac": "Wireless MAC",
+  "copiedToClipboard": "Copied to clipboard",
+  "hostname": "Hostname",
+  "model": "Model",
+  "manufacturer": "Manufacturer",
+  "operatingSystem": "Operating system",
+  "supportUntil": "Support until",
+  "kernel": "Kernel",
+  "kernelBuild": "Kernel build",
+  "firmwareVersion": "Firmware version",
+  "firmwareVendor": "Firmware vendor",
+  "firmwareDate": "Firmware date",
+  "serialNumber": "Serial number",
+  "machineId": "Machine ID",
+  "bootId": "Boot ID",
+  "osWebsite": "OS website",
+  "deviceNameCannotBeEmpty": "Device name cannot be empty",
+  "deviceNameMaxLength": "Device name must be less than 64 characters",
+  "hostnameMaxLength": "Hostname must be less than 64 characters",
+  "hostnameDotError": "Hostname parts cannot start or end with a dot",
+  "invalidHostname": "Invalid hostname",
+  "hostnameHyphenError": "Hostname parts cannot start or end with a hyphen",
+  "hostnameCharactersError": "Only letters, numbers and hyphens are allowed",
+  "failedToGetAboutDetails": "Failed to retrieve system information.",
+  "failedToUpdateDeviceName": "Failed to update device name.",
+  "failedToUpdateHostname": "Failed to update hostname."
 }
