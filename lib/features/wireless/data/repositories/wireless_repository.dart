@@ -1,19 +1,22 @@
 import 'dart:async';
-import 'package:mechanix_settings/features/wireless/data/models/enterprise_config.dart';
-import 'package:nm/nm.dart';
-import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
-import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
+
 import 'package:mechanix_settings/features/wireless/data/models/access_points.dart';
+import 'package:mechanix_settings/features/wireless/data/models/enterprise_config.dart';
+import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
 import 'package:mechanix_settings/features/wireless/data/models/saved_networks.dart';
+import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
+import 'package:nm/nm.dart';
 
 abstract class WirelessRepository {
   Future<void> init();
 
-  Future<bool> isWirelessEnabled();
+  bool isWirelessEnabled();
 
   Future<void> setWifiEnabled(bool enable);
 
-  Future<NetworkManagerDevice?> getWifiDevice();
+  Future<void> requestScan();
+
+  NetworkManagerDevice? getWifiDevice();
 
   Future<List<WifiNetwork>> getSavedNetworks();
 
@@ -61,16 +64,18 @@ abstract class WirelessRepository {
     NetworkManagerAccessPoint accessPoint,
   );
 
-  Future<Stream<List<String>>> getWifiEventsStream();
-  Future<Stream<List<String>>> getWirelessDeviceEventsStream();
-  Future<Stream<List<String>>> getDeviceEventsStream();
+  Stream<List<String>> getWifiEventsStream();
+
+  Stream<List<String>> getWirelessDeviceEventsStream();
+
+  Stream<List<String>> getDeviceEventsStream();
 
   Future<({AccessPoints? active, List<AccessPoints> available})>
   availableAccessPoints({bool requestScan = true});
 
   Future<List<SavedWirelessNetwork>> getSavedWirelessNetworks();
 
-  Future<NetworkManagerDeviceState?> getWifiDeviceState();
+  NetworkManagerDeviceState? getWifiDeviceState();
 
   Future<List<WifiNetwork>> getMyNetworks({List<WifiNetwork>? savedNetworks});
 }

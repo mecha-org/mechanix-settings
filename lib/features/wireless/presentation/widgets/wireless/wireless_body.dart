@@ -124,16 +124,22 @@ class _WirelessContent extends StatelessWidget {
     return BlocSelector<
       WirelessBloc,
       WirelessState,
-      ({bool isWirelessOn, bool isScanning})
+      ({bool isWirelessOn, bool isScanning, bool hasNetworks})
     >(
-      selector: (state) =>
-          (isWirelessOn: state.isWirelessOn, isScanning: state.isScanning),
+      selector: (state) => (
+        isWirelessOn: state.isWirelessOn,
+        isScanning: state.isScanning,
+        hasNetworks:
+            state.myNetworks.isNotEmpty ||
+            state.availableNetworks.isNotEmpty ||
+            state.connectedNetworkName != null,
+      ),
       builder: (context, state) {
         if (!state.isWirelessOn) {
           return const SizedBox.shrink();
         }
 
-        if (state.isScanning) {
+        if (state.isScanning && !state.hasNetworks) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -347,17 +353,27 @@ class _AvailableNetworksList extends StatelessWidget {
     return BlocSelector<
       WirelessBloc,
       WirelessState,
-      ({List<WifiNetwork> networks, String? connecting})
+      ({List<WifiNetwork> networks, String? connecting, bool isScanning})
     >(
       selector: (state) => (
         networks: state.availableNetworks,
         connecting: state.connectingNetworkName,
+        isScanning: state.isScanning,
       ),
       builder: (context, state) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SettingsSectionHeader(title: l10n.avaialableNetworks),
+            SettingsSectionHeader(
+              title: l10n.avaialableNetworks,
+              trailing: state.isScanning
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : null,
+            ),
             ListView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),

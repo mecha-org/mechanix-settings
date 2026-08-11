@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
+import 'package:mechanix_settings/features/wireless/data/utils/wifi_parser.dart';
 
 class WifiNetwork extends Equatable {
   final String name;
@@ -60,6 +61,10 @@ class WifiNetwork extends Equatable {
   // Computed signal type
   WifiSignalType get signalType =>
       WifiSignalType.from(level: signalLevel, secured: isSecured);
+
+  /// Signal strength in dBm calculated from [rawSignalStrength] percentage.
+  /// Formula: dBm = (percentage / 2) - 100
+  int get signalDbm => WifiParser.parseSignalDbm(rawSignalStrength);
 
   WifiNetwork copyWith({
     String? name,
