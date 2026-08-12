@@ -238,6 +238,12 @@ abstract class AppLocalizations {
   /// **'{strength}%'**
   String wifiSignalStrength(int strength);
 
+  /// Wi-Fi signal strength percentage with dBm
+  ///
+  /// In en, this message translates to:
+  /// **'{strength}% ({dbm} dBm)'**
+  String wifiSignalStrengthWithDbm(int strength, int dbm);
+
   /// No description provided for @speed.
   ///
   /// In en, this message translates to:

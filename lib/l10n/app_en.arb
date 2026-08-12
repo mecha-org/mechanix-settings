@@ -40,6 +40,20 @@
       }
     }
   },
+  "wifiSignalStrengthWithDbm": "{strength}% ({dbm} dBm)",
+  "@wifiSignalStrengthWithDbm": {
+    "description": "Wi-Fi signal strength percentage with dBm",
+    "placeholders": {
+      "strength": {
+        "type": "int",
+        "example": "87"
+      },
+      "dbm": {
+        "type": "int",
+        "example": "-50"
+      }
+    }
+  },
   "speed": "Speed",
   "wifiSpeed": "{speed} Mb/s",
   "@wifiSpeed": {

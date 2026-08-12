@@ -85,6 +85,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String wifiSignalStrengthWithDbm(int strength, int dbm) {
+    return '$strength% ($dbm dBm)';
+  }
+
+  @override
   String get speed => 'Speed';
 
   @override

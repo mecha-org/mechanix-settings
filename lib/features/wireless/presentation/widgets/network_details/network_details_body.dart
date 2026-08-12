@@ -87,8 +87,10 @@ class NetworkDetailsBody extends StatelessWidget {
               if (network.rawSignalStrength > 0) ...[
                 SettingsInfoRow(
                   title: l10n.signalStrength,
-                  value:
-                      '${l10n.wifiSignalStrength(network.rawSignalStrength)} (${network.signalDbm} dBm)',
+                  value: l10n.wifiSignalStrengthWithDbm(
+                    network.rawSignalStrength,
+                    network.signalDbm,
+                  ),
                 ),
                 const CustomDivider(verticalPadding: 0),
               ],
