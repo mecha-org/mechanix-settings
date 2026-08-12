@@ -126,4 +126,6 @@ class BluetoothDiscoverableChanged extends BluetoothEvent {
   List<Object?> get props => [isDiscoverable];
 }
 
-class RefreshDeviceList extends BluetoothEvent {}
+class StopBluetoothDiscovery extends BluetoothEvent {
+  const StopBluetoothDiscovery();
+}

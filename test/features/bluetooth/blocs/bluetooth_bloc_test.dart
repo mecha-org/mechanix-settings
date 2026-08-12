@@ -137,7 +137,6 @@ void main() {
 
         // Verifying RefreshDeviceList calls occurred
         verify(() => mockRepository.startDiscovery()).called(1);
-        verify(() => mockRepository.stopDiscovery()).called(1);
       });
     });
   });
