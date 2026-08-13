@@ -505,5 +505,20 @@
   "hostnameCharactersError": "Only letters, numbers and hyphens are allowed",
   "failedToGetAboutDetails": "Failed to retrieve system information.",
   "failedToUpdateDeviceName": "Failed to update device name.",
-  "failedToUpdateHostname": "Failed to update hostname."
+  "failedToUpdateHostname": "Failed to update hostname.",
+  "output": "Output",
+  "input": "Input",
+  "device": "Device",
+  "launcher": "Launcher",
+  "hapticFeedback": "Haptic feedback",
+  "notification": "Notification",
+  "outputDevice": "Output device",
+  "inputDevice": "Input device",
+  "wakeup": "Wakeup",
+  "siren": "Siren",
+  "cosmic": "Cosmic",
+  "space": "Space",
+  "supernova": "Supernova",
+  "crash": "Crash",
+  "cometInBuiltSpeaker": "Comet in-built speaker" 
 }

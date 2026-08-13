@@ -806,4 +806,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get failedToUpdateHostname => 'Failed to update hostname.';
+
+  @override
+  String get output => 'Output';
+
+  @override
+  String get input => 'Input';
+
+  @override
+  String get device => 'Device';
+
+  @override
+  String get launcher => 'Launcher';
+
+  @override
+  String get hapticFeedback => 'Haptic feedback';
+
+  @override
+  String get notification => 'Notification';
+
+  @override
+  String get outputDevice => 'Output device';
+
+  @override
+  String get inputDevice => 'Input device';
+
+  @override
+  String get wakeup => 'Wakeup';
+
+  @override
+  String get siren => 'Siren';
+
+  @override
+  String get cosmic => 'Cosmic';
+
+  @override
+  String get space => 'Space';
+
+  @override
+  String get supernova => 'Supernova';
+
+  @override
+  String get crash => 'Crash';
+
+  @override
+  String get cometInBuiltSpeaker => 'Comet in-built speaker';
 }

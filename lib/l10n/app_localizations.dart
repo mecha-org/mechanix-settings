@@ -1593,6 +1593,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to update hostname.'**
   String get failedToUpdateHostname;
+
+  /// No description provided for @output.
+  ///
+  /// In en, this message translates to:
+  /// **'Output'**
+  String get output;
+
+  /// No description provided for @input.
+  ///
+  /// In en, this message translates to:
+  /// **'Input'**
+  String get input;
+
+  /// No description provided for @device.
+  ///
+  /// In en, this message translates to:
+  /// **'Device'**
+  String get device;
+
+  /// No description provided for @launcher.
+  ///
+  /// In en, this message translates to:
+  /// **'Launcher'**
+  String get launcher;
+
+  /// No description provided for @hapticFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'Haptic feedback'**
+  String get hapticFeedback;
+
+  /// No description provided for @notification.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification'**
+  String get notification;
+
+  /// No description provided for @outputDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Output device'**
+  String get outputDevice;
+
+  /// No description provided for @inputDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Input device'**
+  String get inputDevice;
+
+  /// No description provided for @wakeup.
+  ///
+  /// In en, this message translates to:
+  /// **'Wakeup'**
+  String get wakeup;
+
+  /// No description provided for @siren.
+  ///
+  /// In en, this message translates to:
+  /// **'Siren'**
+  String get siren;
+
+  /// No description provided for @cosmic.
+  ///
+  /// In en, this message translates to:
+  /// **'Cosmic'**
+  String get cosmic;
+
+  /// No description provided for @space.
+  ///
+  /// In en, this message translates to:
+  /// **'Space'**
+  String get space;
+
+  /// No description provided for @supernova.
+  ///
+  /// In en, this message translates to:
+  /// **'Supernova'**
+  String get supernova;
+
+  /// No description provided for @crash.
+  ///
+  /// In en, this message translates to:
+  /// **'Crash'**
+  String get crash;
+
+  /// No description provided for @cometInBuiltSpeaker.
+  ///
+  /// In en, this message translates to:
+  /// **'Comet in-built speaker'**
+  String get cometInBuiltSpeaker;
 }
 
 class _AppLocalizationsDelegate
