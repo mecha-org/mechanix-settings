@@ -95,19 +95,6 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
                 Navigator.pop(context);
               },
             ),
-            trailing: state.isBluetoothOn
-                ? [
-                    CustomIconButton.asset(
-                      assetPath: SettingIcons.refresh,
-                      enabled: !state.isScanning,
-                      onPressed: () {
-                        context.read<BluetoothBloc>().add(
-                          const ScanBluetoothDevices(),
-                        );
-                      },
-                    ),
-                  ]
-                : null,
           ),
         );
       },
