@@ -130,16 +130,16 @@ void main() {
       when(() => mockWirelessRepository.init()).thenAnswer((_) async {});
       when(
         () => mockWirelessRepository.isWirelessEnabled(),
-      ).thenAnswer((_) async => false);
+      ).thenAnswer((_) => false);
       when(
         () => mockWirelessRepository.getWifiEventsStream(),
-      ).thenAnswer((_) async => const Stream<List<String>>.empty());
+      ).thenAnswer((_) => const Stream<List<String>>.empty());
       when(
         () => mockWirelessRepository.getDeviceEventsStream(),
-      ).thenAnswer((_) async => const Stream<List<String>>.empty());
+      ).thenAnswer((_) => const Stream<List<String>>.empty());
       when(
         () => mockWirelessRepository.getWirelessDeviceEventsStream(),
-      ).thenAnswer((_) async => const Stream<List<String>>.empty());
+      ).thenAnswer((_) => const Stream<List<String>>.empty());
 
       // Bluetooth Repository Mock defaults
       when(() => mockBluetoothRepository.init()).thenAnswer((_) async {});
