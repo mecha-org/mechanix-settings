@@ -114,9 +114,21 @@ class SoundBloc extends Bloc<SoundEvent, SoundState> {
   ) async {
     emit(state.copyWith(isRefreshingDevices: true));
     
-    // Simulate short discovery delay to refresh devices list
-    await Future.delayed(const Duration(milliseconds: 800));
-    
-    emit(state.copyWith(isRefreshingDevices: false));
+    try {
+      final outDevices = await _soundRepository.getOutputDevices();
+      final selectedOut = await _soundRepository.getSelectedOutputDevice();
+      final inDevices = await _soundRepository.getInputDevices();
+      final selectedIn = await _soundRepository.getSelectedInputDevice();
+      
+      emit(state.copyWith(
+        outputDevices: outDevices,
+        selectedOutputDevice: selectedOut,
+        inputDevices: inDevices,
+        selectedInputDevice: selectedIn,
+        isRefreshingDevices: false,
+      ));
+    } catch (e) {
+      emit(state.copyWith(isRefreshingDevices: false));
+    }
   }
 }

@@ -267,13 +267,11 @@ class _NavigationRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     return InkWell(
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 20),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
               label,
@@ -281,22 +279,29 @@ class _NavigationRow extends StatelessWidget {
                 color: AppColors.onSurface,
               ),
             ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  value,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: AppColors.onSurfaceVariant,
+            const Spacer(),
+            Flexible(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      value,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: AppColors.onSurfaceVariant,
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                const Icon(
-                  Icons.chevron_right,
-                  color: AppColors.onSurfaceVariant,
-                  size: 24,
-                ),
-              ],
+                  const SizedBox(width: 8),
+                  const Icon(
+                    Icons.chevron_right,
+                    color: AppColors.onSurfaceVariant,
+                    size: 24,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
