@@ -4,17 +4,18 @@ import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:dbus/dbus.dart';
 import 'package:flutter/foundation.dart';
+import 'package:mechanix_settings/core/utils/app_logger.dart';
+import 'package:mechanix_settings/features/wireless/data/models/access_points.dart';
 import 'package:mechanix_settings/features/wireless/data/models/enterprise_config.dart';
+import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
+import 'package:mechanix_settings/features/wireless/data/models/saved_networks.dart';
+import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
 import 'package:mechanix_settings/features/wireless/data/utils/enterprise_connection_builder.dart';
 import 'package:mechanix_settings/features/wireless/data/utils/network_connection_builder.dart';
 import 'package:mechanix_settings/features/wireless/data/utils/network_manager_utils.dart';
 import 'package:mechanix_settings/features/wireless/data/utils/wifi_parser.dart';
 import 'package:nm/nm.dart';
-import 'package:mechanix_settings/core/utils/app_logger.dart';
-import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
-import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
-import 'package:mechanix_settings/features/wireless/data/models/access_points.dart';
-import 'package:mechanix_settings/features/wireless/data/models/saved_networks.dart';
+
 import 'wireless_repository.dart';
 
 class WirelessRepositoryImpl implements WirelessRepository {
@@ -34,6 +35,17 @@ class WirelessRepositoryImpl implements WirelessRepository {
   }
 
   @override
+  Future<void> requestScan() async {
+    final wireless = getWifiDevice()?.wireless;
+
+    if (wireless == null) {
+      return;
+    }
+
+    await wireless.requestScan();
+  }
+
+  @override
   Future<void> init() async {
     if (_connected) return;
     try {
@@ -49,7 +61,7 @@ class WirelessRepositoryImpl implements WirelessRepository {
   }
 
   @override
-  Future<bool> isWirelessEnabled() async {
+  bool isWirelessEnabled() {
     if (_connected) {
       return _client.wirelessEnabled;
     }
@@ -69,7 +81,7 @@ class WirelessRepositoryImpl implements WirelessRepository {
 
   /// Retrieves the active Wi-Fi device configured in the NetworkManager client.
   @override
-  Future<NetworkManagerDevice?> getWifiDevice() async {
+  NetworkManagerDevice? getWifiDevice() {
     if (!_connected) return null;
     final devices = _client.devices;
     return devices.firstWhereOrNull(
@@ -85,7 +97,7 @@ class WirelessRepositoryImpl implements WirelessRepository {
 
     try {
       final connections = _client.settings.connections;
-      final wifiDevice = await getWifiDevice();
+      final wifiDevice = getWifiDevice();
       final scannedAps = wifiDevice?.wireless?.accessPoints ?? [];
 
       final Map<String, WifiNetwork> networks = {};
@@ -171,7 +183,7 @@ class WirelessRepositoryImpl implements WirelessRepository {
   }) async {
     if (!_connected) return [];
     try {
-      final wifiDevice = await getWifiDevice();
+      final wifiDevice = getWifiDevice();
       if (wifiDevice == null ||
           wifiDevice.state == NetworkManagerDeviceState.unavailable) {
         return [];
@@ -249,7 +261,7 @@ class WirelessRepositoryImpl implements WirelessRepository {
     EnterpriseConfig? enterpriseConfig,
   }) async {
     if (!_connected) return;
-    final wifiDevice = await getWifiDevice();
+    final wifiDevice = getWifiDevice();
     if (wifiDevice == null ||
         wifiDevice.state == NetworkManagerDeviceState.unavailable) {
       throw Exception('No WiFi device found');
@@ -491,7 +503,7 @@ class WirelessRepositoryImpl implements WirelessRepository {
     if (!_connected) return;
 
     try {
-      final wifiDevice = await getWifiDevice();
+      final wifiDevice = getWifiDevice();
       if (wifiDevice == null) return;
 
       final connections = _client.settings.connections;
@@ -628,7 +640,7 @@ class WirelessRepositoryImpl implements WirelessRepository {
 
               await cn.update(updatedSettings);
 
-              final wifiDevice = await getWifiDevice();
+              final wifiDevice = getWifiDevice();
 
               if (wifiDevice == null) {
                 return;
@@ -896,14 +908,14 @@ class WirelessRepositoryImpl implements WirelessRepository {
   }
 
   @override
-  Future<Stream<List<String>>> getWifiEventsStream() async {
+  Stream<List<String>> getWifiEventsStream() {
     if (!_connected) return const Stream.empty();
     return _client.propertiesChanged;
   }
 
   @override
-  Future<Stream<List<String>>> getWirelessDeviceEventsStream() async {
-    final wifiDevice = await getWifiDevice();
+  Stream<List<String>> getWirelessDeviceEventsStream() {
+    final wifiDevice = getWifiDevice();
     if (wifiDevice == null || wifiDevice.wireless == null) {
       return const Stream.empty();
     }
@@ -911,8 +923,8 @@ class WirelessRepositoryImpl implements WirelessRepository {
   }
 
   @override
-  Future<Stream<List<String>>> getDeviceEventsStream() async {
-    final wifiDevice = await getWifiDevice();
+  Stream<List<String>> getDeviceEventsStream() {
+    final wifiDevice = getWifiDevice();
     if (wifiDevice == null) return const Stream.empty();
     return wifiDevice.propertiesChanged;
   }
@@ -922,7 +934,7 @@ class WirelessRepositoryImpl implements WirelessRepository {
   Future<({AccessPoints? active, List<AccessPoints> available})>
   availableAccessPoints({bool requestScan = true}) async {
     try {
-      final wifiDevice = await getWifiDevice();
+      final wifiDevice = getWifiDevice();
       if (wifiDevice == null ||
           wifiDevice.state == NetworkManagerDeviceState.unavailable) {
         AppLogger.e('No WiFi device found');
@@ -1037,17 +1049,19 @@ class WirelessRepositoryImpl implements WirelessRepository {
   }
 
   @override
-  Future<NetworkManagerDeviceState?> getWifiDeviceState() async {
-    final device = await getWifiDevice();
+  NetworkManagerDeviceState? getWifiDeviceState() {
+    final device = getWifiDevice();
     return device?.state;
   }
 
   @override
-  Future<List<WifiNetwork>> getMyNetworks() async {
+  Future<List<WifiNetwork>> getMyNetworks({
+    List<WifiNetwork>? savedNetworks,
+  }) async {
     if (!_connected) return [];
 
-    final savedNetworks = await getSavedNetworks();
-    final wifiDevice = await getWifiDevice();
+    final saved = savedNetworks ?? await getSavedNetworks();
+    final wifiDevice = getWifiDevice();
 
     if (wifiDevice == null) {
       return [];
@@ -1061,12 +1075,12 @@ class WirelessRepositoryImpl implements WirelessRepository {
         .toSet();
 
     // Always include currently connected network
-    final connected = savedNetworks.firstWhereOrNull((n) => n.isConnected);
+    final connected = saved.firstWhereOrNull((n) => n.isConnected);
     if (connected != null) {
       visibleSsids.add(connected.name);
     }
 
-    final myNetworks = savedNetworks
+    final myNetworks = saved
         .where((network) => visibleSsids.contains(network.name))
         .toList();
 

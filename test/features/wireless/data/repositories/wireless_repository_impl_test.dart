@@ -1,11 +1,12 @@
 import 'dart:convert';
+
+import 'package:dbus/dbus.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
+import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
+import 'package:mechanix_settings/features/wireless/data/repositories/wireless_repository_impl.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:nm/nm.dart';
-import 'package:dbus/dbus.dart';
-import 'package:mechanix_settings/features/wireless/data/repositories/wireless_repository_impl.dart';
-import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
 
 class MockNetworkManagerClient extends Mock implements NetworkManagerClient {}
 
@@ -170,16 +171,22 @@ void main() {
         '802-11-wireless': {'ssid': dbusSsid},
       };
 
-      when(() => mockConnection.getSettings()).thenAnswer((_) async => settingsMap);
+      when(
+        () => mockConnection.getSettings(),
+      ).thenAnswer((_) async => settingsMap);
       when(() => mockSettings.connections).thenReturn([mockConnection]);
 
       final mockActiveConnection = MockNetworkManagerActiveConnection();
-      when(() => mockWifiDevice.activeConnection).thenReturn(mockActiveConnection);
-      when(() => mockWifiDevice.state).thenReturn(NetworkManagerDeviceState.activated);
-      
+      when(
+        () => mockWifiDevice.activeConnection,
+      ).thenReturn(mockActiveConnection);
+      when(
+        () => mockWifiDevice.state,
+      ).thenReturn(NetworkManagerDeviceState.activated);
+
       when(() => mockActiveConnection.devices).thenReturn([mockWifiDevice]);
       when(() => mockWireless.bitrate).thenReturn(130000);
-      
+
       final mockAp = MockNetworkManagerAccessPoint();
       when(() => mockAp.ssid).thenReturn(utf8.encode('Saved_WiFi'));
       when(() => mockAp.strength).thenReturn(78);

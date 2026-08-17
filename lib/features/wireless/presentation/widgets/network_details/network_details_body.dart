@@ -2,14 +2,14 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
 import 'package:mechanix_settings/core/widgets/custom_divider.dart';
 import 'package:mechanix_settings/features/wireless/blocs/wireless_bloc.dart';
+import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
 import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
 import 'package:mechanix_settings/features/wireless/presentation/widgets/network_details/dns.dart';
 import 'package:mechanix_settings/features/wireless/presentation/widgets/network_details/ipv4_address.dart';
-import 'package:mechanix_settings/features/wireless/presentation/widgets/wireless_settings/settings_info_row.dart';
 import 'package:mechanix_settings/features/wireless/presentation/widgets/wireless_settings/settings_config_row.dart';
+import 'package:mechanix_settings/features/wireless/presentation/widgets/wireless_settings/settings_info_row.dart';
 import 'package:mechanix_settings/features/wireless/presentation/widgets/wireless_settings/settings_section_header.dart';
 import 'package:mechanix_settings/features/wireless/presentation/widgets/wireless_settings/settings_toggle_row.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
@@ -87,7 +87,10 @@ class NetworkDetailsBody extends StatelessWidget {
               if (network.rawSignalStrength > 0) ...[
                 SettingsInfoRow(
                   title: l10n.signalStrength,
-                  value: l10n.wifiSignalStrength(network.rawSignalStrength),
+                  value: l10n.wifiSignalStrengthWithDbm(
+                    network.rawSignalStrength,
+                    network.signalDbm,
+                  ),
                 ),
                 const CustomDivider(verticalPadding: 0),
               ],

@@ -238,6 +238,12 @@ abstract class AppLocalizations {
   /// **'{strength}%'**
   String wifiSignalStrength(int strength);
 
+  /// Wi-Fi signal strength percentage with dBm
+  ///
+  /// In en, this message translates to:
+  /// **'{strength}% ({dbm} dBm)'**
+  String wifiSignalStrengthWithDbm(int strength, int dbm);
+
   /// No description provided for @speed.
   ///
   /// In en, this message translates to:
@@ -1413,6 +1419,180 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to initialize battery event listener.'**
   String get failedToInitializeBatteryEvents;
+
+  /// No description provided for @id.
+  ///
+  /// In en, this message translates to:
+  /// **'ID'**
+  String get id;
+
+  /// No description provided for @osVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'OS Version'**
+  String get osVersion;
+
+  /// No description provided for @build.
+  ///
+  /// In en, this message translates to:
+  /// **'Build'**
+  String get build;
+
+  /// No description provided for @serialNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial number'**
+  String get serialNumber;
+
+  /// No description provided for @wirelessMac.
+  ///
+  /// In en, this message translates to:
+  /// **'Wireless MAC'**
+  String get wirelessMac;
+
+  /// No description provided for @copiedToClipboard.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied to clipboard'**
+  String get copiedToClipboard;
+
+  /// No description provided for @hostname.
+  ///
+  /// In en, this message translates to:
+  /// **'Hostname'**
+  String get hostname;
+
+  /// No description provided for @model.
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get model;
+
+  /// No description provided for @manufacturer.
+  ///
+  /// In en, this message translates to:
+  /// **'Manufacturer'**
+  String get manufacturer;
+
+  /// No description provided for @operatingSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'Operating system'**
+  String get operatingSystem;
+
+  /// No description provided for @supportUntil.
+  ///
+  /// In en, this message translates to:
+  /// **'Support until'**
+  String get supportUntil;
+
+  /// No description provided for @kernel.
+  ///
+  /// In en, this message translates to:
+  /// **'Kernel'**
+  String get kernel;
+
+  /// No description provided for @kernelBuild.
+  ///
+  /// In en, this message translates to:
+  /// **'Kernel build'**
+  String get kernelBuild;
+
+  /// No description provided for @firmwareVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware version'**
+  String get firmwareVersion;
+
+  /// No description provided for @firmwareVendor.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware vendor'**
+  String get firmwareVendor;
+
+  /// No description provided for @firmwareDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Firmware date'**
+  String get firmwareDate;
+
+  /// No description provided for @machineId.
+  ///
+  /// In en, this message translates to:
+  /// **'Machine ID'**
+  String get machineId;
+
+  /// No description provided for @bootId.
+  ///
+  /// In en, this message translates to:
+  /// **'Boot ID'**
+  String get bootId;
+
+  /// No description provided for @osWebsite.
+  ///
+  /// In en, this message translates to:
+  /// **'OS website'**
+  String get osWebsite;
+
+  /// No description provided for @deviceNameCannotBeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Device name cannot be empty'**
+  String get deviceNameCannotBeEmpty;
+
+  /// No description provided for @deviceNameMaxLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Device name must be less than 64 characters'**
+  String get deviceNameMaxLength;
+
+  /// No description provided for @hostnameMaxLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Hostname must be less than 64 characters'**
+  String get hostnameMaxLength;
+
+  /// No description provided for @hostnameDotError.
+  ///
+  /// In en, this message translates to:
+  /// **'Hostname parts cannot start or end with a dot'**
+  String get hostnameDotError;
+
+  /// No description provided for @invalidHostname.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid hostname'**
+  String get invalidHostname;
+
+  /// No description provided for @hostnameHyphenError.
+  ///
+  /// In en, this message translates to:
+  /// **'Hostname parts cannot start or end with a hyphen'**
+  String get hostnameHyphenError;
+
+  /// No description provided for @hostnameCharactersError.
+  ///
+  /// In en, this message translates to:
+  /// **'Only letters, numbers and hyphens are allowed'**
+  String get hostnameCharactersError;
+
+  /// No description provided for @failedToGetAboutDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to retrieve system information.'**
+  String get failedToGetAboutDetails;
+
+  /// No description provided for @failedToUpdateDeviceName.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update device name.'**
+  String get failedToUpdateDeviceName;
+
+  /// No description provided for @failedToUpdateHostname.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update hostname.'**
+  String get failedToUpdateHostname;
 }
 
 class _AppLocalizationsDelegate

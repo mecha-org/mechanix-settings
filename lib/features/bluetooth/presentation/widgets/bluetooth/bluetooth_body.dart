@@ -2,9 +2,11 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mechanix_settings/core/constants/icons.dart';
 
 import 'package:mechanix_settings/core/theme/app_theme.dart';
 import 'package:mechanix_settings/core/widgets/custom_divider.dart';
+import 'package:mechanix_settings/core/widgets/custom_icon_button.dart';
 import 'package:mechanix_settings/core/widgets/custom_toggle.dart';
 
 import 'package:mechanix_settings/features/bluetooth/blocs/bluetooth_bloc.dart';
@@ -222,36 +224,48 @@ class _BluetoothBodyState extends State<BluetoothBody> {
                     const CustomDivider(verticalPadding: 16),
 
                     // Other devices
-                    SettingsSectionHeader(title: l10n.otherDevices),
+                    SettingsSectionHeader(
+                      title: l10n.otherDevices,
+                      trailing:
+                          BlocSelector<BluetoothBloc, BluetoothState, bool>(
+                            selector: (state) => state.isScanning,
+                            builder: (context, scanning) {
+                              if (!scanning) {
+                                return CustomIconButton.asset(
+                                  assetPath: SettingIcons.refresh,
+                                  onPressed: () {
+                                    context.read<BluetoothBloc>().add(
+                                      const ScanBluetoothDevices(),
+                                    );
+                                  },
+                                );
+                              }
+
+                              return const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 16),
+                                child: SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 1.8,
+                                    valueColor: AlwaysStoppedAnimation(
+                                      AppColors.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                    ),
 
                     BlocSelector<
                       BluetoothBloc,
                       BluetoothState,
-                      ({List<BluetoothDevice> devices, bool scanning})
+                      ({List<BluetoothDevice> devices})
                     >(
-                      selector: (state) => (
-                        devices: state.discoveredDevices,
-                        scanning: state.isScanning,
-                      ),
+                      selector: (state) => (devices: state.discoveredDevices),
                       builder: (context, data) {
                         final devices = data.devices;
-                        final scanning = data.scanning;
-
-                        if (scanning && devices.isEmpty) {
-                          return const Padding(
-                            padding: EdgeInsets.all(16),
-                            child: SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation(
-                                  AppColors.onSurfaceVariant,
-                                ),
-                              ),
-                            ),
-                          );
-                        }
 
                         return Column(
                           children: [
@@ -275,28 +289,6 @@ class _BluetoothBodyState extends State<BluetoothBody> {
                                 );
                               },
                             ),
-
-                            if (scanning)
-                              const Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 8,
-                                ),
-                                child: Row(
-                                  children: [
-                                    SizedBox(
-                                      width: 14,
-                                      height: 14,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 1.5,
-                                        valueColor: AlwaysStoppedAnimation(
-                                          AppColors.onSurfaceVariant,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
                           ],
                         );
                       },

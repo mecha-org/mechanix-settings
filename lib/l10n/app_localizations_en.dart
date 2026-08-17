@@ -85,6 +85,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String wifiSignalStrengthWithDbm(int strength, int dbm) {
+    return '$strength% ($dbm dBm)';
+  }
+
+  @override
   String get speed => 'Speed';
 
   @override
@@ -709,4 +714,96 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get failedToInitializeBatteryEvents =>
       'Failed to initialize battery event listener.';
+
+  @override
+  String get id => 'ID';
+
+  @override
+  String get osVersion => 'OS Version';
+
+  @override
+  String get build => 'Build';
+
+  @override
+  String get serialNumber => 'Serial number';
+
+  @override
+  String get wirelessMac => 'Wireless MAC';
+
+  @override
+  String get copiedToClipboard => 'Copied to clipboard';
+
+  @override
+  String get hostname => 'Hostname';
+
+  @override
+  String get model => 'Model';
+
+  @override
+  String get manufacturer => 'Manufacturer';
+
+  @override
+  String get operatingSystem => 'Operating system';
+
+  @override
+  String get supportUntil => 'Support until';
+
+  @override
+  String get kernel => 'Kernel';
+
+  @override
+  String get kernelBuild => 'Kernel build';
+
+  @override
+  String get firmwareVersion => 'Firmware version';
+
+  @override
+  String get firmwareVendor => 'Firmware vendor';
+
+  @override
+  String get firmwareDate => 'Firmware date';
+
+  @override
+  String get machineId => 'Machine ID';
+
+  @override
+  String get bootId => 'Boot ID';
+
+  @override
+  String get osWebsite => 'OS website';
+
+  @override
+  String get deviceNameCannotBeEmpty => 'Device name cannot be empty';
+
+  @override
+  String get deviceNameMaxLength =>
+      'Device name must be less than 64 characters';
+
+  @override
+  String get hostnameMaxLength => 'Hostname must be less than 64 characters';
+
+  @override
+  String get hostnameDotError =>
+      'Hostname parts cannot start or end with a dot';
+
+  @override
+  String get invalidHostname => 'Invalid hostname';
+
+  @override
+  String get hostnameHyphenError =>
+      'Hostname parts cannot start or end with a hyphen';
+
+  @override
+  String get hostnameCharactersError =>
+      'Only letters, numbers and hyphens are allowed';
+
+  @override
+  String get failedToGetAboutDetails =>
+      'Failed to retrieve system information.';
+
+  @override
+  String get failedToUpdateDeviceName => 'Failed to update device name.';
+
+  @override
+  String get failedToUpdateHostname => 'Failed to update hostname.';
 }

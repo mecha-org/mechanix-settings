@@ -47,6 +47,13 @@ class WifiParser {
     return 0;
   }
 
+  /// Converts signal strength percentage (0-100%) to dBm.
+  /// Formula: dBm = (percentage / 2) - 100
+  static int parseSignalDbm(int strengthPercent) {
+    final percent = strengthPercent.clamp(0, 100);
+    return (percent ~/ 2) - 100;
+  }
+
   static IPv4SettingsResult parseIPv4Settings(
     Map<String, Map<String, DBusValue>>? settings,
   ) {

@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:mechanix_settings/core/constants/icons.dart';
+import 'package:mechanix_settings/core/constants/app_routes.dart';
 import 'package:mechanix_settings/core/theme/app_theme.dart';
 import 'package:mechanix_settings/core/widgets/custom_divider.dart';
 import 'package:mechanix_settings/core/widgets/custom_image_asset.dart';
@@ -182,7 +183,9 @@ class SettingsMenuScreenState extends State<SettingsMenuScreen> {
                       assetPath: SettingIcons.about,
                       color: AppColors.onSurfaceVariant,
                     ),
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.of(context).pushNamed(AppRoutes.about);
+                    },
                   ),
                 ],
               ),

@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mechanix_settings/features/bluetooth/data/repositories/bluetooth_repository.dart';
 import 'package:mechanix_settings/features/bluetooth/blocs/bluetooth_event.dart';
@@ -13,14 +14,14 @@ export 'bluetooth_state.dart';
 class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
   final BluetoothRepository _repository;
 
-  // Stream subscriptions to receive real-time updates from BlueZ.
-  StreamSubscription<bool>? _powerSub;
-  StreamSubscription<bool>? _scanningSub;
-  StreamSubscription<bool>? _discoverableSub;
+  // Real-time BlueZ streams.
+  StreamSubscription? _powerSub;
+  StreamSubscription? _scanningSub;
+  StreamSubscription? _discoverableSub;
   StreamSubscription<List<BluetoothDevice>>? _devicesSub;
 
   BluetoothBloc(this._repository) : super(const BluetoothState()) {
-    // User actions
+    // User actions.
     on<LoadBluetooth>(_onLoadBluetooth);
     on<ToggleBluetoothPower>(_onToggleBluetoothPower);
     on<ToggleBluetoothDiscoverable>(_onToggleBluetoothDiscoverable);
@@ -32,13 +33,12 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
     on<CompletePairingEvent>(_onCompletePairing);
     on<RenameLocalDeviceEvent>(_onRenameLocalDevice);
 
-    // Internal events triggered by repository streams.
+    // Internal events from repository streams.
     on<BluetoothPowerChanged>(_onPowerChanged);
     on<BluetoothScanningChanged>(_onScanningChanged);
     on<BluetoothDiscoverableChanged>(_onDiscoverableChanged);
     on<BluetoothDevicesUpdated>(_onDevicesChanged);
-
-    on<RefreshDeviceList>(_onGetRefreshDeviceList);
+    on<StopBluetoothDiscovery>(_onStopBluetoothDiscovery);
   }
 
   /// Initializes Bluetooth and listens for BlueZ state changes.
@@ -96,7 +96,8 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
       final isDiscoverable = isPowered
           ? await _repository.isDiscoverable()
           : false;
-      final List<BluetoothDevice> pairedDevices = isPowered
+
+      final pairedDevices = isPowered
           ? await _repository.getPairedDevices()
           : <BluetoothDevice>[];
 
@@ -110,7 +111,7 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
       );
 
       if (isPowered) {
-        add(RefreshDeviceList());
+        await _repository.startDiscovery();
       }
     } catch (e, stackTrace) {
       AppLogger.e('Failed to load bluetooth devices: $e', stack: stackTrace);
@@ -123,7 +124,6 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
   ) async {
     try {
       await _repository.togglePower(event.isEnabled);
-      add(RefreshDeviceList());
     } catch (e, stackTrace) {
       AppLogger.e('Failed to toggle bluetooth: $e', stack: stackTrace);
     }
@@ -145,11 +145,13 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
     Emitter<BluetoothState> emit,
   ) async {
     try {
-      if (state.isBluetoothOn) {
-        add(RefreshDeviceList());
+      if (!state.isBluetoothOn) {
+        return;
       }
+
+      await _repository.startDiscovery();
     } catch (e, stackTrace) {
-      AppLogger.e('Failed to scan bluetooth devices: $e', stack: stackTrace);
+      AppLogger.e('Failed to start bluetooth discovery: $e', stack: stackTrace);
     }
   }
 
@@ -173,7 +175,7 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
       }
 
       final isAlreadyConnected = state.pairedDevices.any(
-        (d) => d.macAddress == macAddress && d.isConnected,
+        (device) => device.macAddress == macAddress && device.isConnected,
       );
 
       if (isAlreadyConnected) {
@@ -288,12 +290,20 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
   }
 
   // Updates Bluetooth power state.
-  // Clears devices when Bluetooth adapter is disabled.
-  void _onPowerChanged(
+  //
+  // When Bluetooth is disabled:
+  // - Stops the scanning state.
+  // - Clears discoverable state and device lists.
+  //
+  // When Bluetooth is enabled again:
+  // - Refreshes the paired devices.
+  // - Automatically restarts Bluetooth discovery.
+  Future<void> _onPowerChanged(
     BluetoothPowerChanged event,
-    Emitter<BluetoothState> emit,
-  ) {
+    Emitter emit,
+  ) async {
     emit(state.copyWith(isBluetoothOn: event.isOn));
+
     if (!event.isOn) {
       emit(
         state.copyWith(
@@ -304,6 +314,22 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
           connectingDevices: {},
           connectedDeviceName: null,
         ),
+      );
+
+      return;
+    }
+
+    // Bluetooth has been powered on again.
+    try {
+      final pairedDevices = await _repository.getPairedDevices();
+
+      emit(state.copyWith(isBluetoothOn: true, pairedDevices: pairedDevices));
+
+      await _repository.startDiscovery();
+    } catch (e, stackTrace) {
+      AppLogger.e(
+        'Failed to restart Bluetooth discovery after power on: $e',
+        stack: stackTrace,
       );
     }
   }
@@ -334,34 +360,38 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
     BluetoothDevicesUpdated event,
     Emitter<BluetoothState> emit,
   ) {
-    final paired = event.devices.where((d) => d.isSaved).map((d) {
-      final connected = d.isConnected;
+    final paired = event.devices.where((device) => device.isSaved).map((
+      device,
+    ) {
+      final connected = device.isConnected;
 
-      return d.copyWith(
+      return device.copyWith(
         isConnecting:
-            state.connectingDevices.contains(d.macAddress) && !connected,
+            state.connectingDevices.contains(device.macAddress) && !connected,
       );
     }).toList();
 
-    final discovered = event.devices.where((d) => !d.isSaved).map((d) {
-      return d.copyWith(
-        isConnecting: state.connectingDevices.contains(d.macAddress),
+    final discovered = event.devices.where((device) => !device.isSaved).map((
+      device,
+    ) {
+      return device.copyWith(
+        isConnecting: state.connectingDevices.contains(device.macAddress),
       );
     }).toList();
 
     final connectedMacs = paired
-        .where((d) => d.isConnected)
-        .map((d) => d.macAddress)
+        .where((device) => device.isConnected)
+        .map((device) => device.macAddress)
         .toSet();
 
     final updatedConnecting = {...state.connectingDevices}
-      ..removeWhere((mac) => connectedMacs.contains(mac));
+      ..removeWhere(connectedMacs.contains);
 
     String? connectedName;
 
-    for (final d in paired) {
-      if (d.isConnected) {
-        connectedName = d.name;
+    for (final device in paired) {
+      if (device.isConnected) {
+        connectedName = device.name;
         break;
       }
     }
@@ -376,20 +406,14 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
     );
   }
 
-  /// Refresh device list after discovery
-  Future<void> _onGetRefreshDeviceList(
-    RefreshDeviceList event,
+  Future<void> _onStopBluetoothDiscovery(
+    StopBluetoothDiscovery event,
     Emitter<BluetoothState> emit,
   ) async {
     try {
-      await _repository.startDiscovery();
-
-      await Future.delayed(const Duration(seconds: 15));
-
       await _repository.stopDiscovery();
-    } catch (e, stack) {
-      AppLogger.e('Error refreshing device list', error: e, stack: stack);
-      emit(state.copyWith(error: e.toString()));
+    } catch (e, stackTrace) {
+      AppLogger.e('Failed to stop bluetooth discovery: $e', stack: stackTrace);
     }
   }
 
