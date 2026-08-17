@@ -1357,7 +1357,7 @@ class WirelessRepositoryImpl implements WirelessRepository {
       // TODO: Implement platform-specific logic to open the URL
       // Launch the portal URL using the system's default browser.
 
-      // await Process.run('xdg-open', [targetUrl]);
+      await Process.run('xdg-open', [targetUrl]);
     } catch (e, stack) {
       AppLogger.e('Failed to open captive portal', error: e, stack: stack);
     } finally {
