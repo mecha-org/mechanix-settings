@@ -48,6 +48,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get manageWireless => 'Manage wireless';
 
   @override
+  String get noInternetConnection => 'No Internet Connection';
+
+  @override
   String get onToggle => 'ON';
 
   @override
