@@ -644,4 +644,56 @@ void main() {
       ],
     );
   });
+
+  group('Captive Portal Events', () {
+    blocTest<WirelessBloc, WirelessState>(
+      'LoadWireless detects captive portal and updates state',
+      build: () {
+        when(() => mockWirelessRepository.isWirelessEnabled()).thenReturn(true);
+
+        when(
+          () => mockWirelessRepository.getSavedNetworks(),
+        ).thenAnswer((_) async => []);
+
+        when(
+          () => mockWirelessRepository.getMyNetworks(),
+        ).thenAnswer((_) async => []);
+
+        when(
+          () => mockWirelessRepository.getWifiDeviceState(),
+        ).thenReturn(NetworkManagerDeviceState.activated);
+
+        when(
+          () => mockWirelessRepository.getAvailableNetworks(
+            requestScan: any(named: 'requestScan'),
+            savedNetworks: any(named: 'savedNetworks'),
+          ),
+        ).thenAnswer((_) async => []);
+
+        when(
+          () => mockWirelessRepository.isCaptivePortal(),
+        ).thenAnswer((_) async => true);
+
+        return WirelessBloc(wirelessRepository: mockWirelessRepository);
+      },
+      act: (bloc) => bloc.add(const LoadWireless(requestScan: false)),
+      expect: () => [
+        const WirelessState(isWirelessOn: true, isCaptivePortal: true),
+      ],
+    );
+    blocTest<WirelessBloc, WirelessState>(
+      'OpenCaptivePortal event calls repository openCaptivePortal',
+      build: () {
+        when(
+          () => mockWirelessRepository.openCaptivePortal(),
+        ).thenAnswer((_) async {});
+
+        return WirelessBloc(wirelessRepository: mockWirelessRepository);
+      },
+      act: (bloc) => bloc.add(const OpenCaptivePortal()),
+      verify: (_) {
+        verify(() => mockWirelessRepository.openCaptivePortal()).called(1);
+      },
+    );
+  });
 }

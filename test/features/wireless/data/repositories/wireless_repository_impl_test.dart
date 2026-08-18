@@ -721,4 +721,28 @@ void main() {
     expect(result.active, isNull);
     expect(result.available, isEmpty);
   });
+
+  group('Captive Portal', () {
+    test('isCaptivePortal returns false if connectivity state is not portal', () async {
+      when(() => mockClient.connectivity).thenReturn(NetworkManagerConnectivityState.limited);
+      final result = await repository.isCaptivePortal();
+      expect(result, false);
+    });
+
+    test('isCaptivePortal returns true if connectivity state is portal', () async {
+      when(() => mockClient.connectivity).thenReturn(NetworkManagerConnectivityState.portal);
+      final result = await repository.isCaptivePortal();
+      expect(result, true);
+    });
+
+    test('isCaptivePortal returns false when not connected/initialized', () async {
+      final uninitializedRepo = WirelessRepositoryImpl();
+      expect(await uninitializedRepo.isCaptivePortal(), false);
+    });
+
+    test('openCaptivePortal opens client check uri if present', () async {
+      when(() => mockClient.connectivityCheckUri).thenReturn('http://check.me');
+      await repository.openCaptivePortal();
+    });
+  });
 }

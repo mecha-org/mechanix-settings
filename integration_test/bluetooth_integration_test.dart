@@ -91,16 +91,16 @@ void main() {
       when(() => mockWirelessRepository.init()).thenAnswer((_) async {});
       when(
         () => mockWirelessRepository.getWifiEventsStream(),
-      ).thenAnswer((_) async => const Stream<List<String>>.empty());
+      ).thenAnswer((_) => const Stream<List<String>>.empty());
       when(
         () => mockWirelessRepository.getDeviceEventsStream(),
-      ).thenAnswer((_) async => const Stream<List<String>>.empty());
+      ).thenAnswer((_) => const Stream<List<String>>.empty());
       when(
         () => mockWirelessRepository.getWirelessDeviceEventsStream(),
-      ).thenAnswer((_) async => const Stream<List<String>>.empty());
+      ).thenAnswer((_) => const Stream<List<String>>.empty());
       when(
         () => mockWirelessRepository.isWirelessEnabled(),
-      ).thenAnswer((_) async => false);
+      ).thenAnswer((_) => false);
 
       when(
         () => mockBluetoothRepository.startDiscovery(),
@@ -142,11 +142,13 @@ void main() {
         child: MultiBlocProvider(
           providers: [
             BlocProvider<WirelessBloc>(
+              lazy: false,
               create: (context) => WirelessBloc(
                 wirelessRepository: context.read<WirelessRepository>(),
               )..add(InitWifi()),
             ),
             BlocProvider<BluetoothBloc>(
+              lazy: false,
               create: (context) =>
                   BluetoothBloc(context.read<BluetoothRepository>())
                     ..add(const LoadBluetooth()),

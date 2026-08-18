@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-
+import 'dart:io';
 import 'package:collection/collection.dart';
 import 'package:dbus/dbus.dart';
 import 'package:flutter/foundation.dart';
@@ -1299,5 +1299,70 @@ class WirelessRepositoryImpl implements WirelessRepository {
     }
 
     return false;
+  }
+
+  /// Returns whether NetworkManager has detected the current Wi-Fi connection
+  /// as being behind a captive portal.
+  @override
+  Future<bool> isCaptivePortal() async {
+    if (!_connected) return false;
+    try {
+      return _client.connectivity == NetworkManagerConnectivityState.portal;
+    } catch (e, stack) {
+      AppLogger.e(
+        'Failed to check captive portal state',
+        error: e,
+        stack: stack,
+      );
+      return false;
+    }
+  }
+
+  /// Opens the captive portal login page by requesting the configured
+  /// connectivity check URL and launching the redirected portal URL, if present.
+  @override
+  Future<void> openCaptivePortal() async {
+    if (!_connected) {
+      AppLogger.e('Cannot open captive portal: Wi-Fi is not connected');
+      return;
+    }
+
+    final checkUri = _client.connectivityCheckUri;
+    AppLogger.d('Connectivity check URI: $checkUri');
+
+    if (checkUri.isEmpty) {
+      AppLogger.e('No connectivity check URI configured');
+      return;
+    }
+
+    final httpClient = HttpClient()
+      ..connectionTimeout = const Duration(seconds: 5);
+
+    try {
+      // Request the connectivity check URL to detect the captive portal redirect.
+      final request = await httpClient.getUrl(Uri.parse(checkUri));
+
+      // Keep redirects disabled to capture the portal login URL from the response.
+      request.followRedirects = false;
+
+      final response = await request.close();
+
+      // Captive portals usually redirect the connectivity check request to a login page.
+      final portalUrl = response.headers.value(HttpHeaders.locationHeader);
+
+      final targetUrl = portalUrl ?? checkUri;
+
+      AppLogger.d('Opening captive portal URL: $targetUrl');
+
+      // TODO: Implement platform-specific logic to open the URL
+      // Launch the portal URL using the system's default browser.
+
+      await Process.run('xdg-open', [targetUrl]);
+    } catch (e, stack) {
+      AppLogger.e('Failed to open captive portal', error: e, stack: stack);
+    } finally {
+      // Release HTTP resources after the connectivity check completes.
+      httpClient.close();
+    }
   }
 }

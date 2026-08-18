@@ -23,19 +23,29 @@ class WirelessBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ScrollConfiguration(
-      behavior: ScrollConfiguration.of(context).copyWith(
-        dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.mouse},
-      ),
-      child: const SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _WirelessToggle(),
-            CustomDivider(verticalPadding: 0),
-            _WirelessContent(),
-            _ManageNetworksTile(),
-          ],
+    return BlocListener<WirelessBloc, WirelessState>(
+      listenWhen: (previous, current) =>
+          !previous.isCaptivePortal &&
+          current.isCaptivePortal &&
+          current.connectedNetworkName != null,
+      listener: (context, state) {
+        // Open the captive portal once after successfully connecting to a network.
+        context.read<WirelessBloc>().add(const OpenCaptivePortal());
+      },
+      child: ScrollConfiguration(
+        behavior: ScrollConfiguration.of(context).copyWith(
+          dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.mouse},
+        ),
+        child: const SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _WirelessToggle(),
+              CustomDivider(verticalPadding: 0),
+              _WirelessContent(),
+              _ManageNetworksTile(),
+            ],
+          ),
         ),
       ),
     );
@@ -239,17 +249,11 @@ class _ConnectedNetworkTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocSelector<WirelessBloc, WirelessState, WifiNetwork?>(
       selector: (state) {
-        return state.myNetworks
-                .firstWhere(
-                  (n) => n.name == state.connectedNetworkName,
-                  orElse: () => const WifiNetwork(name: ''),
-                )
-                .name
-                .isEmpty
-            ? null
-            : state.myNetworks.firstWhere(
-                (n) => n.name == state.connectedNetworkName,
-              );
+        final connected = state.myNetworks.firstWhere(
+          (n) => n.name == state.connectedNetworkName,
+          orElse: () => const WifiNetwork(name: ''),
+        );
+        return connected.name.isEmpty ? null : connected;
       },
       builder: (context, connected) {
         if (connected == null) {

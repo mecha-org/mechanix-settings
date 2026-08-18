@@ -40,6 +40,7 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
     on<UpdateIPSettingsEvent>(_onUpdateIPSettings);
     on<UpdateDNSSettingsEvent>(_onUpdateDNSSettings);
     on<ForgetNetworkEvent>(_onForgetNetwork);
+    on<OpenCaptivePortal>(_onOpenCaptivePortal);
   }
 
   /// Initial setup: listens to D-Bus events and triggers an initial loading of networks.
@@ -189,6 +190,7 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
             availableNetworks: [],
             connectedNetworkName: null,
             connectingNetworkName: null,
+            isCaptivePortal: false,
           ),
         );
         return;
@@ -255,6 +257,8 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
         }
       }
 
+      final isCaptivePortal = await wirelessRepository.isCaptivePortal();
+
       final newState = state.copyWith(
         isWirelessOn: true,
         savedNetworks: savedNetworks,
@@ -262,6 +266,7 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
         availableNetworks: availNets,
         connectedNetworkName: connectedName,
         connectingNetworkName: connectingName,
+        isCaptivePortal: isCaptivePortal,
         error: failure,
       );
 
@@ -309,6 +314,7 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
             isScanning: false,
             connectingNetworkName: null,
             connectedNetworkName: null,
+            isCaptivePortal: false,
             savedNetworks: [],
             myNetworks: [],
             availableNetworks: [],
@@ -567,6 +573,17 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
   void _stopPeriodicScan() {
     _scanTimer?.cancel();
     _scanTimer = null;
+  }
+
+  Future<void> _onOpenCaptivePortal(
+    OpenCaptivePortal event,
+    Emitter<WirelessState> emit,
+  ) async {
+    try {
+      await wirelessRepository.openCaptivePortal();
+    } catch (e, stackTrace) {
+      AppLogger.e('Failed to open captive portal: $e', stack: stackTrace);
+    }
   }
 
   @override

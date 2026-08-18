@@ -19,6 +19,17 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
   final ScrollController _breadcrumbController = ScrollController();
 
   @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<BluetoothBloc>().add(const ScanBluetoothDevices());
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _breadcrumbController.dispose();
     super.dispose();
@@ -44,7 +55,9 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
                 switch (failure.type) {
                   case BluetoothErrorType.connectionFailed:
                     if (deviceName != null) {
-                      message = l10n.bluetoothConnectionFailedWithName(deviceName);
+                      message = l10n.bluetoothConnectionFailedWithName(
+                        deviceName,
+                      );
                     } else {
                       message = l10n.bluetoothConnectionFailed;
                     }
@@ -75,21 +88,13 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
             leading: CustomIconButton.asset(
               assetPath: SettingIcons.back,
               enabled: true,
-              onPressed: () => Navigator.pop(context),
+              onPressed: () {
+                context.read<BluetoothBloc>().add(
+                  const StopBluetoothDiscovery(),
+                );
+                Navigator.pop(context);
+              },
             ),
-            trailing: state.isBluetoothOn
-                ? [
-                    CustomIconButton.asset(
-                      assetPath: SettingIcons.refresh,
-                      enabled: !state.isScanning,
-                      onPressed: () {
-                        context.read<BluetoothBloc>().add(
-                          const ScanBluetoothDevices(),
-                        );
-                      },
-                    ),
-                  ]
-                : null,
           ),
         );
       },

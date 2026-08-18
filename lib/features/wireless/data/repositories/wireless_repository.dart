@@ -78,4 +78,8 @@ abstract class WirelessRepository {
   NetworkManagerDeviceState? getWifiDeviceState();
 
   Future<List<WifiNetwork>> getMyNetworks({List<WifiNetwork>? savedNetworks});
+
+  Future<bool> isCaptivePortal();
+
+  Future<void> openCaptivePortal();
 }
