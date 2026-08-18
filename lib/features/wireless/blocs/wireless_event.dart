@@ -1,7 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:mechanix_settings/features/wireless/data/models/enterprise_config.dart';
-import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
 import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
+import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
+import 'package:nm/nm.dart';
 
 abstract class WirelessEvent extends Equatable {
   const WirelessEvent();
@@ -36,7 +37,11 @@ class ConnectToNetworkEvent extends WirelessEvent {
   final String name;
   final String? password;
   final EnterpriseConfig? enterpriseConfig;
-  const ConnectToNetworkEvent(this.name, this.password, {this.enterpriseConfig});
+  const ConnectToNetworkEvent(
+    this.name,
+    this.password, {
+    this.enterpriseConfig,
+  });
 
   @override
   List<Object?> get props => [name, password, enterpriseConfig];
@@ -47,11 +52,7 @@ class AddNetworkEvent extends WirelessEvent {
   final WirelessSecurity security;
   final EnterpriseConfig? enterpriseConfig;
 
-  const AddNetworkEvent(
-    this.name,
-    this.security, {
-    this.enterpriseConfig,
-  });
+  const AddNetworkEvent(this.name, this.security, {this.enterpriseConfig});
 
   @override
   List<Object?> get props => [name, security, enterpriseConfig];
@@ -116,6 +117,15 @@ class ForgetNetworkEvent extends WirelessEvent {
   final WifiNetwork network;
 
   const ForgetNetworkEvent(this.network);
+}
+
+class ConnectivityStateChangedEvent extends WirelessEvent {
+  final NetworkManagerConnectivityState connectivityState;
+
+  const ConnectivityStateChangedEvent(this.connectivityState);
+
+  @override
+  List<Object?> get props => [connectivityState];
 }
 
 class OpenCaptivePortal extends WirelessEvent {

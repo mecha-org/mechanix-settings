@@ -1,5 +1,5 @@
-import 'package:mechanix_settings/l10n/app_localizations.dart';
 import 'package:mechanix_settings/core/constants/icons.dart';
+import 'package:mechanix_settings/l10n/app_localizations.dart';
 
 enum WirelessSecurity {
   none,
@@ -351,3 +351,16 @@ extension EnterprisePhase2AuthX on EnterprisePhase2Auth {
 enum CertificateType { none, file }
 
 enum WirelessErrorType { connectionFailed, addNetworkFailed, unknown }
+
+enum WifiConnectionStatus {
+  disconnected,
+  connecting,
+  authenticating,
+  connected,
+  connectedNoInternet,
+  disconnecting,
+  failed,
+  timeout,
+  networkNotFound,
+  deviceUnavailable,
+}

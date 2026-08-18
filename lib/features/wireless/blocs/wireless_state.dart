@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
 import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
+import 'package:nm/nm.dart';
 
 class WirelessFailure extends Equatable {
   final WirelessErrorType type;
@@ -17,6 +18,7 @@ class WirelessState extends Equatable {
   static const _unset = Object();
 
   final bool isWirelessOn;
+  final NetworkManagerConnectivityState connectivityState;
   final bool isScanning;
   final List<WifiNetwork> savedNetworks;
   final List<WifiNetwork> availableNetworks;
@@ -28,6 +30,7 @@ class WirelessState extends Equatable {
 
   const WirelessState({
     this.isWirelessOn = false,
+    this.connectivityState = NetworkManagerConnectivityState.unknown,
     this.isScanning = false,
     this.savedNetworks = const [],
     this.availableNetworks = const [],
@@ -38,8 +41,15 @@ class WirelessState extends Equatable {
     this.error,
   });
 
+  bool get hasNoInternet =>
+      connectingNetworkName == null &&
+      connectedNetworkName != null &&
+      (connectivityState == NetworkManagerConnectivityState.none ||
+          connectivityState == NetworkManagerConnectivityState.limited);
+
   WirelessState copyWith({
     bool? isWirelessOn,
+    NetworkManagerConnectivityState? connectivityState,
     bool? isScanning,
     List<WifiNetwork>? savedNetworks,
     List<WifiNetwork>? availableNetworks,
@@ -51,6 +61,7 @@ class WirelessState extends Equatable {
   }) {
     return WirelessState(
       isWirelessOn: isWirelessOn ?? this.isWirelessOn,
+      connectivityState: connectivityState ?? this.connectivityState,
       isScanning: isScanning ?? this.isScanning,
       savedNetworks: savedNetworks ?? this.savedNetworks,
       availableNetworks: availableNetworks ?? this.availableNetworks,
@@ -69,6 +80,7 @@ class WirelessState extends Equatable {
   @override
   List<Object?> get props => [
     isWirelessOn,
+    connectivityState,
     isScanning,
     savedNetworks,
     availableNetworks,
