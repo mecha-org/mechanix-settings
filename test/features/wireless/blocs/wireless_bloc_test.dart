@@ -37,10 +37,11 @@ void main() {
 
   void setupDefaultMocks(MockWirelessRepository repository) {
     when(() => repository.init()).thenAnswer((_) async {});
+    when(() => repository.isWirelessEnabled()).thenReturn(false);
     when(() => repository.requestScan()).thenAnswer((_) async {});
     when(
       () => repository.getConnectivityState(),
-    ).thenReturn(NetworkManagerConnectivityState.full);
+    ).thenReturn(NetworkManagerConnectivityState.unknown);
     when(
       () => repository.getWifiEventsStream(),
     ).thenAnswer((_) => const Stream<List<String>>.empty());
@@ -72,6 +73,9 @@ void main() {
         any(that: anything),
       ),
     ).thenAnswer((_) async {});
+    when(() => repository.isCaptivePortal()).thenAnswer((_) async => false);
+    when(() => repository.openCaptivePortal()).thenAnswer((_) async {});
+    when(() => repository.close()).thenAnswer((_) async {});
   }
 
   void stubWirelessActiveDefaults(
@@ -96,6 +100,7 @@ void main() {
     when(
       () => repository.getWifiDeviceState(),
     ).thenReturn(NetworkManagerDeviceState.activated);
+    when(() => repository.isCaptivePortal()).thenAnswer((_) async => false);
   }
 
   setUp(() {
@@ -107,9 +112,23 @@ void main() {
   });
 
   group('WirelessBloc Initial State', () {
-    test('initial state is correct', () {
+    test('initial state defaults to uninitialized repository state', () {
+      setupDefaultMocks(mockWirelessRepository);
       final bloc = WirelessBloc(wirelessRepository: mockWirelessRepository);
-      expect(bloc.state, const WirelessState());
+      expect(bloc.state.isWirelessOn, false);
+      expect(bloc.state.connectivityState, NetworkManagerConnectivityState.unknown);
+    });
+
+    test('initial state immediately reflects initialized repository state when wireless is enabled', () {
+      setupDefaultMocks(mockWirelessRepository);
+      when(() => mockWirelessRepository.isWirelessEnabled()).thenReturn(true);
+      when(
+        () => mockWirelessRepository.getConnectivityState(),
+      ).thenReturn(NetworkManagerConnectivityState.full);
+
+      final bloc = WirelessBloc(wirelessRepository: mockWirelessRepository);
+      expect(bloc.state.isWirelessOn, true);
+      expect(bloc.state.connectivityState, NetworkManagerConnectivityState.full);
     });
   });
 
@@ -480,6 +499,7 @@ void main() {
       act: (bloc) => bloc.add(ForgetNetworkEvent(testWifiNetwork)),
       expect: () => [
         const WirelessState(
+          isWirelessOn: true,
           savedNetworks: [],
           myNetworks: [],
           availableNetworks: [],
@@ -746,27 +766,8 @@ void main() {
     blocTest<WirelessBloc, WirelessState>(
       'LoadWireless detects captive portal and updates state',
       build: () {
-        when(() => mockWirelessRepository.isWirelessEnabled()).thenReturn(true);
-
-        when(
-          () => mockWirelessRepository.getSavedNetworks(),
-        ).thenAnswer((_) async => []);
-
-        when(
-          () => mockWirelessRepository.getMyNetworks(),
-        ).thenAnswer((_) async => []);
-
-        when(
-          () => mockWirelessRepository.getWifiDeviceState(),
-        ).thenReturn(NetworkManagerDeviceState.activated);
-
-        when(
-          () => mockWirelessRepository.getAvailableNetworks(
-            requestScan: any(named: 'requestScan'),
-            savedNetworks: any(named: 'savedNetworks'),
-          ),
-        ).thenAnswer((_) async => []);
-
+        setupDefaultMocks(mockWirelessRepository);
+        stubWirelessActiveDefaults(mockWirelessRepository);
         when(
           () => mockWirelessRepository.isCaptivePortal(),
         ).thenAnswer((_) async => true);
@@ -775,12 +776,16 @@ void main() {
       },
       act: (bloc) => bloc.add(const LoadWireless(requestScan: false)),
       expect: () => [
-        const WirelessState(isWirelessOn: true, isCaptivePortal: true),
+        const WirelessState(
+          isWirelessOn: true,
+          isCaptivePortal: true,
+        ),
       ],
     );
     blocTest<WirelessBloc, WirelessState>(
       'OpenCaptivePortal event calls repository openCaptivePortal',
       build: () {
+        setupDefaultMocks(mockWirelessRepository);
         when(
           () => mockWirelessRepository.openCaptivePortal(),
         ).thenAnswer((_) async {});
@@ -792,5 +797,26 @@ void main() {
         verify(() => mockWirelessRepository.openCaptivePortal()).called(1);
       },
     );
+  });
+
+  group('Lifecycle & Stream Subscription Safety', () {
+    test('close() cancels timers and stream subscriptions safely', () async {
+      setupDefaultMocks(mockWirelessRepository);
+      final bloc = WirelessBloc(wirelessRepository: mockWirelessRepository);
+      bloc.add(InitWifi());
+      await Future.delayed(const Duration(milliseconds: 50));
+      await expectLater(bloc.close(), completes);
+    });
+
+    test('multiple InitWifi calls safely re-subscribe without throwing', () async {
+      setupDefaultMocks(mockWirelessRepository);
+      final bloc = WirelessBloc(wirelessRepository: mockWirelessRepository);
+      bloc.add(InitWifi());
+      await Future.delayed(const Duration(milliseconds: 50));
+      bloc.add(InitWifi());
+      await Future.delayed(const Duration(milliseconds: 50));
+      await bloc.close();
+      verify(() => mockWirelessRepository.init()).called(2);
+    });
   });
 }

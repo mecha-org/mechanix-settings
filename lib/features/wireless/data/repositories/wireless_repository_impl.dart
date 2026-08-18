@@ -1383,4 +1383,16 @@ class WirelessRepositoryImpl implements WirelessRepository {
       httpClient.close();
     }
   }
+
+  @override
+  Future<void> close() async {
+    try {
+      if (_connected) {
+        _connected = false;
+        await _client.close();
+      }
+    } catch (e, stack) {
+      AppLogger.e('Failed to close NetworkManagerClient', error: e, stack: stack);
+    }
+  }
 }

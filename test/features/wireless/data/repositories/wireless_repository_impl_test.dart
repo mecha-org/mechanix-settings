@@ -745,4 +745,17 @@ void main() {
       await repository.openCaptivePortal();
     });
   });
+
+  group('Lifecycle & Close', () {
+    test('close calls client close when connected', () async {
+      when(() => mockClient.close()).thenAnswer((_) async {});
+      await repository.close();
+      verify(() => mockClient.close()).called(1);
+    });
+
+    test('close does nothing when uninitialized', () async {
+      final uninitializedRepo = WirelessRepositoryImpl();
+      await expectLater(uninitializedRepo.close(), completes);
+    });
+  });
 }

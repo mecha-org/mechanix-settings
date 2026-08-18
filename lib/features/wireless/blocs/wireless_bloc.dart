@@ -26,11 +26,15 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
   bool _isLoading = false;
   Timer? _refreshTimer;
   Timer? _scanTimer;
-  Timer? _connectionTimeoutTimer;
   bool _connectionInProgress = false;
 
   WirelessBloc({required this.wirelessRepository})
-    : super(const WirelessState()) {
+    : super(
+        WirelessState(
+          isWirelessOn: wirelessRepository.isWirelessEnabled(),
+          connectivityState: wirelessRepository.getConnectivityState(),
+        ),
+      ) {
     on<InitWifi>(_onInit);
     on<LoadWireless>(_onLoadWireless, transformer: droppable());
     on<ToggleWirelessPower>(_onToggleWirelessPower, transformer: restartable());
@@ -260,8 +264,6 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
           connectingName = null;
           failure = null;
           _connectionInProgress = false;
-          _connectionTimeoutTimer?.cancel();
-          _connectionTimeoutTimer = null;
         } else if (deviceState == NetworkManagerDeviceState.failed) {
           failure = WirelessFailure(
             type: WirelessErrorType.connectionFailed,
@@ -270,8 +272,6 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
           );
           connectingName = null;
           _connectionInProgress = false;
-          _connectionTimeoutTimer?.cancel();
-          _connectionTimeoutTimer = null;
         } else if (!_connectionInProgress) {
           failure = WirelessFailure(
             type: WirelessErrorType.connectionFailed,
@@ -375,32 +375,12 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
     }
   }
 
-  /// Starts a 25-second connection safety timeout.
-  ///
-  /// Prevents the UI from being stuck indefinitely in a connecting state if
-  /// NetworkManager hangs during intermediate steps or fails without emitting
-  /// terminal state change events over DBus.
-  void _startConnectionTimeoutTimer() {
-    _connectionTimeoutTimer?.cancel();
-    _connectionInProgress = true;
-    _connectionTimeoutTimer = Timer(const Duration(seconds: 25), () {
-      if (_connectionInProgress) {
-        _connectionInProgress = false;
-        _connectionTimeoutTimer = null;
-        if (!isClosed) {
-          add(const LoadWireless(requestScan: false));
-        }
-      }
-    });
-  }
-
   /// Initiates a connection request to the designated Wi-Fi network.
   Future<void> _onConnectToNetwork(
     ConnectToNetworkEvent event,
     Emitter<WirelessState> emit,
   ) async {
     try {
-      _startConnectionTimeoutTimer();
       emit(state.copyWith(connectingNetworkName: event.name, error: null));
 
       await wirelessRepository.connectToNetwork(
@@ -409,8 +389,6 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
         enterpriseConfig: event.enterpriseConfig,
       );
     } catch (e, stackTrace) {
-      _connectionTimeoutTimer?.cancel();
-      _connectionTimeoutTimer = null;
       _connectionInProgress = false;
       emit(
         state.copyWith(
@@ -432,7 +410,6 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
     Emitter<WirelessState> emit,
   ) async {
     try {
-      _startConnectionTimeoutTimer();
       emit(state.copyWith(connectingNetworkName: event.name, error: null));
 
       await wirelessRepository.addNetwork(
@@ -457,8 +434,6 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
         ),
       );
     } catch (e, stackTrace) {
-      _connectionTimeoutTimer?.cancel();
-      _connectionTimeoutTimer = null;
       _connectionInProgress = false;
       emit(
         state.copyWith(
@@ -634,8 +609,6 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
   Future<void> close() async {
     try {
       _refreshTimer?.cancel();
-      _connectionTimeoutTimer?.cancel();
-      _connectionTimeoutTimer = null;
       _stopPeriodicScan();
 
       await _unsubscribeFromStreams();

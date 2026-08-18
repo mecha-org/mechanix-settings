@@ -37,7 +37,7 @@ void main() {
     MultiRepositoryProvider(
       providers: [
         RepositoryProvider<WirelessRepository>(
-          create: (_) => WirelessRepositoryImpl(),
+          create: (_) => WirelessRepositoryImpl()..init(),
         ),
         RepositoryProvider<BluetoothRepository>(
           create: (_) => BluetoothRepositoryImpl(),

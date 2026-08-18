@@ -84,4 +84,6 @@ abstract class WirelessRepository {
   Future<bool> isCaptivePortal();
 
   Future<void> openCaptivePortal();
+
+  Future<void> close();
 }

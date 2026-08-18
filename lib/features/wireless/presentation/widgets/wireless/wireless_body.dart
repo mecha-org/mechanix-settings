@@ -255,18 +255,9 @@ class _ConnectedNetworkTile extends StatelessWidget {
       ({WifiNetwork? connected, bool hasNoInternet})
     >(
       selector: (state) {
-        final net =
-            state.myNetworks
-                .firstWhere(
-                  (n) => n.name == state.connectedNetworkName,
-                  orElse: () => const WifiNetwork(name: ''),
-                )
-                .name
-                .isEmpty
-            ? null
-            : state.myNetworks.firstWhere(
-                (n) => n.name == state.connectedNetworkName,
-              );
+        final net = state.myNetworks
+            .where((n) => n.name == state.connectedNetworkName)
+            .firstOrNull;
         return (connected: net, hasNoInternet: state.hasNoInternet);
       },
       builder: (context, data) {
