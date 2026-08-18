@@ -432,7 +432,7 @@ void main() {
       () => mockClient.activateConnection(
         connection: connection,
         device: mockWifiDevice,
-        accessPoint: ap,
+        accessPoint: any(named: 'accessPoint'),
       ),
     ).thenAnswer((_) async => MockNetworkManagerActiveConnection());
 
@@ -442,7 +442,7 @@ void main() {
       () => mockClient.activateConnection(
         connection: connection,
         device: mockWifiDevice,
-        accessPoint: ap,
+        accessPoint: any(named: 'accessPoint'),
       ),
     ).called(1);
   });

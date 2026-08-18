@@ -39,6 +39,9 @@ void main() {
     when(() => repository.init()).thenAnswer((_) async {});
     when(() => repository.requestScan()).thenAnswer((_) async {});
     when(
+      () => repository.getConnectivityState(),
+    ).thenReturn(NetworkManagerConnectivityState.full);
+    when(
       () => repository.getWifiEventsStream(),
     ).thenAnswer((_) => const Stream<List<String>>.empty());
     when(
@@ -122,7 +125,9 @@ void main() {
           () => mockWirelessRepository.getSavedNetworks(),
         ).thenAnswer((_) async => [testWifiNetwork]);
         when(
-          () => mockWirelessRepository.getMyNetworks(),
+          () => mockWirelessRepository.getMyNetworks(
+            savedNetworks: any(named: 'savedNetworks'),
+          ),
         ).thenAnswer((_) async => []);
         when(
           () => mockWirelessRepository.getWifiDeviceState(),
@@ -192,7 +197,9 @@ void main() {
           () => mockWirelessRepository.getSavedNetworks(),
         ).thenAnswer((_) async => [testWifiNetwork]);
         when(
-          () => mockWirelessRepository.getMyNetworks(),
+          () => mockWirelessRepository.getMyNetworks(
+            savedNetworks: any(named: 'savedNetworks'),
+          ),
         ).thenAnswer((_) async => [testConnectedWifiNetwork]);
         when(
           () => mockWirelessRepository.getWifiDeviceState(),
@@ -228,6 +235,9 @@ void main() {
         when(
           () => mockWirelessRepository.setWifiEnabled(false),
         ).thenAnswer((_) async {});
+        when(
+          () => mockWirelessRepository.isWirelessEnabled(),
+        ).thenReturn(false);
         return WirelessBloc(wirelessRepository: mockWirelessRepository);
       },
       act: (bloc) => bloc.add(const ToggleWirelessPower(false)),
@@ -260,7 +270,9 @@ void main() {
           () => mockWirelessRepository.getSavedNetworks(),
         ).thenAnswer((_) async => []);
         when(
-          () => mockWirelessRepository.getMyNetworks(),
+          () => mockWirelessRepository.getMyNetworks(
+            savedNetworks: any(named: 'savedNetworks'),
+          ),
         ).thenAnswer((_) async => []);
         when(
           () => mockWirelessRepository.getWifiDeviceState(),
@@ -608,7 +620,9 @@ void main() {
           () => mockWirelessRepository.getSavedNetworks(),
         ).thenAnswer((_) async => []);
         when(
-          () => mockWirelessRepository.getMyNetworks(),
+          () => mockWirelessRepository.getMyNetworks(
+            savedNetworks: any(named: 'savedNetworks'),
+          ),
         ).thenAnswer((_) async => []);
         when(
           () => mockWirelessRepository.getWifiDeviceState(),
@@ -641,6 +655,89 @@ void main() {
             WifiNetwork(name: 'New_Network_1', isConnected: false),
           ],
         ),
+      ],
+    );
+  });
+
+  group('Saved Network Switching Flow', () {
+    test('hasNoInternet is false when connectingNetworkName is set', () {
+      const state = WirelessState(
+        connectedNetworkName: 'Wi-Fi A',
+        connectingNetworkName: 'Wi-Fi B',
+        connectivityState: NetworkManagerConnectivityState.none,
+      );
+      expect(state.hasNoInternet, isFalse);
+    });
+
+    blocTest<WirelessBloc, WirelessState>(
+      'suppresses offline message and stays in transition state during network switch until connected',
+      build: () {
+        mockWirelessRepository = MockWirelessRepository();
+        setupDefaultMocks(mockWirelessRepository);
+        stubWirelessActiveDefaults(mockWirelessRepository);
+        when(
+          () => mockWirelessRepository.connectToNetwork(any(), any()),
+        ).thenAnswer((_) async {});
+        return WirelessBloc(wirelessRepository: mockWirelessRepository);
+      },
+      seed: () => const WirelessState(
+        isWirelessOn: true,
+        connectedNetworkName: 'Wi-Fi A',
+        connectivityState: NetworkManagerConnectivityState.full,
+      ),
+      act: (bloc) {
+        bloc.add(const ConnectToNetworkEvent('Wi-Fi B', null));
+      },
+      expect: () => [
+        isA<WirelessState>()
+            .having(
+              (s) => s.connectingNetworkName,
+              'connectingNetworkName',
+              'Wi-Fi B',
+            )
+            .having((s) => s.hasNoInternet, 'hasNoInternet', false),
+      ],
+    );
+
+    blocTest<WirelessBloc, WirelessState>(
+      'ignores intermediate disconnected device state while connection is in progress',
+      build: () {
+        mockWirelessRepository = MockWirelessRepository();
+        setupDefaultMocks(mockWirelessRepository);
+        stubWirelessActiveDefaults(mockWirelessRepository);
+        when(
+          () => mockWirelessRepository.connectToNetwork(any(), any()),
+        ).thenAnswer((_) async {});
+        when(
+          () => mockWirelessRepository.getWifiDeviceState(),
+        ).thenReturn(NetworkManagerDeviceState.disconnected);
+        return WirelessBloc(wirelessRepository: mockWirelessRepository);
+      },
+      seed: () => const WirelessState(
+        isWirelessOn: true,
+        connectedNetworkName: 'Wi-Fi A',
+        connectingNetworkName: 'Wi-Fi B',
+      ),
+      act: (bloc) {
+        bloc.add(
+          const ConnectivityStateChangedEvent(
+            NetworkManagerConnectivityState.none,
+          ),
+        );
+      },
+      expect: () => [
+        isA<WirelessState>()
+            .having(
+              (s) => s.connectivityState,
+              'connectivityState',
+              NetworkManagerConnectivityState.none,
+            )
+            .having(
+              (s) => s.connectingNetworkName,
+              'connectingNetworkName',
+              'Wi-Fi B',
+            )
+            .having((s) => s.hasNoInternet, 'hasNoInternet', false),
       ],
     );
   });

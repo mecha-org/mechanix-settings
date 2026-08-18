@@ -27,23 +27,20 @@ class SecuritySelector extends StatelessWidget {
           color: AppColors.backgroundVariant,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: DropdownButtonHideUnderline(
-          child: DropdownButton<WirelessSecurity>(
-            value: security,
-            isExpanded: true,
-
-            items: WirelessSecurity.values
-                .map(
-                  (e) => DropdownMenuItem(value: e, child: Text(e.label(l10n))),
-                )
-                .toList(),
-
-            onChanged: (value) {
-              if (value == null) return;
-
-              onChanged(value);
-            },
+        child: DropdownMenu<WirelessSecurity>(
+          initialSelection: security,
+          expandedInsets: EdgeInsets.zero,
+          inputDecorationTheme: const InputDecorationTheme(
+            border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
           ),
+          dropdownMenuEntries: WirelessSecurity.values
+              .map((e) => DropdownMenuEntry(value: e, label: e.label(l10n)))
+              .toList(),
+          onSelected: (value) {
+            if (value != null) onChanged(value);
+          },
         ),
       ),
     );

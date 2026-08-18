@@ -24,7 +24,7 @@ class SavedNetworkPopupMenu extends StatelessWidget {
         constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
         child: const Icon(Icons.more_vert, size: 20),
       ),
-      elevation: 8,
+      position: PopupMenuPosition.under,
       onSelected: (value) {
         switch (value) {
           case SavedNetworkAction.about:
