@@ -1642,47 +1642,29 @@ abstract class AppLocalizations {
   /// **'Input device'**
   String get inputDevice;
 
-  /// No description provided for @wakeup.
+  /// No description provided for @noInputDevices.
   ///
   /// In en, this message translates to:
-  /// **'Wakeup'**
-  String get wakeup;
+  /// **'No Input Devices'**
+  String get noInputDevices;
 
-  /// No description provided for @siren.
+  /// No description provided for @noOutputDevices.
   ///
   /// In en, this message translates to:
-  /// **'Siren'**
-  String get siren;
+  /// **'No Output Devices'**
+  String get noOutputDevices;
 
-  /// No description provided for @cosmic.
+  /// Displays the current volume as a percentage
   ///
   /// In en, this message translates to:
-  /// **'Cosmic'**
-  String get cosmic;
+  /// **'{percentage} %'**
+  String volumePercentage(int percentage);
 
-  /// No description provided for @space.
+  /// Localized notification sound name
   ///
   /// In en, this message translates to:
-  /// **'Space'**
-  String get space;
-
-  /// No description provided for @supernova.
-  ///
-  /// In en, this message translates to:
-  /// **'Supernova'**
-  String get supernova;
-
-  /// No description provided for @crash.
-  ///
-  /// In en, this message translates to:
-  /// **'Crash'**
-  String get crash;
-
-  /// No description provided for @cometInBuiltSpeaker.
-  ///
-  /// In en, this message translates to:
-  /// **'Comet in-built speaker'**
-  String get cometInBuiltSpeaker;
+  /// **'{name}'**
+  String notificationSoundName(String name);
 }
 
 class _AppLocalizationsDelegate

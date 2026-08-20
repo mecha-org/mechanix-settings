@@ -15,7 +15,8 @@ class SoundState extends Equatable {
   final String selectedNotificationSound;
   final List<String> notificationSounds;
 
-  final bool isRefreshingDevices;
+  final bool inputDeviceLoading;
+  final bool outputDeviceLoading;
 
   const SoundState({
     this.outputVolume = 0.60,
@@ -28,7 +29,8 @@ class SoundState extends Equatable {
     this.hapticFeedbackEnabled = true,
     this.selectedNotificationSound = "",
     this.notificationSounds = const [],
-    this.isRefreshingDevices = false,
+    this.inputDeviceLoading = false,
+    this.outputDeviceLoading = false,
   });
 
   SoundState copyWith({
@@ -42,7 +44,8 @@ class SoundState extends Equatable {
     bool? hapticFeedbackEnabled,
     String? selectedNotificationSound,
     List<String>? notificationSounds,
-    bool? isRefreshingDevices,
+    bool? inputDeviceLoading,
+    bool? outputDeviceLoading,
   }) {
     return SoundState(
       outputVolume: outputVolume ?? this.outputVolume,
@@ -51,26 +54,31 @@ class SoundState extends Equatable {
       inputVolume: inputVolume ?? this.inputVolume,
       selectedInputDevice: selectedInputDevice ?? this.selectedInputDevice,
       inputDevices: inputDevices ?? this.inputDevices,
-      launcherSoundsEnabled: launcherSoundsEnabled ?? this.launcherSoundsEnabled,
-      hapticFeedbackEnabled: hapticFeedbackEnabled ?? this.hapticFeedbackEnabled,
-      selectedNotificationSound: selectedNotificationSound ?? this.selectedNotificationSound,
+      launcherSoundsEnabled:
+          launcherSoundsEnabled ?? this.launcherSoundsEnabled,
+      hapticFeedbackEnabled:
+          hapticFeedbackEnabled ?? this.hapticFeedbackEnabled,
+      selectedNotificationSound:
+          selectedNotificationSound ?? this.selectedNotificationSound,
       notificationSounds: notificationSounds ?? this.notificationSounds,
-      isRefreshingDevices: isRefreshingDevices ?? this.isRefreshingDevices,
+      inputDeviceLoading: inputDeviceLoading ?? this.inputDeviceLoading,
+      outputDeviceLoading: outputDeviceLoading ?? this.outputDeviceLoading,
     );
   }
 
   @override
   List<Object?> get props => [
-        outputVolume,
-        selectedOutputDevice,
-        outputDevices,
-        inputVolume,
-        selectedInputDevice,
-        inputDevices,
-        launcherSoundsEnabled,
-        hapticFeedbackEnabled,
-        selectedNotificationSound,
-        notificationSounds,
-        isRefreshingDevices,
-      ];
+    outputVolume,
+    selectedOutputDevice,
+    outputDevices,
+    inputVolume,
+    selectedInputDevice,
+    inputDevices,
+    launcherSoundsEnabled,
+    hapticFeedbackEnabled,
+    selectedNotificationSound,
+    notificationSounds,
+    inputDeviceLoading,
+    outputDeviceLoading,
+  ];
 }

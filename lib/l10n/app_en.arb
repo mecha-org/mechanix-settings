@@ -514,11 +514,24 @@
   "notification": "Notification",
   "outputDevice": "Output device",
   "inputDevice": "Input device",
-  "wakeup": "Wakeup",
-  "siren": "Siren",
-  "cosmic": "Cosmic",
-  "space": "Space",
-  "supernova": "Supernova",
-  "crash": "Crash",
-  "cometInBuiltSpeaker": "Comet in-built speaker" 
+  "noInputDevices": "No Input Devices",
+  "noOutputDevices": "No Output Devices",
+  "volumePercentage": "{percentage} %",
+  "@volumePercentage": {
+    "description": "Displays the current volume as a percentage",
+    "placeholders": {
+      "percentage": {
+        "type": "int"
+      }
+    }
+  },
+  "notificationSoundName": "{name}",
+  "@notificationSoundName": {
+    "description": "Localized notification sound name",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

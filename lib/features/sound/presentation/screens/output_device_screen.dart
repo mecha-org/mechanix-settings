@@ -8,6 +8,7 @@ import 'package:mechanix_settings/core/widgets/custom_icon_button.dart';
 import 'package:mechanix_settings/core/widgets/breadcrumbs.dart';
 import 'package:mechanix_settings/core/widgets/check_box/circular_checkbox.dart';
 import 'package:mechanix_settings/core/constants/icons.dart';
+import 'package:mechanix_settings/core/widgets/custom_loader.dart';
 import 'package:mechanix_settings/features/sound/blocs/sound_bloc.dart';
 import 'package:mechanix_settings/features/sound/blocs/sound_event.dart';
 import 'package:mechanix_settings/features/sound/blocs/sound_state.dart';
@@ -27,19 +28,6 @@ class _OutputDeviceScreenState extends State<OutputDeviceScreen> {
   void dispose() {
     _breadcrumbController.dispose();
     super.dispose();
-  }
-
-  IconData _getDeviceIcon(String name) {
-    switch (name) {
-      case "Comet in-built speaker":
-        return Icons.smartphone;
-      case "Mac speaker":
-        return Icons.laptop;
-      case "JBL Cinema":
-        return Icons.speaker;
-      default:
-        return Icons.volume_up;
-    }
   }
 
   @override
@@ -78,16 +66,41 @@ class _OutputDeviceScreenState extends State<OutputDeviceScreen> {
       ),
       body: BlocBuilder<SoundBloc, SoundState>(
         builder: (context, state) {
-          if (state.isRefreshingDevices) {
-            return const Center(
-              child: SizedBox(
-                width: 32,
-                height: 32,
-                child: CircularProgressIndicator(
-                  strokeWidth: 3,
-                  color: AppColors.onSurface,
+          debugPrint(
+            "OutputDeviceScreen: outputDeviceLoading = ${state.outputDeviceLoading}",
+          );
+          if (state.outputDeviceLoading) {
+            return ListView(
+              physics: const NeverScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              children: [
+                Container(
+                  margin: const EdgeInsets.symmetric(
+                    vertical: 4,
+                    horizontal: 16,
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 20,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Row(
+                    children: [
+                      const CustomLoader(),
+                      const SizedBox(width: 16),
+                      Text(
+                        "",
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: AppColors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+              ],
             );
           }
 
@@ -104,54 +117,51 @@ class _OutputDeviceScreenState extends State<OutputDeviceScreen> {
                 final device = state.outputDevices[index];
                 final isSelected = device == state.selectedOutputDevice;
 
-                return GestureDetector(
-                  onTap: () {
-                    context.read<SoundBloc>().add(SetOutputDevice(device));
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(
-                      vertical: 4,
-                      horizontal: 16,
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 20,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppColors.backgroundVariant
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          _getDeviceIcon(device),
-                          color: isSelected
-                              ? AppColors.onSurface
-                              : AppColors.onSurfaceVariant,
-                          size: 24,
+                return Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(4),
+                    onTap: () {
+                      context.read<SoundBloc>().add(SetOutputDevice(device));
+                    },
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: 64),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 12,
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Text(
-                            device,
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              color: isSelected
-                                  ? AppColors.onSurface
-                                  : AppColors.onSurfaceVariant,
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.volume_up,
+                              color: AppColors.onSurfaceVariant,
+                              size: 24,
                             ),
-                          ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Text(
+                                device,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.bodyLarge,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            CustomCircleCheckbox(
+                              isChecked: isSelected,
+                              onTap: () {
+                                context.read<SoundBloc>().add(
+                                  SetOutputDevice(device),
+                                );
+                              },
+                            ),
+                          ],
                         ),
-                        CustomCircleCheckbox(
-                          isChecked: isSelected,
-                          onTap: () {
-                            context.read<SoundBloc>().add(
-                              SetOutputDevice(device),
-                            );
-                          },
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 );
@@ -171,9 +181,11 @@ class _OutputDeviceScreenState extends State<OutputDeviceScreen> {
             trailing: [
               CustomIconButton.asset(
                 assetPath: SettingIcons.refresh,
-                enabled: !state.isRefreshingDevices,
+                enabled: !state.outputDeviceLoading,
                 onPressed: () {
-                  context.read<SoundBloc>().add(const RefreshDevices());
+                  context.read<SoundBloc>().add(
+                    const RefreshOutputDevicesList(),
+                  );
                 },
               ),
             ],

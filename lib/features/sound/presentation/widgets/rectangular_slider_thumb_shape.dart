@@ -5,8 +5,8 @@ class RectangularSliderThumbShape extends SliderComponentShape {
   final double thumbHeight;
 
   const RectangularSliderThumbShape({
-    this.thumbWidth = 16.0,
-    this.thumbHeight = 16.0,
+    this.thumbWidth = 16,
+    this.thumbHeight = 16,
   });
 
   @override
@@ -29,18 +29,64 @@ class RectangularSliderThumbShape extends SliderComponentShape {
     required double textScaleFactor,
     required Size sizeWithOverflow,
   }) {
-    final Canvas canvas = context.canvas;
-
-    final fillPaint = Paint()
+    final paint = Paint()
       ..color = sliderTheme.thumbColor ?? Colors.white
       ..style = PaintingStyle.fill;
 
-    // Draw the rectangle with a very slight border radius (2px)
-    final RRect rrect = RRect.fromRectAndRadius(
-      Rect.fromCenter(center: center, width: thumbWidth, height: thumbHeight),
-      const Radius.circular(2),
+    final rect = Rect.fromCenter(
+      center: center,
+      width: thumbWidth,
+      height: thumbHeight,
     );
 
-    canvas.drawRRect(rrect, fillPaint);
+    context.canvas.drawRRect(
+      RRect.fromRectAndRadius(rect, const Radius.circular(2)),
+      paint,
+    );
   }
 }
+
+// class RectangularSliderThumbShape extends SliderComponentShape {
+//   final double thumbWidth;
+//   final double thumbHeight;
+
+//   const RectangularSliderThumbShape({
+//     this.thumbWidth = 16.0,
+//     this.thumbHeight = 16.0,
+//   });
+
+//   @override
+//   Size getPreferredSize(bool isEnabled, bool isDiscrete) {
+//     return Size(thumbWidth, thumbHeight);
+//   }
+
+//   @override
+//   void paint(
+//     PaintingContext context,
+//     Offset center, {
+//     required Animation<double> activationAnimation,
+//     required Animation<double> enableAnimation,
+//     required bool isDiscrete,
+//     required TextPainter labelPainter,
+//     required RenderBox parentBox,
+//     required SliderThemeData sliderTheme,
+//     required TextDirection textDirection,
+//     required double value,
+//     required double textScaleFactor,
+//     required Size sizeWithOverflow,
+//   }) {
+//     final Canvas canvas = context.canvas;
+
+//     final fillPaint = Paint()
+//       ..color = sliderTheme.thumbColor ?? Colors.white
+//       ..style = PaintingStyle.fill;
+
+//     // Draw the rectangle with a very slight border radius (2px)
+//     final RRect rrect = RRect.fromRectAndRadius(
+//       Rect.fromCenter(center: center, width: thumbWidth, height: thumbHeight),
+//       const Radius.circular(2),
+//     );
+
+//     canvas.drawRRect(rrect, fillPaint);
+//   }
+// }

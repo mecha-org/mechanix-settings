@@ -1,4 +1,5 @@
-import 'package:dbus/dbus.dart';
+import 'dart:async';
+import 'package:mechanix_settings/features/sound/data/models/enums.dart';
 import 'package:pulseaudio/pulseaudio.dart';
 import 'package:mechanix_settings/core/utils/app_logger.dart';
 import 'sound_repository.dart';
@@ -6,10 +7,25 @@ import 'sound_repository.dart';
 class SoundRepositoryImpl implements SoundRepository {
   final _client = PulseAudioClient();
   bool _connected = false;
+  bool _listenersConfigured = false;
 
-  List<PulseAudioSink> _sinks = [];
-  List<PulseAudioSource> _sources = [];
+  StreamSubscription<PulseAudioSink>? _sinkSubscription;
+  StreamSubscription<PulseAudioSource>? _sourceSubscription;
+  StreamSubscription<int>? _sinkRemovedSubscription;
+  StreamSubscription<int>? _sourceRemovedSubscription;
+  StreamSubscription<PulseAudioServerInfo>? _serverInfoSubscription;
 
+  /// Broadcasts sound-related changes from PulseAudio to the SoundBloc.
+  late final StreamController<SoundChangeType> _soundChangedController =
+      StreamController<SoundChangeType>.broadcast();
+
+  @override
+  Stream<SoundChangeType> get onSoundChanged => _soundChangedController.stream;
+
+  List<PulseAudioSink> _sinks = []; // Output devices
+  List<PulseAudioSource> _sources = []; // Input devices
+
+  /// List of notification sounds
   final List<String> _notificationSounds = [
     "Wakeup",
     "Siren",
@@ -19,36 +35,105 @@ class SoundRepositoryImpl implements SoundRepository {
     "Crash",
   ];
 
-  static const String _busName = 'org.mechanix.MxConf';
-  static const String _objectPath = '/org/mechanix/MxConf';
-
-  static const enableLauncherSoundKey =
-      "org.mechanix.desktop.settings.launcher.enable_sounds.value";
-
-  static const enableVibrationKey =
-      "org.mechanix.desktop.settings.haptics.enable_vibration.value";
-
-  static const notificationSoundKey =
-      "org.mechanix.desktop.notification.sound.value";
+  // TODO: Add MxConf integration for persistent settings later.
+  bool _launcherSoundsEnabled = true;
+  bool _hapticFeedbackEnabled = true;
+  String _selectedNotificationSound = "Space";
 
   SoundRepositoryImpl();
 
+  /// Establishes the PulseAudio connection if it is not already connected
+  /// and configures the PulseAudio event listeners.
   Future<void> _ensureConnected() async {
     if (!_connected) {
+      AppLogger.i("SoundRepositoryImpl: Connecting to PulseAudio Client...");
       try {
         await _client.initialize();
         _connected = true;
+        _setupPulseAudioListeners();
+        AppLogger.i(
+          "SoundRepositoryImpl: PulseAudio Client connected successfully.",
+        );
       } catch (e, stack) {
         AppLogger.e("Error connecting to PulseAudio", error: e, stack: stack);
       }
     }
   }
 
+  /// Registers listeners for PulseAudio sink, source, removal, and
+  /// server information changes.
+  ///
+  /// These events are converted into [SoundChangeType] events and exposed
+  /// through [onSoundChanged] so the SoundBloc can refresh only the
+  /// affected part of the sound settings.
+  void _setupPulseAudioListeners() {
+    if (_listenersConfigured) return;
+    _listenersConfigured = true;
+
+    _sinkSubscription = _client.onSinkChanged.listen((sink) {
+      AppLogger.i(
+        "SoundRepositoryImpl: PulseAudio sink changed "
+        "(sink: ${sink.name}, volume: ${sink.volume}).",
+      );
+
+      _notifyChange(SoundChangeType.outputVolume);
+    });
+
+    _sourceSubscription = _client.onSourceChanged.listen((source) {
+      AppLogger.i(
+        "SoundRepositoryImpl: PulseAudio source changed "
+        "(source: ${source.name}, volume: ${source.volume}).",
+      );
+
+      _notifyChange(SoundChangeType.inputVolume);
+    });
+
+    _sinkRemovedSubscription = _client.onSinkRemoved.listen((index) {
+      AppLogger.i(
+        "SoundRepositoryImpl: PulseAudio sink removed "
+        "(index: $index).",
+      );
+
+      _notifyChange(SoundChangeType.outputDevice);
+    });
+
+    _sourceRemovedSubscription = _client.onSourceRemoved.listen((index) {
+      AppLogger.i(
+        "SoundRepositoryImpl: PulseAudio source removed "
+        "(index: $index).",
+      );
+
+      _notifyChange(SoundChangeType.inputDevice);
+    });
+
+    _serverInfoSubscription = _client.onServerInfoChanged.listen((info) {
+      AppLogger.i(
+        "SoundRepositoryImpl: PulseAudio server info changed "
+        "(defaultSink: ${info.defaultSinkName}, "
+        "defaultSource: ${info.defaultSourceName}).",
+      );
+
+      _notifyChange(SoundChangeType.defaultDevice);
+    });
+  }
+
+  /// Publishes a sound change event to all listeners.
+  void _notifyChange(SoundChangeType changeType) {
+    AppLogger.i("SoundRepositoryImpl: Sound change detected: $changeType");
+
+    if (!_soundChangedController.isClosed) {
+      _soundChangedController.add(changeType);
+    }
+  }
+
+  /// Initializes the sound repository and establishes the PulseAudio
+  /// connection.
   @override
   Future<void> init() async {
     await _ensureConnected();
   }
 
+  /// Returns the volume of the currently selected/default output device.
   @override
   Future<double> getOutputVolume() async {
     await _ensureConnected();
@@ -69,6 +154,7 @@ class SoundRepositoryImpl implements SoundRepository {
     }
   }
 
+  /// Sets the volume of the currently selected/default output device.
   @override
   Future<void> setOutputVolume(double volume) async {
     await _ensureConnected();
@@ -81,6 +167,7 @@ class SoundRepositoryImpl implements SoundRepository {
     }
   }
 
+  /// Returns the list of available output devices (sinks) from PulseAudio.
   @override
   Future<List<String>> getOutputDevices() async {
     await _ensureConnected();
@@ -99,15 +186,16 @@ class SoundRepositoryImpl implements SoundRepository {
     }
   }
 
+  /// Returns the currently selected/default output device.
   @override
   Future<String> getSelectedOutputDevice() async {
     await _ensureConnected();
     try {
       final serverInfo = await _client.getServerInfo();
       final defaultSinkName = serverInfo.defaultSinkName;
-      if (_sinks.isEmpty) {
-        await getOutputDevices();
-      }
+      await getOutputDevices();
+      if (_sinks.isEmpty) return "";
+
       final matched = _sinks.firstWhere(
         (sink) => sink.name == defaultSinkName,
         orElse: () => _sinks.first,
@@ -125,13 +213,12 @@ class SoundRepositoryImpl implements SoundRepository {
     }
   }
 
+  /// Sets the specified output device as the default PulseAudio sink.
   @override
   Future<void> setSelectedOutputDevice(String device) async {
     await _ensureConnected();
     try {
-      if (_sinks.isEmpty) {
-        await getOutputDevices();
-      }
+      await getOutputDevices();
       final matched = _sinks.firstWhere(
         (sink) => sink.description == device || sink.name == device,
       );
@@ -145,6 +232,7 @@ class SoundRepositoryImpl implements SoundRepository {
     }
   }
 
+  /// Returns the volume of the currently selected/default input device.
   @override
   Future<double> getInputVolume() async {
     await _ensureConnected();
@@ -165,6 +253,7 @@ class SoundRepositoryImpl implements SoundRepository {
     }
   }
 
+  /// Sets the volume of the currently selected/default input device.
   @override
   Future<void> setInputVolume(double volume) async {
     await _ensureConnected();
@@ -177,14 +266,17 @@ class SoundRepositoryImpl implements SoundRepository {
     }
   }
 
+  /// Returns the list of available input devices (sources) from PulseAudio.
   @override
   Future<List<String>> getInputDevices() async {
     await _ensureConnected();
     try {
       final sources = await _client.getSourceList();
+
       _sources = sources
           .where((source) => !source.name.contains('.monitor'))
           .toList();
+
       return _sources
           .map(
             (source) => source.description.isNotEmpty
@@ -198,15 +290,15 @@ class SoundRepositoryImpl implements SoundRepository {
     }
   }
 
+  /// Returns the currently selected/default input device.
   @override
   Future<String> getSelectedInputDevice() async {
     await _ensureConnected();
     try {
       final serverInfo = await _client.getServerInfo();
       final defaultSourceName = serverInfo.defaultSourceName;
-      if (_sources.isEmpty) {
-        await getInputDevices();
-      }
+      await getInputDevices();
+      if (_sources.isEmpty) return "";
       final matched = _sources.firstWhere(
         (source) => source.name == defaultSourceName,
         orElse: () => _sources.first,
@@ -224,13 +316,12 @@ class SoundRepositoryImpl implements SoundRepository {
     }
   }
 
+  /// Sets the specified input device as the default PulseAudio source.
   @override
   Future<void> setSelectedInputDevice(String device) async {
     await _ensureConnected();
     try {
-      if (_sources.isEmpty) {
-        await getInputDevices();
-      }
+      await getInputDevices();
       final matched = _sources.firstWhere(
         (source) => source.description == device || source.name == device,
       );
@@ -240,108 +331,84 @@ class SoundRepositoryImpl implements SoundRepository {
     }
   }
 
-  Future<String?> _getDBusSetting(String key) async {
-    final client = DBusClient.session();
-    try {
-      final object = DBusRemoteObject(
-        client,
-        name: _busName,
-        path: DBusObjectPath(_objectPath),
-      );
-      final response = await object.callMethod(_busName, 'GetSetting', [
-        DBusString(key),
-      ]);
-      if (response.returnValues.isNotEmpty) {
-        final dict = response.returnValues.first;
-        if (dict is DBusDict) {
-          final value = dict.children[DBusString(key)];
-          if (value is DBusString) {
-            return value.value;
-          }
-        }
-      }
-    } catch (e, stack) {
-      AppLogger.e(
-        "Error calling get setting via DBus for key $key",
-        error: e,
-        stack: stack,
-      );
-    } finally {
-      await client.close();
-    }
-    return null;
-  }
-
-  Future<void> _setDBusSetting(String key, String value) async {
-    final client = DBusClient.session();
-    try {
-      final object = DBusRemoteObject(
-        client,
-        name: _busName,
-        path: DBusObjectPath(_objectPath),
-      );
-      await object.callMethod(_busName, 'SetSetting', [
-        DBusStruct([DBusString(key), DBusString(value)]),
-      ]);
-    } catch (e, stack) {
-      AppLogger.e(
-        "Error calling set setting via DBus for key $key",
-        error: e,
-        stack: stack,
-      );
-    } finally {
-      await client.close();
-    }
-  }
-
+  /// Returns whether launcher sounds are enabled.
+  ///
+  /// TODO: Replace the in-memory value with MxConf persistence.
   @override
   Future<bool> getLauncherSoundsEnabled() async {
-    final val = await _getDBusSetting(enableLauncherSoundKey);
-    if (val != null) {
-      return val.toLowerCase() == 'true';
-    }
-    return true;
+    return _launcherSoundsEnabled;
   }
 
+  /// Updates the launcher sound enabled state.
+  ///
+  /// TODO: Persist the value using MxConf.
   @override
   Future<void> setLauncherSoundsEnabled(bool enabled) async {
-    await _setDBusSetting(enableLauncherSoundKey, enabled.toString());
+    _launcherSoundsEnabled = enabled;
   }
 
+  /// Returns whether haptic feedback is enabled.
+  ///
+  /// TODO: Replace the in-memory value with MxConf persistence.
   @override
   Future<bool> getHapticFeedbackEnabled() async {
-    final val = await _getDBusSetting(enableVibrationKey);
-    if (val != null) {
-      return val.toLowerCase() == 'true';
-    }
-    return true;
+    return _hapticFeedbackEnabled;
   }
 
+  /// Updates the haptic feedback enabled state.
+  ///
+  /// TODO: Persist the value using MxConf.
   @override
   Future<void> setHapticFeedbackEnabled(bool enabled) async {
-    await _setDBusSetting(enableVibrationKey, enabled.toString());
+    _hapticFeedbackEnabled = enabled;
   }
 
+  /// Returns the list of available notification sounds.
   @override
   Future<List<String>> getNotificationSounds() async {
     return List.unmodifiable(_notificationSounds);
   }
 
+  /// Returns the currently selected notification sound.
+  ///
+  /// TODO: Replace the in-memory value with MxConf persistence.
   @override
   Future<String> getSelectedNotificationSound() async {
-    final val = await _getDBusSetting(notificationSoundKey);
-    if (val != null) {
-      final matched = _notificationSounds.firstWhere(
-        (s) => s.toLowerCase() == val.toLowerCase(),
-        orElse: () => "Space",
-      );
-      return matched;
-    }
-    return "Space";
+    return _selectedNotificationSound;
   }
 
+  /// Updates the selected notification sound.
+  ///
+  /// TODO: Persist the value using MxConf.
   @override
   Future<void> setSelectedNotificationSound(String sound) async {
-    await _setDBusSetting(notificationSoundKey, sound.toLowerCase());
+    _selectedNotificationSound = sound;
+  }
+
+  /// Releases PulseAudio subscriptions, closes the change stream, and
+  /// resets the repository connection state.
+  @override
+  Future<void> close() async {
+    await _sinkSubscription?.cancel();
+    await _sourceSubscription?.cancel();
+    await _sinkRemovedSubscription?.cancel();
+    await _sourceRemovedSubscription?.cancel();
+    await _serverInfoSubscription?.cancel();
+
+    _sinkSubscription = null;
+    _sourceSubscription = null;
+    _sinkRemovedSubscription = null;
+    _sourceRemovedSubscription = null;
+    _serverInfoSubscription = null;
+
+    if (!_soundChangedController.isClosed) {
+      await _soundChangedController.close();
+    }
+
+    _connected = false;
+    _listenersConfigured = false;
+
+    _sinks.clear();
+    _sources.clear();
   }
 }

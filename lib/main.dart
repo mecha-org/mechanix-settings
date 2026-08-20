@@ -93,13 +93,16 @@ void main() {
             },
           ),
           BlocProvider<AboutBloc>(
-            create: (context) => AboutBloc(context.read<AboutRepository>())
-              ..add(const LoadAboutDetails()),
+            create: (context) =>
+                AboutBloc(context.read<AboutRepository>())
+                  ..add(const LoadAboutDetails()),
           ),
           BlocProvider<SoundBloc>(
-            create: (context) => SoundBloc(
-              soundRepository: context.read<SoundRepository>(),
-            )..add(const LoadSoundSettings()),
+            lazy: false,
+            create: (context) =>
+                SoundBloc(soundRepository: context.read<SoundRepository>())
+                  ..add(const SoundInit())
+                  ..add(const LoadSoundSettings()),
           ),
         ],
         child: const MechanixSettingsApp(),

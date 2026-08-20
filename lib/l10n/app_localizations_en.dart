@@ -832,23 +832,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get inputDevice => 'Input device';
 
   @override
-  String get wakeup => 'Wakeup';
+  String get noInputDevices => 'No Input Devices';
 
   @override
-  String get siren => 'Siren';
+  String get noOutputDevices => 'No Output Devices';
 
   @override
-  String get cosmic => 'Cosmic';
+  String volumePercentage(int percentage) {
+    return '$percentage %';
+  }
 
   @override
-  String get space => 'Space';
-
-  @override
-  String get supernova => 'Supernova';
-
-  @override
-  String get crash => 'Crash';
-
-  @override
-  String get cometInBuiltSpeaker => 'Comet in-built speaker';
+  String notificationSoundName(String name) {
+    return '$name';
+  }
 }

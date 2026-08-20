@@ -17,7 +17,8 @@ class NotificationSoundScreen extends StatefulWidget {
   const NotificationSoundScreen({super.key});
 
   @override
-  State<NotificationSoundScreen> createState() => _NotificationSoundScreenState();
+  State<NotificationSoundScreen> createState() =>
+      _NotificationSoundScreenState();
 }
 
 class _NotificationSoundScreenState extends State<NotificationSoundScreen> {
@@ -27,25 +28,6 @@ class _NotificationSoundScreenState extends State<NotificationSoundScreen> {
   void dispose() {
     _breadcrumbController.dispose();
     super.dispose();
-  }
-
-  String _translateSoundName(String name, AppLocalizations l10n) {
-    switch (name) {
-      case "Wakeup":
-        return l10n.wakeup;
-      case "Siren":
-        return l10n.siren;
-      case "Cosmic":
-        return l10n.cosmic;
-      case "Space":
-        return l10n.space;
-      case "Supernova":
-        return l10n.supernova;
-      case "Crash":
-        return l10n.crash;
-      default:
-        return name;
-    }
   }
 
   @override
@@ -102,21 +84,29 @@ class _NotificationSoundScreenState extends State<NotificationSoundScreen> {
                     context.read<SoundBloc>().add(SetNotificationSound(sound));
                   },
                   child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                    margin: const EdgeInsets.symmetric(
+                      vertical: 4,
+                      horizontal: 16,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 20,
+                    ),
                     color: Colors.transparent,
                     child: Row(
                       children: [
                         CustomCircleCheckbox(
                           isChecked: isSelected,
                           onTap: () {
-                            context.read<SoundBloc>().add(SetNotificationSound(sound));
+                            context.read<SoundBloc>().add(
+                              SetNotificationSound(sound),
+                            );
                           },
                         ),
                         const SizedBox(width: 16),
                         Expanded(
                           child: Text(
-                            _translateSoundName(sound, l10n),
+                            l10n.notificationSoundName(sound),
                             style: theme.textTheme.bodyLarge?.copyWith(
                               color: isSelected
                                   ? AppColors.onSurface
