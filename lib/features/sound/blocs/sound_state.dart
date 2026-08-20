@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:mechanix_settings/features/sound/data/models/enums.dart';
 
 class SoundState extends Equatable {
   final double outputVolume;
@@ -18,6 +19,9 @@ class SoundState extends Equatable {
   final bool inputDeviceLoading;
   final bool outputDeviceLoading;
 
+  final SoundStatus status;
+  final SoundError? error;
+
   const SoundState({
     this.outputVolume = 0.60,
     this.selectedOutputDevice = "",
@@ -31,6 +35,8 @@ class SoundState extends Equatable {
     this.notificationSounds = const [],
     this.inputDeviceLoading = false,
     this.outputDeviceLoading = false,
+    this.status = SoundStatus.initial,
+    this.error,
   });
 
   SoundState copyWith({
@@ -46,6 +52,8 @@ class SoundState extends Equatable {
     List<String>? notificationSounds,
     bool? inputDeviceLoading,
     bool? outputDeviceLoading,
+    SoundStatus? status,
+    SoundError? error,
   }) {
     return SoundState(
       outputVolume: outputVolume ?? this.outputVolume,
@@ -63,6 +71,8 @@ class SoundState extends Equatable {
       notificationSounds: notificationSounds ?? this.notificationSounds,
       inputDeviceLoading: inputDeviceLoading ?? this.inputDeviceLoading,
       outputDeviceLoading: outputDeviceLoading ?? this.outputDeviceLoading,
+      status: status ?? this.status,
+      error: error,
     );
   }
 
@@ -80,5 +90,7 @@ class SoundState extends Equatable {
     notificationSounds,
     inputDeviceLoading,
     outputDeviceLoading,
+    status,
+    error,
   ];
 }

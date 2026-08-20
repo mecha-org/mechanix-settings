@@ -1,6 +1,7 @@
 import 'package:mechanix_settings/features/about/data/models/enums.dart';
 import 'package:mechanix_settings/features/battery/data/models/enums.dart';
 import 'package:mechanix_settings/features/date_time/data/models/enums.dart';
+import 'package:mechanix_settings/features/sound/data/models/enums.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
 
 String getDateTimeErrorMessage(AppLocalizations l10n, DateTimeError error) {
@@ -74,6 +75,52 @@ String getAboutErrorMessage(AppLocalizations l10n, AboutError error) {
       return l10n.failedToUpdateHostname;
 
     case AboutError.unknown:
+      return l10n.somethingWentWrong;
+  }
+}
+
+String getSoundErrorMessage(AppLocalizations l10n, SoundError error) {
+  switch (error) {
+    case SoundError.initializationFailed:
+      return l10n.failedToInitializeSound;
+
+    case SoundError.getOutputVolumeFailed:
+      return l10n.failedToGetOutputVolume;
+
+    case SoundError.setOutputVolumeFailed:
+      return l10n.failedToUpdateOutputVolume;
+
+    case SoundError.getOutputDevicesFailed:
+      return l10n.failedToGetOutputDevices;
+
+    case SoundError.getSelectedOutputDeviceFailed:
+      return l10n.failedToGetSelectedOutputDevice;
+
+    case SoundError.setSelectedOutputDeviceFailed:
+      return l10n.failedToUpdateOutputDevice;
+
+    case SoundError.getInputVolumeFailed:
+      return l10n.failedToGetInputVolume;
+
+    case SoundError.setInputVolumeFailed:
+      return l10n.failedToUpdateInputVolume;
+
+    case SoundError.getInputDevicesFailed:
+      return l10n.failedToGetInputDevices;
+
+    case SoundError.getSelectedInputDeviceFailed:
+      return l10n.failedToGetSelectedInputDevice;
+
+    case SoundError.setSelectedInputDeviceFailed:
+      return l10n.failedToUpdateInputDevice;
+
+    case SoundError.getSoundSettingFailed:
+      return l10n.failedToGetSoundSettings;
+
+    case SoundError.setSoundSettingFailed:
+      return l10n.failedToUpdateSoundSettings;
+
+    case SoundError.unknown:
       return l10n.somethingWentWrong;
   }
 }

@@ -1,7 +1,9 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mechanix_settings/core/theme/app_theme.dart';
+import 'package:mechanix_settings/core/utils/helper.dart';
 import 'package:mechanix_settings/core/widgets/bottom_bar/bottom_bar.dart';
 import 'package:mechanix_settings/core/widgets/custom_divider.dart';
 import 'package:mechanix_settings/core/widgets/custom_icon_button.dart';
@@ -37,133 +39,151 @@ class _SoundScreenState extends State<SoundScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      appBar: AppBar(
-        scrolledUnderElevation: 0,
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        automaticallyImplyLeading: false,
-        title: AppBreadcrumbs(
-          scrollController: _breadcrumbController,
-          items: [
-            BreadcrumbItem(
-              label: l10n.settings,
-              onTap: () {
-                Navigator.of(context).popUntil((route) => route.isFirst);
-              },
-            ),
-            BreadcrumbItem(label: l10n.sound),
-          ],
-        ),
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(1),
-          child: CustomDivider(verticalPadding: 0),
-        ),
-      ),
-      body: ScrollConfiguration(
-        behavior: ScrollConfiguration.of(context).copyWith(
-          scrollbars: false,
-          dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.mouse},
-        ),
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          child: BlocBuilder<SoundBloc, SoundState>(
-            builder: (context, state) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  VolumeSlider(
-                    title: l10n.output,
-                    value: state.outputVolume,
-                    showSlider: state.selectedOutputDevice.isNotEmpty,
-                    onChanged: (val) {
-                      context.read<SoundBloc>().add(SetOutputVolume(val));
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                  _NavigationRow(
-                    label: l10n.device,
-                    value: state.selectedOutputDevice.isEmpty
-                        ? l10n.noOutputDevices
-                        : state.selectedOutputDevice,
+    return BlocListener<SoundBloc, SoundState>(
+      listenWhen: (previous, current) =>
+          previous.error != current.error && current.error != null,
+      listener: (context, state) {
+        if (state.error == null) return;
 
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const OutputDeviceScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  const CustomDivider(verticalPadding: 0),
-                  const SizedBox(height: 16),
-                  VolumeSlider(
-                    title: l10n.input,
-                    value: state.inputVolume,
-                    showSlider: state.selectedInputDevice.isNotEmpty,
-                    onChanged: (val) {
-                      context.read<SoundBloc>().add(SetInputVolume(val));
-                    },
-                  ),
-                  const SizedBox(height: 8),
-                  _NavigationRow(
-                    label: l10n.device,
-                    value: state.selectedInputDevice.isEmpty
-                        ? l10n.noInputDevices
-                        : state.selectedInputDevice,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const InputDeviceScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  const CustomDivider(verticalPadding: 0),
-                  _ToggleRow(
-                    label: l10n.launcher,
-                    value: state.launcherSoundsEnabled,
-                    onChanged: (val) {
-                      context.read<SoundBloc>().add(ToggleLauncherSounds(val));
-                    },
-                  ),
-                  const CustomDivider(verticalPadding: 0),
-                  _ToggleRow(
-                    label: l10n.hapticFeedback,
-                    value: state.hapticFeedbackEnabled,
-                    onChanged: (val) {
-                      context.read<SoundBloc>().add(ToggleHapticFeedback(val));
-                    },
-                  ),
-                  const CustomDivider(verticalPadding: 0),
-                  _NavigationRow(
-                    label: l10n.notification,
-                    value: l10n.notificationSoundName(
-                      state.selectedNotificationSound,
-                    ),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const NotificationSoundScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              );
-            },
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              getSoundErrorMessage(AppLocalizations.of(context)!, state.error!),
+            ),
+          ),
+        );
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          scrolledUnderElevation: 0,
+          elevation: 0,
+          backgroundColor: Colors.transparent,
+          automaticallyImplyLeading: false,
+          title: AppBreadcrumbs(
+            scrollController: _breadcrumbController,
+            items: [
+              BreadcrumbItem(
+                label: l10n.settings,
+                onTap: () {
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                },
+              ),
+              BreadcrumbItem(label: l10n.sound),
+            ],
+          ),
+          bottom: const PreferredSize(
+            preferredSize: Size.fromHeight(1),
+            child: CustomDivider(verticalPadding: 0),
           ),
         ),
-      ),
-      bottomNavigationBar: BottomBar(
-        leading: CustomIconButton.asset(
-          assetPath: SettingIcons.back,
-          enabled: true,
-          onPressed: () => Navigator.pop(context),
+        body: ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(
+            scrollbars: false,
+            dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.mouse},
+          ),
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: BlocBuilder<SoundBloc, SoundState>(
+              builder: (context, state) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    VolumeSlider(
+                      title: l10n.output,
+                      value: state.outputVolume,
+                      showSlider: state.selectedOutputDevice.isNotEmpty,
+                      onChanged: (val) {
+                        context.read<SoundBloc>().add(SetOutputVolume(val));
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    _NavigationRow(
+                      label: l10n.device,
+                      value: state.selectedOutputDevice.isEmpty
+                          ? l10n.noOutputDevices
+                          : state.selectedOutputDevice,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const OutputDeviceScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    const CustomDivider(verticalPadding: 0),
+                    const SizedBox(height: 16),
+                    VolumeSlider(
+                      title: l10n.input,
+                      value: state.inputVolume,
+                      showSlider: state.selectedInputDevice.isNotEmpty,
+                      onChanged: (val) {
+                        context.read<SoundBloc>().add(SetInputVolume(val));
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    _NavigationRow(
+                      label: l10n.device,
+                      value: state.selectedInputDevice.isEmpty
+                          ? l10n.noInputDevices
+                          : state.selectedInputDevice,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const InputDeviceScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                    const CustomDivider(verticalPadding: 0),
+                    _ToggleRow(
+                      label: l10n.launcher,
+                      value: state.launcherSoundsEnabled,
+                      onChanged: (val) {
+                        context.read<SoundBloc>().add(
+                          ToggleLauncherSounds(val),
+                        );
+                      },
+                    ),
+                    const CustomDivider(verticalPadding: 0),
+                    _ToggleRow(
+                      label: l10n.hapticFeedback,
+                      value: state.hapticFeedbackEnabled,
+                      onChanged: (val) {
+                        context.read<SoundBloc>().add(
+                          ToggleHapticFeedback(val),
+                        );
+                      },
+                    ),
+                    const CustomDivider(verticalPadding: 0),
+                    _NavigationRow(
+                      label: l10n.notification,
+                      value: l10n.notificationSoundName(
+                        state.selectedNotificationSound,
+                      ),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const NotificationSoundScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+        bottomNavigationBar: BottomBar(
+          leading: CustomIconButton.asset(
+            assetPath: SettingIcons.back,
+            enabled: true,
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
       ),
     );

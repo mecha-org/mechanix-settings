@@ -533,5 +533,69 @@
         "type": "String"
       }
     }
+  },
+  "failedToInitializeSound": "Failed to initialize sound settings.",
+  "@failedToInitializeSound": {
+    "description": "Shown when the sound service could not be initialized."
+  },
+
+  "failedToGetOutputVolume": "Failed to get output volume.",
+  "@failedToGetOutputVolume": {
+    "description": "Shown when the current output volume cannot be retrieved."
+  },
+
+  "failedToUpdateOutputVolume": "Failed to update output volume.",
+  "@failedToUpdateOutputVolume": {
+    "description": "Shown when updating the output volume fails."
+  },
+
+  "failedToGetOutputDevices": "Failed to get output devices.",
+  "@failedToGetOutputDevices": {
+    "description": "Shown when the available output devices cannot be retrieved."
+  },
+
+  "failedToGetSelectedOutputDevice": "Failed to get selected output device.",
+  "@failedToGetSelectedOutputDevice": {
+    "description": "Shown when the currently selected output device cannot be retrieved."
+  },
+
+  "failedToUpdateOutputDevice": "Failed to update output device.",
+  "@failedToUpdateOutputDevice": {
+    "description": "Shown when changing the selected output device fails."
+  },
+
+  "failedToGetInputVolume": "Failed to get input volume.",
+  "@failedToGetInputVolume": {
+    "description": "Shown when the current input volume cannot be retrieved."
+  },
+
+  "failedToUpdateInputVolume": "Failed to update input volume.",
+  "@failedToUpdateInputVolume": {
+    "description": "Shown when updating the input volume fails."
+  },
+
+  "failedToGetInputDevices": "Failed to get input devices.",
+  "@failedToGetInputDevices": {
+    "description": "Shown when the available input devices cannot be retrieved."
+  },
+
+  "failedToGetSelectedInputDevice": "Failed to get selected input device.",
+  "@failedToGetSelectedInputDevice": {
+    "description": "Shown when the currently selected input device cannot be retrieved."
+  },
+
+  "failedToUpdateInputDevice": "Failed to update input device.",
+  "@failedToUpdateInputDevice": {
+    "description": "Shown when changing the selected input device fails."
+  },
+
+  "failedToGetSoundSettings": "Failed to get sound settings.",
+  "@failedToGetSoundSettings": {
+    "description": "Shown when the current sound settings cannot be retrieved."
+  },
+
+  "failedToUpdateSoundSettings": "Failed to update sound settings.",
+  "@failedToUpdateSoundSettings": {
+    "description": "Shown when updating the sound settings fails."
   }
 }

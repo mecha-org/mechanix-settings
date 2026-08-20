@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:mechanix_settings/core/exceptions/sound_exceptions.dart';
 import 'package:mechanix_settings/features/sound/data/models/enums.dart';
 import 'package:pulseaudio/pulseaudio.dart';
 import 'package:mechanix_settings/core/utils/app_logger.dart';
@@ -56,6 +57,7 @@ class SoundRepositoryImpl implements SoundRepository {
         );
       } catch (e, stack) {
         AppLogger.e("Error connecting to PulseAudio", error: e, stack: stack);
+        throw const SoundInitializationException();
       }
     }
   }
@@ -130,7 +132,12 @@ class SoundRepositoryImpl implements SoundRepository {
   /// connection.
   @override
   Future<void> init() async {
-    await _ensureConnected();
+    try {
+      await _ensureConnected();
+    } catch (e, stack) {
+      AppLogger.e("Error during sound initialization", error: e, stack: stack);
+      throw const SoundInitializationException();
+    }
   }
 
   /// Returns the volume of the currently selected/default output device.
@@ -150,7 +157,7 @@ class SoundRepositoryImpl implements SoundRepository {
       return defaultSink.volume.clamp(0.0, 1.0);
     } catch (e, stack) {
       AppLogger.e("Error getting output volume", error: e, stack: stack);
-      return 0.5;
+      throw const GetOutputVolumeException();
     }
   }
 
@@ -164,6 +171,7 @@ class SoundRepositoryImpl implements SoundRepository {
       await _client.setSinkVolume(defaultSinkName, volume.clamp(0.0, 1.0));
     } catch (e, stack) {
       AppLogger.e("Error setting output volume", error: e, stack: stack);
+      throw const SetOutputVolumeException();
     }
   }
 
@@ -182,7 +190,7 @@ class SoundRepositoryImpl implements SoundRepository {
           .toList();
     } catch (e, stack) {
       AppLogger.e("Error getting output devices", error: e, stack: stack);
-      return [];
+      throw const GetOutputDevicesException();
     }
   }
 
@@ -209,7 +217,7 @@ class SoundRepositoryImpl implements SoundRepository {
         error: e,
         stack: stack,
       );
-      return "";
+      throw const GetSelectedOutputDeviceException();
     }
   }
 
@@ -229,6 +237,7 @@ class SoundRepositoryImpl implements SoundRepository {
         error: e,
         stack: stack,
       );
+      throw const SetSelectedOutputDeviceException();
     }
   }
 
@@ -249,7 +258,7 @@ class SoundRepositoryImpl implements SoundRepository {
       return defaultSource.volume.clamp(0.0, 1.0);
     } catch (e, stack) {
       AppLogger.e("Error getting input volume", error: e, stack: stack);
-      return 0.5;
+      throw const GetInputVolumeException();
     }
   }
 
@@ -263,6 +272,7 @@ class SoundRepositoryImpl implements SoundRepository {
       await _client.setSourceVolume(defaultSourceName, volume.clamp(0.0, 1.0));
     } catch (e, stack) {
       AppLogger.e("Error setting input volume", error: e, stack: stack);
+      throw const SetInputVolumeException();
     }
   }
 
@@ -286,7 +296,7 @@ class SoundRepositoryImpl implements SoundRepository {
           .toList();
     } catch (e, stack) {
       AppLogger.e("Error getting input devices", error: e, stack: stack);
-      return [];
+      throw const GetInputDevicesException();
     }
   }
 
@@ -312,7 +322,7 @@ class SoundRepositoryImpl implements SoundRepository {
         error: e,
         stack: stack,
       );
-      return "";
+      throw const GetSelectedInputDeviceException();
     }
   }
 
@@ -328,6 +338,7 @@ class SoundRepositoryImpl implements SoundRepository {
       await _client.setDefaultSource(matched.name);
     } catch (e, stack) {
       AppLogger.e("Error setting default input device", error: e, stack: stack);
+      throw const SetSelectedInputDeviceException();
     }
   }
 
@@ -336,7 +347,12 @@ class SoundRepositoryImpl implements SoundRepository {
   /// TODO: Replace the in-memory value with MxConf persistence.
   @override
   Future<bool> getLauncherSoundsEnabled() async {
-    return _launcherSoundsEnabled;
+    try {
+      return _launcherSoundsEnabled;
+    } catch (e, stack) {
+      AppLogger.e("Error getting launcher sounds", error: e, stack: stack);
+      throw const GetSoundSettingException();
+    }
   }
 
   /// Updates the launcher sound enabled state.
@@ -344,7 +360,12 @@ class SoundRepositoryImpl implements SoundRepository {
   /// TODO: Persist the value using MxConf.
   @override
   Future<void> setLauncherSoundsEnabled(bool enabled) async {
-    _launcherSoundsEnabled = enabled;
+    try {
+      _launcherSoundsEnabled = enabled;
+    } catch (e, stack) {
+      AppLogger.e("Error setting launcher sounds", error: e, stack: stack);
+      throw const SetSoundSettingException();
+    }
   }
 
   /// Returns whether haptic feedback is enabled.
@@ -352,7 +373,12 @@ class SoundRepositoryImpl implements SoundRepository {
   /// TODO: Replace the in-memory value with MxConf persistence.
   @override
   Future<bool> getHapticFeedbackEnabled() async {
-    return _hapticFeedbackEnabled;
+    try {
+      return _hapticFeedbackEnabled;
+    } catch (e, stack) {
+      AppLogger.e("Error getting haptic feedback", error: e, stack: stack);
+      throw const GetSoundSettingException();
+    }
   }
 
   /// Updates the haptic feedback enabled state.
@@ -360,13 +386,27 @@ class SoundRepositoryImpl implements SoundRepository {
   /// TODO: Persist the value using MxConf.
   @override
   Future<void> setHapticFeedbackEnabled(bool enabled) async {
-    _hapticFeedbackEnabled = enabled;
+    try {
+      _hapticFeedbackEnabled = enabled;
+    } catch (e, stack) {
+      AppLogger.e("Error setting haptic feedback", error: e, stack: stack);
+      throw const SetSoundSettingException();
+    }
   }
 
   /// Returns the list of available notification sounds.
   @override
   Future<List<String>> getNotificationSounds() async {
-    return List.unmodifiable(_notificationSounds);
+    try {
+      return List.unmodifiable(_notificationSounds);
+    } catch (e, stack) {
+      AppLogger.e(
+        "Error getting notification sounds list",
+        error: e,
+        stack: stack,
+      );
+      throw const GetSoundSettingException();
+    }
   }
 
   /// Returns the currently selected notification sound.
@@ -374,7 +414,16 @@ class SoundRepositoryImpl implements SoundRepository {
   /// TODO: Replace the in-memory value with MxConf persistence.
   @override
   Future<String> getSelectedNotificationSound() async {
-    return _selectedNotificationSound;
+    try {
+      return _selectedNotificationSound;
+    } catch (e, stack) {
+      AppLogger.e(
+        "Error getting selected notification sound",
+        error: e,
+        stack: stack,
+      );
+      throw const GetSoundSettingException();
+    }
   }
 
   /// Updates the selected notification sound.
@@ -382,33 +431,43 @@ class SoundRepositoryImpl implements SoundRepository {
   /// TODO: Persist the value using MxConf.
   @override
   Future<void> setSelectedNotificationSound(String sound) async {
-    _selectedNotificationSound = sound;
+    try {
+      _selectedNotificationSound = sound;
+    } catch (e, stack) {
+      AppLogger.e("Error setting notification sound", error: e, stack: stack);
+      throw const SetSoundSettingException();
+    }
   }
 
   /// Releases PulseAudio subscriptions, closes the change stream, and
   /// resets the repository connection state.
   @override
   Future<void> close() async {
-    await _sinkSubscription?.cancel();
-    await _sourceSubscription?.cancel();
-    await _sinkRemovedSubscription?.cancel();
-    await _sourceRemovedSubscription?.cancel();
-    await _serverInfoSubscription?.cancel();
+    try {
+      await _sinkSubscription?.cancel();
+      await _sourceSubscription?.cancel();
+      await _sinkRemovedSubscription?.cancel();
+      await _sourceRemovedSubscription?.cancel();
+      await _serverInfoSubscription?.cancel();
 
-    _sinkSubscription = null;
-    _sourceSubscription = null;
-    _sinkRemovedSubscription = null;
-    _sourceRemovedSubscription = null;
-    _serverInfoSubscription = null;
+      _sinkSubscription = null;
+      _sourceSubscription = null;
+      _sinkRemovedSubscription = null;
+      _sourceRemovedSubscription = null;
+      _serverInfoSubscription = null;
 
-    if (!_soundChangedController.isClosed) {
-      await _soundChangedController.close();
+      if (!_soundChangedController.isClosed) {
+        await _soundChangedController.close();
+      }
+
+      _connected = false;
+      _listenersConfigured = false;
+
+      _sinks.clear();
+      _sources.clear();
+    } catch (e, stack) {
+      AppLogger.e("Error closing PulseAudio client", error: e, stack: stack);
+      throw const SoundCloseException();
     }
-
-    _connected = false;
-    _listenersConfigured = false;
-
-    _sinks.clear();
-    _sources.clear();
   }
 }

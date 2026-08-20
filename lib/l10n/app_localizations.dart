@@ -1665,6 +1665,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name}'**
   String notificationSoundName(String name);
+
+  /// Shown when the sound service could not be initialized.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to initialize sound settings.'**
+  String get failedToInitializeSound;
+
+  /// Shown when the current output volume cannot be retrieved.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to get output volume.'**
+  String get failedToGetOutputVolume;
+
+  /// Shown when updating the output volume fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update output volume.'**
+  String get failedToUpdateOutputVolume;
+
+  /// Shown when the available output devices cannot be retrieved.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to get output devices.'**
+  String get failedToGetOutputDevices;
+
+  /// Shown when the currently selected output device cannot be retrieved.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to get selected output device.'**
+  String get failedToGetSelectedOutputDevice;
+
+  /// Shown when changing the selected output device fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update output device.'**
+  String get failedToUpdateOutputDevice;
+
+  /// Shown when the current input volume cannot be retrieved.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to get input volume.'**
+  String get failedToGetInputVolume;
+
+  /// Shown when updating the input volume fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update input volume.'**
+  String get failedToUpdateInputVolume;
+
+  /// Shown when the available input devices cannot be retrieved.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to get input devices.'**
+  String get failedToGetInputDevices;
+
+  /// Shown when the currently selected input device cannot be retrieved.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to get selected input device.'**
+  String get failedToGetSelectedInputDevice;
+
+  /// Shown when changing the selected input device fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update input device.'**
+  String get failedToUpdateInputDevice;
+
+  /// Shown when the current sound settings cannot be retrieved.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to get sound settings.'**
+  String get failedToGetSoundSettings;
+
+  /// Shown when updating the sound settings fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update sound settings.'**
+  String get failedToUpdateSoundSettings;
 }
 
 class _AppLocalizationsDelegate
