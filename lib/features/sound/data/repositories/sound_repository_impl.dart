@@ -6,7 +6,7 @@ import 'package:mechanix_settings/core/utils/app_logger.dart';
 import 'sound_repository.dart';
 
 class SoundRepositoryImpl implements SoundRepository {
-  final _client = PulseAudioClient();
+  final PulseAudioClient _client;
   bool _connected = false;
   bool _listenersConfigured = false;
 
@@ -41,7 +41,8 @@ class SoundRepositoryImpl implements SoundRepository {
   bool _hapticFeedbackEnabled = true;
   String _selectedNotificationSound = "Space";
 
-  SoundRepositoryImpl();
+  SoundRepositoryImpl({PulseAudioClient? client})
+      : _client = client ?? PulseAudioClient();
 
   /// Establishes the PulseAudio connection if it is not already connected
   /// and configures the PulseAudio event listeners.
