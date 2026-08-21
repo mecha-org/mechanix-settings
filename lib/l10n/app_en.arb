@@ -13,6 +13,7 @@
 
   "addWireless": "Add wireless",
   "manageWireless": "Manage wireless",
+  "noInternetConnection": "No Internet Connection",
   "onToggle": "ON",
   "offToggle": "OFF",
   "myNetworks": "My networks",

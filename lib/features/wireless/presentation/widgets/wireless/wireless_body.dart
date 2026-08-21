@@ -247,15 +247,23 @@ class _ConnectedNetworkTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocSelector<WirelessBloc, WirelessState, WifiNetwork?>(
+    final l10n = AppLocalizations.of(context)!;
+
+    return BlocSelector<
+      WirelessBloc,
+      WirelessState,
+      ({WifiNetwork? connected, bool hasNoInternet})
+    >(
       selector: (state) {
-        final connected = state.myNetworks.firstWhere(
-          (n) => n.name == state.connectedNetworkName,
-          orElse: () => const WifiNetwork(name: ''),
-        );
-        return connected.name.isEmpty ? null : connected;
+        final net = state.myNetworks
+            .where((n) => n.name == state.connectedNetworkName)
+            .firstOrNull;
+        return (connected: net, hasNoInternet: state.hasNoInternet);
       },
-      builder: (context, connected) {
+      builder: (context, data) {
+        final connected = data.connected?.copyWith(
+          hasNoInternet: data.hasNoInternet,
+        );
         if (connected == null) {
           return const SizedBox.shrink();
         }
@@ -264,6 +272,7 @@ class _ConnectedNetworkTile extends StatelessWidget {
           children: [
             NetworkListItem(
               name: connected.name,
+              subtitle: data.hasNoInternet ? l10n.noInternetConnection : null,
               signalType: connected.signalType,
               isConnected: true,
               isConnecting: false,

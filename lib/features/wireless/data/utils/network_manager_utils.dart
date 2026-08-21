@@ -114,7 +114,7 @@ class NetworkManagerUtils {
           .toList();
 
       try {
-        return utf8.decode(bytes);
+        return utf8.decode(bytes, allowMalformed: true);
       } catch (_) {
         return bytes;
       }

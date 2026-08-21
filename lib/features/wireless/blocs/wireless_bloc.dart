@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mechanix_settings/core/utils/app_logger.dart';
 import 'package:mechanix_settings/features/wireless/blocs/wireless_event.dart';
@@ -26,30 +27,37 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
   Timer? _refreshTimer;
   Timer? _scanTimer;
   bool _connectionInProgress = false;
-  DateTime? _connectionStartTime;
 
   WirelessBloc({required this.wirelessRepository})
-    : super(const WirelessState()) {
+    : super(
+        WirelessState(
+          isWirelessOn: wirelessRepository.isWirelessEnabled(),
+          connectivityState: wirelessRepository.getConnectivityState(),
+        ),
+      ) {
     on<InitWifi>(_onInit);
-    on<LoadWireless>(_onLoadWireless);
-    on<ToggleWirelessPower>(_onToggleWirelessPower);
-    on<ScanNetworks>(_onScanNetworks);
-    on<ConnectToNetworkEvent>(_onConnectToNetwork);
-    on<AddNetworkEvent>(_onAddNetwork);
+    on<LoadWireless>(_onLoadWireless, transformer: droppable());
+    on<ToggleWirelessPower>(_onToggleWirelessPower, transformer: restartable());
+    on<ScanNetworks>(_onScanNetworks, transformer: droppable());
+    on<ConnectToNetworkEvent>(_onConnectToNetwork, transformer: restartable());
+    on<AddNetworkEvent>(_onAddNetwork, transformer: restartable());
     on<UpdateNetworkSettingsEvent>(_onUpdateNetworkSettings);
     on<UpdateIPSettingsEvent>(_onUpdateIPSettings);
     on<UpdateDNSSettingsEvent>(_onUpdateDNSSettings);
     on<ForgetNetworkEvent>(_onForgetNetwork);
+    on<ConnectivityStateChangedEvent>(_onConnectivityStateChanged);
     on<OpenCaptivePortal>(_onOpenCaptivePortal);
   }
 
   /// Initial setup: listens to D-Bus events and triggers an initial loading of networks.
   Future<void> _onInit(InitWifi event, Emitter<WirelessState> emit) async {
     try {
-      await wirelessRepository.init().then((_) {
-        final enabled = wirelessRepository.isWirelessEnabled();
-        emit(state.copyWith(isWirelessOn: enabled));
-      });
+      await wirelessRepository.init();
+      final enabled = wirelessRepository.isWirelessEnabled();
+      final connectivity = wirelessRepository.getConnectivityState();
+      emit(
+        state.copyWith(isWirelessOn: enabled, connectivityState: connectivity),
+      );
       await _subscribeToStreams();
       add(const LoadWireless());
       await wirelessRepository.requestScan();
@@ -72,6 +80,11 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
 
       // Listen to global NetworkManager client property changes
       _wifiEventsSub = wifiEventsStream.listen((events) async {
+        if (events.contains('Connectivity')) {
+          final connectivity = wirelessRepository.getConnectivityState();
+          add(ConnectivityStateChangedEvent(connectivity));
+        }
+
         if (events.contains('State') ||
             events.contains('Connectivity') ||
             events.contains('ActiveConnections') ||
@@ -98,6 +111,13 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
     }
   }
 
+  void _onConnectivityStateChanged(
+    ConnectivityStateChangedEvent event,
+    Emitter<WirelessState> emit,
+  ) {
+    emit(state.copyWith(connectivityState: event.connectivityState));
+  }
+
   /// Reloads the wireless network lists from NetworkManager, ensuring that we
   /// ignore intermediate states to prevent interference (e.g. dismissing password dialogs).
   Future<void> _scheduleWirelessRefresh() async {
@@ -109,34 +129,30 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
 
         final deviceState = wirelessRepository.getWifiDeviceState();
 
-        final elapsed = _connectionStartTime != null
-            ? DateTime.now().difference(_connectionStartTime!)
-            : Duration.zero;
-        final bool isTransientStart =
-            _connectionInProgress && elapsed.inSeconds < 3;
-
-        // Ignore transient states while authentication is happening or connection is just starting.
-        if (isTransientStart ||
-            (_connectionInProgress &&
-                const {
-                  NetworkManagerDeviceState.needAuth,
-                  NetworkManagerDeviceState.prepare,
-                  NetworkManagerDeviceState.config,
-                  NetworkManagerDeviceState.ipConfig,
-                  NetworkManagerDeviceState.ipCheck,
-                  NetworkManagerDeviceState.secondaries,
-                }.contains(deviceState))) {
+        if (_connectionInProgress &&
+            (deviceState == NetworkManagerDeviceState.activated ||
+                deviceState == NetworkManagerDeviceState.failed)) {
+          _connectionInProgress = false;
+          add(const LoadWireless(requestScan: false));
           return;
         }
 
+        // Ignore intermediate transient states while authentication/configuration is happening
         if (_connectionInProgress &&
-            !isTransientStart &&
             const {
-              NetworkManagerDeviceState.activated,
-              NetworkManagerDeviceState.failed,
+              NetworkManagerDeviceState.deactivating,
               NetworkManagerDeviceState.disconnected,
+              NetworkManagerDeviceState.unavailable,
+              NetworkManagerDeviceState.needAuth,
+              NetworkManagerDeviceState.prepare,
+              NetworkManagerDeviceState.config,
+              NetworkManagerDeviceState.ipConfig,
+              NetworkManagerDeviceState.ipCheck,
+              NetworkManagerDeviceState.secondaries,
+              NetworkManagerDeviceState.unmanaged,
+              NetworkManagerDeviceState.unknown,
             }.contains(deviceState)) {
-          _connectionInProgress = false;
+          return;
         }
 
         add(const LoadWireless(requestScan: false));
@@ -201,7 +217,9 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
       }
 
       final savedNetworks = await wirelessRepository.getSavedNetworks();
-      final myNetworks = await wirelessRepository.getMyNetworks();
+      final myNetworks = await wirelessRepository.getMyNetworks(
+        savedNetworks: savedNetworks,
+      );
 
       final deviceState = wirelessRepository.getWifiDeviceState();
 
@@ -245,9 +263,16 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
             connectedName == connectingName) {
           connectingName = null;
           failure = null;
-        } else if (deviceState == NetworkManagerDeviceState.failed ||
-            deviceState == NetworkManagerDeviceState.disconnected ||
-            deviceState == NetworkManagerDeviceState.deactivating) {
+          _connectionInProgress = false;
+        } else if (deviceState == NetworkManagerDeviceState.failed) {
+          failure = WirelessFailure(
+            type: WirelessErrorType.connectionFailed,
+            message: 'Failed to connect to $connectingName',
+            data: {'networkName': connectingName},
+          );
+          connectingName = null;
+          _connectionInProgress = false;
+        } else if (!_connectionInProgress) {
           failure = WirelessFailure(
             type: WirelessErrorType.connectionFailed,
             message: 'Failed to connect to $connectingName',
@@ -356,8 +381,6 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
     Emitter<WirelessState> emit,
   ) async {
     try {
-      _connectionInProgress = true;
-      _connectionStartTime = DateTime.now();
       emit(state.copyWith(connectingNetworkName: event.name, error: null));
 
       await wirelessRepository.connectToNetwork(
@@ -367,7 +390,6 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
       );
     } catch (e, stackTrace) {
       _connectionInProgress = false;
-      _connectionStartTime = null;
       emit(
         state.copyWith(
           connectingNetworkName: null,
@@ -388,8 +410,6 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
     Emitter<WirelessState> emit,
   ) async {
     try {
-      _connectionInProgress = true;
-      _connectionStartTime = DateTime.now();
       emit(state.copyWith(connectingNetworkName: event.name, error: null));
 
       await wirelessRepository.addNetwork(
@@ -415,7 +435,6 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
       );
     } catch (e, stackTrace) {
       _connectionInProgress = false;
-      _connectionStartTime = null;
       emit(
         state.copyWith(
           connectingNetworkName: null,

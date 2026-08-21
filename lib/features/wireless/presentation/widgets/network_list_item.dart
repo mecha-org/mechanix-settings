@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:mechanix_settings/core/constants/icons.dart';
 import 'package:mechanix_settings/core/theme/app_theme.dart';
-import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
 import 'package:mechanix_settings/core/widgets/custom_icon_button.dart';
 import 'package:mechanix_settings/core/widgets/custom_image_asset.dart';
+import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
+
 import 'wifi_signal_icon.dart';
 
 class NetworkListItem extends StatelessWidget {
   final String name;
+  final String? subtitle;
   final bool isConnected;
   final bool isConnecting;
   final bool isSelected;
@@ -18,6 +20,7 @@ class NetworkListItem extends StatelessWidget {
   const NetworkListItem({
     super.key,
     required this.name,
+    this.subtitle,
     this.isConnected = false,
     this.isConnecting = false,
     this.isSelected = false,
@@ -52,9 +55,24 @@ class NetworkListItem extends StatelessWidget {
                 WifiSignalIcon(type: signalType),
               const SizedBox(width: 16),
 
-              // Network name
+              // Network name and status subtitle
               Expanded(
-                child: Text(name, style: Theme.of(context).textTheme.bodyLarge),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(name, style: Theme.of(context).textTheme.bodyLarge),
+                    if (subtitle != null && subtitle!.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle!,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: AppColors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
 
               if (isConnected)

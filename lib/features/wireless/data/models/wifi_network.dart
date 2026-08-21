@@ -15,6 +15,7 @@ class WifiNetwork extends Equatable {
   final EnterpriseEapMethod? eapMethod;
   final bool isConnected;
   final bool isConnecting;
+  final bool hasNoInternet;
   final bool autoJoin;
   final bool lowDataMode;
   final bool limitIpAddressTracking;
@@ -44,6 +45,7 @@ class WifiNetwork extends Equatable {
     this.eapMethod,
     this.isConnected = false,
     this.isConnecting = false,
+    this.hasNoInternet = false,
     this.autoJoin = true,
     this.lowDataMode = false,
     this.limitIpAddressTracking = true,
@@ -78,6 +80,7 @@ class WifiNetwork extends Equatable {
     EnterpriseEapMethod? eapMethod,
     bool? isConnected,
     bool? isConnecting,
+    bool? hasNoInternet,
     bool? autoJoin,
     bool? lowDataMode,
     bool? limitIpAddressTracking,
@@ -105,6 +108,7 @@ class WifiNetwork extends Equatable {
       eapMethod: eapMethod ?? this.eapMethod,
       isConnected: isConnected ?? this.isConnected,
       isConnecting: isConnecting ?? this.isConnecting,
+      hasNoInternet: hasNoInternet ?? this.hasNoInternet,
       autoJoin: autoJoin ?? this.autoJoin,
       lowDataMode: lowDataMode ?? this.lowDataMode,
       limitIpAddressTracking:
@@ -134,6 +138,7 @@ class WifiNetwork extends Equatable {
     eapMethod,
     isConnected,
     isConnecting,
+    hasNoInternet,
     autoJoin,
     lowDataMode,
     limitIpAddressTracking,

@@ -432,7 +432,7 @@ void main() {
       () => mockClient.activateConnection(
         connection: connection,
         device: mockWifiDevice,
-        accessPoint: ap,
+        accessPoint: any(named: 'accessPoint'),
       ),
     ).thenAnswer((_) async => MockNetworkManagerActiveConnection());
 
@@ -442,7 +442,7 @@ void main() {
       () => mockClient.activateConnection(
         connection: connection,
         device: mockWifiDevice,
-        accessPoint: ap,
+        accessPoint: any(named: 'accessPoint'),
       ),
     ).called(1);
   });
@@ -743,6 +743,19 @@ void main() {
     test('openCaptivePortal opens client check uri if present', () async {
       when(() => mockClient.connectivityCheckUri).thenReturn('http://check.me');
       await repository.openCaptivePortal();
+    });
+  });
+
+  group('Lifecycle & Close', () {
+    test('close calls client close when connected', () async {
+      when(() => mockClient.close()).thenAnswer((_) async {});
+      await repository.close();
+      verify(() => mockClient.close()).called(1);
+    });
+
+    test('close does nothing when uninitialized', () async {
+      final uninitializedRepo = WirelessRepositoryImpl();
+      await expectLater(uninitializedRepo.close(), completes);
     });
   });
 }

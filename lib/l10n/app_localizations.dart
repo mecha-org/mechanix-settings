@@ -172,6 +172,12 @@ abstract class AppLocalizations {
   /// **'Manage wireless'**
   String get manageWireless;
 
+  /// No description provided for @noInternetConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'No Internet Connection'**
+  String get noInternetConnection;
+
   /// No description provided for @onToggle.
   ///
   /// In en, this message translates to:
