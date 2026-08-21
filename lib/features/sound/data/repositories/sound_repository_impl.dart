@@ -42,17 +42,19 @@ class SoundRepositoryImpl implements SoundRepository {
   String _selectedNotificationSound = "Space";
 
   SoundRepositoryImpl({PulseAudioClient? client})
-      : _client = client ?? PulseAudioClient();
+    : _client = client ?? PulseAudioClient();
 
   /// Establishes the PulseAudio connection if it is not already connected
   /// and configures the PulseAudio event listeners.
   Future<void> _ensureConnected() async {
     if (!_connected) {
       AppLogger.i("SoundRepositoryImpl: Connecting to PulseAudio Client...");
+
       try {
         await _client.initialize();
         _connected = true;
         _setupPulseAudioListeners();
+
         AppLogger.i(
           "SoundRepositoryImpl: PulseAudio Client connected successfully.",
         );
@@ -169,6 +171,7 @@ class SoundRepositoryImpl implements SoundRepository {
     try {
       final serverInfo = await _client.getServerInfo();
       final defaultSinkName = serverInfo.defaultSinkName;
+
       await _client.setSinkVolume(defaultSinkName, volume.clamp(0.0, 1.0));
     } catch (e, stack) {
       AppLogger.e("Error setting output volume", error: e, stack: stack);
@@ -183,6 +186,7 @@ class SoundRepositoryImpl implements SoundRepository {
     try {
       final sinks = await _client.getSinkList();
       _sinks = sinks.where((sink) => !sink.name.contains('.monitor')).toList();
+
       return _sinks
           .map(
             (sink) =>
@@ -202,13 +206,16 @@ class SoundRepositoryImpl implements SoundRepository {
     try {
       final serverInfo = await _client.getServerInfo();
       final defaultSinkName = serverInfo.defaultSinkName;
+
       await getOutputDevices();
+
       if (_sinks.isEmpty) return "";
 
       final matched = _sinks.firstWhere(
         (sink) => sink.name == defaultSinkName,
         orElse: () => _sinks.first,
       );
+
       return matched.description.isNotEmpty
           ? matched.description
           : matched.name;
@@ -231,6 +238,7 @@ class SoundRepositoryImpl implements SoundRepository {
       final matched = _sinks.firstWhere(
         (sink) => sink.description == device || sink.name == device,
       );
+
       await _client.setDefaultSink(matched.name);
     } catch (e, stack) {
       AppLogger.e(
@@ -270,6 +278,7 @@ class SoundRepositoryImpl implements SoundRepository {
     try {
       final serverInfo = await _client.getServerInfo();
       final defaultSourceName = serverInfo.defaultSourceName;
+
       await _client.setSourceVolume(defaultSourceName, volume.clamp(0.0, 1.0));
     } catch (e, stack) {
       AppLogger.e("Error setting input volume", error: e, stack: stack);
@@ -309,11 +318,14 @@ class SoundRepositoryImpl implements SoundRepository {
       final serverInfo = await _client.getServerInfo();
       final defaultSourceName = serverInfo.defaultSourceName;
       await getInputDevices();
+
       if (_sources.isEmpty) return "";
+
       final matched = _sources.firstWhere(
         (source) => source.name == defaultSourceName,
         orElse: () => _sources.first,
       );
+
       return matched.description.isNotEmpty
           ? matched.description
           : matched.name;
@@ -333,9 +345,11 @@ class SoundRepositoryImpl implements SoundRepository {
     await _ensureConnected();
     try {
       await getInputDevices();
+
       final matched = _sources.firstWhere(
         (source) => source.description == device || source.name == device,
       );
+
       await _client.setDefaultSource(matched.name);
     } catch (e, stack) {
       AppLogger.e("Error setting default input device", error: e, stack: stack);

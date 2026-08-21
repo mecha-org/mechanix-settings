@@ -13,8 +13,8 @@ class SoundBloc extends Bloc<SoundEvent, SoundState> {
   StreamSubscription? _changeSubscription;
 
   SoundBloc({required SoundRepository soundRepository})
-      : _soundRepository = soundRepository,
-        super(const SoundState()) {
+    : _soundRepository = soundRepository,
+      super(const SoundState()) {
     on<SoundInit>(_onInit);
     on<LoadSoundSettings>(_onLoadSoundSettings);
     on<SetOutputVolume>(_onSetOutputVolume);
@@ -43,20 +43,21 @@ class SoundBloc extends Bloc<SoundEvent, SoundState> {
         error: e,
         stack: stack,
       );
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.initializationFailed,
-      ));
+      emit(
+        state.copyWith(
+          status: SoundStatus.error,
+          error: SoundError.initializationFailed,
+        ),
+      );
     } catch (e, stack) {
       AppLogger.e(
         "SoundBloc: Unexpected error initializing sound",
         error: e,
         stack: stack,
       );
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.unknown,
-      ));
+      emit(
+        state.copyWith(status: SoundStatus.error, error: SoundError.unknown),
+      );
     }
   }
 
@@ -119,32 +120,35 @@ class SoundBloc extends Bloc<SoundEvent, SoundState> {
     );
 
     try {
-      final outputVol = await _soundRepository.getOutputVolume();
-      final selectedOut = await _soundRepository.getSelectedOutputDevice();
-      final outDevices = await _soundRepository.getOutputDevices();
+      final outputVolume = await _soundRepository.getOutputVolume();
+      final selectedOutputDevice = await _soundRepository
+          .getSelectedOutputDevice();
+      final outputDevices = await _soundRepository.getOutputDevices();
 
-      final inputVol = await _soundRepository.getInputVolume();
-      final selectedIn = await _soundRepository.getSelectedInputDevice();
-      final inDevices = await _soundRepository.getInputDevices();
+      final inputVolume = await _soundRepository.getInputVolume();
+      final selectedInputVolume = await _soundRepository
+          .getSelectedInputDevice();
+      final inputDevices = await _soundRepository.getInputDevices();
 
       final launcherEnabled = await _soundRepository.getLauncherSoundsEnabled();
       final hapticEnabled = await _soundRepository.getHapticFeedbackEnabled();
 
-      final selectedNotif = await _soundRepository.getSelectedNotificationSound();
-      final notifSounds = await _soundRepository.getNotificationSounds();
+      final selectedNotificationSound = await _soundRepository
+          .getSelectedNotificationSound();
+      final notificationSounds = await _soundRepository.getNotificationSounds();
 
       emit(
         SoundState(
-          outputVolume: outputVol,
-          selectedOutputDevice: selectedOut,
-          outputDevices: outDevices,
-          inputVolume: inputVol,
-          selectedInputDevice: selectedIn,
-          inputDevices: inDevices,
+          outputVolume: outputVolume,
+          selectedOutputDevice: selectedOutputDevice,
+          outputDevices: outputDevices,
+          inputVolume: inputVolume,
+          selectedInputDevice: selectedInputVolume,
+          inputDevices: inputDevices,
           launcherSoundsEnabled: launcherEnabled,
           hapticFeedbackEnabled: hapticEnabled,
-          selectedNotificationSound: selectedNotif,
-          notificationSounds: notifSounds,
+          selectedNotificationSound: selectedNotificationSound,
+          notificationSounds: notificationSounds,
           inputDeviceLoading: false,
           outputDeviceLoading: false,
           status: SoundStatus.loaded,
@@ -152,61 +156,103 @@ class SoundBloc extends Bloc<SoundEvent, SoundState> {
         ),
       );
     } on GetOutputVolumeException catch (e, stack) {
-      AppLogger.e("SoundBloc: Error getting output volume", error: e, stack: stack);
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.getOutputVolumeFailed,
-        inputDeviceLoading: false,
-        outputDeviceLoading: false,
-      ));
+      AppLogger.e(
+        "SoundBloc: Error getting output volume",
+        error: e,
+        stack: stack,
+      );
+      emit(
+        state.copyWith(
+          status: SoundStatus.error,
+          error: SoundError.getOutputVolumeFailed,
+          inputDeviceLoading: false,
+          outputDeviceLoading: false,
+        ),
+      );
     } on GetSelectedOutputDeviceException catch (e, stack) {
-      AppLogger.e("SoundBloc: Error getting selected output device", error: e, stack: stack);
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.getSelectedOutputDeviceFailed,
-        inputDeviceLoading: false,
-        outputDeviceLoading: false,
-      ));
+      AppLogger.e(
+        "SoundBloc: Error getting selected output device",
+        error: e,
+        stack: stack,
+      );
+      emit(
+        state.copyWith(
+          status: SoundStatus.error,
+          error: SoundError.getSelectedOutputDeviceFailed,
+          inputDeviceLoading: false,
+          outputDeviceLoading: false,
+        ),
+      );
     } on GetOutputDevicesException catch (e, stack) {
-      AppLogger.e("SoundBloc: Error getting output devices", error: e, stack: stack);
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.getOutputDevicesFailed,
-        inputDeviceLoading: false,
-        outputDeviceLoading: false,
-      ));
+      AppLogger.e(
+        "SoundBloc: Error getting output devices",
+        error: e,
+        stack: stack,
+      );
+      emit(
+        state.copyWith(
+          status: SoundStatus.error,
+          error: SoundError.getOutputDevicesFailed,
+          inputDeviceLoading: false,
+          outputDeviceLoading: false,
+        ),
+      );
     } on GetInputVolumeException catch (e, stack) {
-      AppLogger.e("SoundBloc: Error getting input volume", error: e, stack: stack);
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.getInputVolumeFailed,
-        inputDeviceLoading: false,
-        outputDeviceLoading: false,
-      ));
+      AppLogger.e(
+        "SoundBloc: Error getting input volume",
+        error: e,
+        stack: stack,
+      );
+      emit(
+        state.copyWith(
+          status: SoundStatus.error,
+          error: SoundError.getInputVolumeFailed,
+          inputDeviceLoading: false,
+          outputDeviceLoading: false,
+        ),
+      );
     } on GetSelectedInputDeviceException catch (e, stack) {
-      AppLogger.e("SoundBloc: Error getting selected input device", error: e, stack: stack);
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.getSelectedInputDeviceFailed,
-        inputDeviceLoading: false,
-        outputDeviceLoading: false,
-      ));
+      AppLogger.e(
+        "SoundBloc: Error getting selected input device",
+        error: e,
+        stack: stack,
+      );
+      emit(
+        state.copyWith(
+          status: SoundStatus.error,
+          error: SoundError.getSelectedInputDeviceFailed,
+          inputDeviceLoading: false,
+          outputDeviceLoading: false,
+        ),
+      );
     } on GetInputDevicesException catch (e, stack) {
-      AppLogger.e("SoundBloc: Error getting input devices", error: e, stack: stack);
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.getInputDevicesFailed,
-        inputDeviceLoading: false,
-        outputDeviceLoading: false,
-      ));
+      AppLogger.e(
+        "SoundBloc: Error getting input devices",
+        error: e,
+        stack: stack,
+      );
+      emit(
+        state.copyWith(
+          status: SoundStatus.error,
+          error: SoundError.getInputDevicesFailed,
+          inputDeviceLoading: false,
+          outputDeviceLoading: false,
+        ),
+      );
     } on GetSoundSettingException catch (e, stack) {
-      AppLogger.e("SoundBloc: Error getting sound settings", error: e, stack: stack);
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.getSoundSettingFailed,
-        inputDeviceLoading: false,
-        outputDeviceLoading: false,
-      ));
+      AppLogger.e(
+        "SoundBloc: Error getting sound settings",
+        error: e,
+        stack: stack,
+      );
+      emit(
+        state.copyWith(
+          status: SoundStatus.error,
+          error: SoundError.getSoundSettingFailed,
+          inputDeviceLoading: false,
+          outputDeviceLoading: false,
+        ),
+      );
     } catch (e, stack) {
       AppLogger.e(
         "SoundBloc: Error loading sound settings",
@@ -234,21 +280,26 @@ class SoundBloc extends Bloc<SoundEvent, SoundState> {
       await _soundRepository.setOutputVolume(event.volume);
       emit(state.copyWith(outputVolume: event.volume, error: null));
     } on SetOutputVolumeException catch (e, stack) {
-      AppLogger.e("SoundBloc: Error setting output volume", error: e, stack: stack);
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.setOutputVolumeFailed,
-      ));
+      AppLogger.e(
+        "SoundBloc: Error setting output volume",
+        error: e,
+        stack: stack,
+      );
+      emit(
+        state.copyWith(
+          status: SoundStatus.error,
+          error: SoundError.setOutputVolumeFailed,
+        ),
+      );
     } catch (e, stack) {
       AppLogger.e(
         "SoundBloc: Unexpected error setting output volume",
         error: e,
         stack: stack,
       );
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.unknown,
-      ));
+      emit(
+        state.copyWith(status: SoundStatus.error, error: SoundError.unknown),
+      );
     }
   }
 
@@ -262,21 +313,26 @@ class SoundBloc extends Bloc<SoundEvent, SoundState> {
       await _soundRepository.setSelectedOutputDevice(event.device);
       emit(state.copyWith(selectedOutputDevice: event.device, error: null));
     } on SetSelectedOutputDeviceException catch (e, stack) {
-      AppLogger.e("SoundBloc: Error setting output device", error: e, stack: stack);
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.setSelectedOutputDeviceFailed,
-      ));
+      AppLogger.e(
+        "SoundBloc: Error setting output device",
+        error: e,
+        stack: stack,
+      );
+      emit(
+        state.copyWith(
+          status: SoundStatus.error,
+          error: SoundError.setSelectedOutputDeviceFailed,
+        ),
+      );
     } catch (e, stack) {
       AppLogger.e(
         "SoundBloc: Unexpected error setting output device",
         error: e,
         stack: stack,
       );
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.unknown,
-      ));
+      emit(
+        state.copyWith(status: SoundStatus.error, error: SoundError.unknown),
+      );
     }
   }
 
@@ -290,21 +346,26 @@ class SoundBloc extends Bloc<SoundEvent, SoundState> {
       await _soundRepository.setInputVolume(event.volume);
       emit(state.copyWith(inputVolume: event.volume, error: null));
     } on SetInputVolumeException catch (e, stack) {
-      AppLogger.e("SoundBloc: Error setting input volume", error: e, stack: stack);
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.setInputVolumeFailed,
-      ));
+      AppLogger.e(
+        "SoundBloc: Error setting input volume",
+        error: e,
+        stack: stack,
+      );
+      emit(
+        state.copyWith(
+          status: SoundStatus.error,
+          error: SoundError.setInputVolumeFailed,
+        ),
+      );
     } catch (e, stack) {
       AppLogger.e(
         "SoundBloc: Unexpected error setting input volume",
         error: e,
         stack: stack,
       );
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.unknown,
-      ));
+      emit(
+        state.copyWith(status: SoundStatus.error, error: SoundError.unknown),
+      );
     }
   }
 
@@ -318,21 +379,26 @@ class SoundBloc extends Bloc<SoundEvent, SoundState> {
       await _soundRepository.setSelectedInputDevice(event.device);
       emit(state.copyWith(selectedInputDevice: event.device, error: null));
     } on SetSelectedInputDeviceException catch (e, stack) {
-      AppLogger.e("SoundBloc: Error setting input device", error: e, stack: stack);
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.setSelectedInputDeviceFailed,
-      ));
+      AppLogger.e(
+        "SoundBloc: Error setting input device",
+        error: e,
+        stack: stack,
+      );
+      emit(
+        state.copyWith(
+          status: SoundStatus.error,
+          error: SoundError.setSelectedInputDeviceFailed,
+        ),
+      );
     } catch (e, stack) {
       AppLogger.e(
         "SoundBloc: Unexpected error setting input device",
         error: e,
         stack: stack,
       );
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.unknown,
-      ));
+      emit(
+        state.copyWith(status: SoundStatus.error, error: SoundError.unknown),
+      );
     }
   }
 
@@ -345,21 +411,26 @@ class SoundBloc extends Bloc<SoundEvent, SoundState> {
       await _soundRepository.setLauncherSoundsEnabled(event.enabled);
       emit(state.copyWith(launcherSoundsEnabled: event.enabled, error: null));
     } on SetSoundSettingException catch (e, stack) {
-      AppLogger.e("SoundBloc: Error setting launcher sounds", error: e, stack: stack);
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.setSoundSettingFailed,
-      ));
+      AppLogger.e(
+        "SoundBloc: Error setting launcher sounds",
+        error: e,
+        stack: stack,
+      );
+      emit(
+        state.copyWith(
+          status: SoundStatus.error,
+          error: SoundError.setSoundSettingFailed,
+        ),
+      );
     } catch (e, stack) {
       AppLogger.e(
         "SoundBloc: Unexpected error setting launcher sounds",
         error: e,
         stack: stack,
       );
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.unknown,
-      ));
+      emit(
+        state.copyWith(status: SoundStatus.error, error: SoundError.unknown),
+      );
     }
   }
 
@@ -372,21 +443,26 @@ class SoundBloc extends Bloc<SoundEvent, SoundState> {
       await _soundRepository.setHapticFeedbackEnabled(event.enabled);
       emit(state.copyWith(hapticFeedbackEnabled: event.enabled, error: null));
     } on SetSoundSettingException catch (e, stack) {
-      AppLogger.e("SoundBloc: Error setting haptic feedback", error: e, stack: stack);
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.setSoundSettingFailed,
-      ));
+      AppLogger.e(
+        "SoundBloc: Error setting haptic feedback",
+        error: e,
+        stack: stack,
+      );
+      emit(
+        state.copyWith(
+          status: SoundStatus.error,
+          error: SoundError.setSoundSettingFailed,
+        ),
+      );
     } catch (e, stack) {
       AppLogger.e(
         "SoundBloc: Unexpected error setting haptic feedback",
         error: e,
         stack: stack,
       );
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.unknown,
-      ));
+      emit(
+        state.copyWith(status: SoundStatus.error, error: SoundError.unknown),
+      );
     }
   }
 
@@ -399,21 +475,26 @@ class SoundBloc extends Bloc<SoundEvent, SoundState> {
       await _soundRepository.setSelectedNotificationSound(event.sound);
       emit(state.copyWith(selectedNotificationSound: event.sound, error: null));
     } on SetSoundSettingException catch (e, stack) {
-      AppLogger.e("SoundBloc: Error setting notification sound", error: e, stack: stack);
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.setSoundSettingFailed,
-      ));
+      AppLogger.e(
+        "SoundBloc: Error setting notification sound",
+        error: e,
+        stack: stack,
+      );
+      emit(
+        state.copyWith(
+          status: SoundStatus.error,
+          error: SoundError.setSoundSettingFailed,
+        ),
+      );
     } catch (e, stack) {
       AppLogger.e(
         "SoundBloc: Unexpected error setting notification sound",
         error: e,
         stack: stack,
       );
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.unknown,
-      ));
+      emit(
+        state.copyWith(status: SoundStatus.error, error: SoundError.unknown),
+      );
     }
   }
 
@@ -429,42 +510,57 @@ class SoundBloc extends Bloc<SoundEvent, SoundState> {
     await Future.delayed(const Duration(milliseconds: 500));
 
     try {
-      final outDevices = await _soundRepository.getOutputDevices();
-      final selectedOut = await _soundRepository.getSelectedOutputDevice();
+      final outputDevices = await _soundRepository.getOutputDevices();
+      final selectedOutputDevice = await _soundRepository
+          .getSelectedOutputDevice();
 
       emit(
         state.copyWith(
-          outputDevices: outDevices,
-          selectedOutputDevice: selectedOut,
+          outputDevices: outputDevices,
+          selectedOutputDevice: selectedOutputDevice,
           outputDeviceLoading: false,
           error: null,
         ),
       );
     } on GetOutputDevicesException catch (e, stack) {
-      AppLogger.e("SoundBloc: Error refreshing output devices", error: e, stack: stack);
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.getOutputDevicesFailed,
-        outputDeviceLoading: false,
-      ));
+      AppLogger.e(
+        "SoundBloc: Error refreshing output devices",
+        error: e,
+        stack: stack,
+      );
+      emit(
+        state.copyWith(
+          status: SoundStatus.error,
+          error: SoundError.getOutputDevicesFailed,
+          outputDeviceLoading: false,
+        ),
+      );
     } on GetSelectedOutputDeviceException catch (e, stack) {
-      AppLogger.e("SoundBloc: Error refreshing selected output device", error: e, stack: stack);
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.getSelectedOutputDeviceFailed,
-        outputDeviceLoading: false,
-      ));
+      AppLogger.e(
+        "SoundBloc: Error refreshing selected output device",
+        error: e,
+        stack: stack,
+      );
+      emit(
+        state.copyWith(
+          status: SoundStatus.error,
+          error: SoundError.getSelectedOutputDeviceFailed,
+          outputDeviceLoading: false,
+        ),
+      );
     } catch (e, stack) {
       AppLogger.e(
         "SoundBloc: Unexpected error refreshing output devices",
         error: e,
         stack: stack,
       );
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.unknown,
-        outputDeviceLoading: false,
-      ));
+      emit(
+        state.copyWith(
+          status: SoundStatus.error,
+          error: SoundError.unknown,
+          outputDeviceLoading: false,
+        ),
+      );
     }
   }
 
@@ -480,42 +576,57 @@ class SoundBloc extends Bloc<SoundEvent, SoundState> {
     await Future.delayed(const Duration(milliseconds: 500));
 
     try {
-      final inDevices = await _soundRepository.getInputDevices();
-      final selectedIn = await _soundRepository.getSelectedInputDevice();
+      final inputDevices = await _soundRepository.getInputDevices();
+      final selectedInnputDevice = await _soundRepository
+          .getSelectedInputDevice();
 
       emit(
         state.copyWith(
-          inputDevices: inDevices,
-          selectedInputDevice: selectedIn,
+          inputDevices: inputDevices,
+          selectedInputDevice: selectedInnputDevice,
           inputDeviceLoading: false,
           error: null,
         ),
       );
     } on GetInputDevicesException catch (e, stack) {
-      AppLogger.e("SoundBloc: Error refreshing input devices", error: e, stack: stack);
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.getInputDevicesFailed,
-        inputDeviceLoading: false,
-      ));
+      AppLogger.e(
+        "SoundBloc: Error refreshing input devices",
+        error: e,
+        stack: stack,
+      );
+      emit(
+        state.copyWith(
+          status: SoundStatus.error,
+          error: SoundError.getInputDevicesFailed,
+          inputDeviceLoading: false,
+        ),
+      );
     } on GetSelectedInputDeviceException catch (e, stack) {
-      AppLogger.e("SoundBloc: Error refreshing selected input device", error: e, stack: stack);
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.getSelectedInputDeviceFailed,
-        inputDeviceLoading: false,
-      ));
+      AppLogger.e(
+        "SoundBloc: Error refreshing selected input device",
+        error: e,
+        stack: stack,
+      );
+      emit(
+        state.copyWith(
+          status: SoundStatus.error,
+          error: SoundError.getSelectedInputDeviceFailed,
+          inputDeviceLoading: false,
+        ),
+      );
     } catch (e, stack) {
       AppLogger.e(
         "SoundBloc: Unexpected error refreshing input devices",
         error: e,
         stack: stack,
       );
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.unknown,
-        inputDeviceLoading: false,
-      ));
+      emit(
+        state.copyWith(
+          status: SoundStatus.error,
+          error: SoundError.unknown,
+          inputDeviceLoading: false,
+        ),
+      );
     }
   }
 
@@ -529,21 +640,26 @@ class SoundBloc extends Bloc<SoundEvent, SoundState> {
       final volume = await _soundRepository.getOutputVolume();
       emit(state.copyWith(outputVolume: volume, error: null));
     } on GetOutputVolumeException catch (e, stack) {
-      AppLogger.e("SoundBloc: Error refreshing output volume", error: e, stack: stack);
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.getOutputVolumeFailed,
-      ));
+      AppLogger.e(
+        "SoundBloc: Error refreshing output volume",
+        error: e,
+        stack: stack,
+      );
+      emit(
+        state.copyWith(
+          status: SoundStatus.error,
+          error: SoundError.getOutputVolumeFailed,
+        ),
+      );
     } catch (e, stack) {
       AppLogger.e(
         "SoundBloc: Unexpected error refreshing output volume",
         error: e,
         stack: stack,
       );
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.unknown,
-      ));
+      emit(
+        state.copyWith(status: SoundStatus.error, error: SoundError.unknown),
+      );
     }
   }
 
@@ -557,21 +673,26 @@ class SoundBloc extends Bloc<SoundEvent, SoundState> {
       final volume = await _soundRepository.getInputVolume();
       emit(state.copyWith(inputVolume: volume, error: null));
     } on GetInputVolumeException catch (e, stack) {
-      AppLogger.e("SoundBloc: Error refreshing input volume", error: e, stack: stack);
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.getInputVolumeFailed,
-      ));
+      AppLogger.e(
+        "SoundBloc: Error refreshing input volume",
+        error: e,
+        stack: stack,
+      );
+      emit(
+        state.copyWith(
+          status: SoundStatus.error,
+          error: SoundError.getInputVolumeFailed,
+        ),
+      );
     } catch (e, stack) {
       AppLogger.e(
         "SoundBloc: Unexpected error refreshing input volume",
         error: e,
         stack: stack,
       );
-      emit(state.copyWith(
-        status: SoundStatus.error,
-        error: SoundError.unknown,
-      ));
+      emit(
+        state.copyWith(status: SoundStatus.error, error: SoundError.unknown),
+      );
     }
   }
 
