@@ -420,6 +420,34 @@ void main() {
         ),
       ],
     );
+
+    blocTest<WirelessBloc, WirelessState>(
+      'does not emit error and keeps connectingNetworkName when LoadWireless runs during intermediate connecting state',
+      build: () {
+        mockWirelessRepository = MockWirelessRepository();
+        setupDefaultMocks(mockWirelessRepository);
+        stubWirelessActiveDefaults(mockWirelessRepository);
+        when(
+          () => mockWirelessRepository.connectToNetwork(any(), any()),
+        ).thenAnswer((_) async {});
+        when(
+          () => mockWirelessRepository.getWifiDeviceState(),
+        ).thenReturn(NetworkManagerDeviceState.config);
+        return WirelessBloc(wirelessRepository: mockWirelessRepository);
+      },
+      act: (bloc) async {
+        bloc.add(const ConnectToNetworkEvent('Test_WiFi', 'password123'));
+        await Future.delayed(Duration.zero);
+        bloc.add(const LoadWireless(requestScan: false));
+      },
+      expect: () => [
+        isA<WirelessState>().having(
+          (s) => s.connectingNetworkName,
+          'connectingNetworkName',
+          'Test_WiFi',
+        ),
+      ],
+    );
   });
 
   group('AddNetworkEvent', () {
