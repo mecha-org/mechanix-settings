@@ -524,6 +524,47 @@ void main() {
     verify(() => connection.update(any())).called(1);
   });
 
+  test('updateIPv6Settings updates manual configuration', () async {
+    final connection = MockNetworkManagerSettingsConnection();
+    final active = MockNetworkManagerActiveConnection();
+
+    when(() => mockWifiDevice.activeConnection).thenReturn(active);
+
+    when(() => connection.unsaved).thenReturn(false);
+
+    when(() => connection.getSettings()).thenAnswer(
+      (_) async => {
+        'connection': {'id': const DBusString('Home')},
+        'ipv6': {},
+      },
+    );
+
+    when(() => connection.update(any())).thenAnswer((_) async {});
+
+    when(() => mockSettings.connections).thenReturn([connection]);
+
+    when(
+      () => mockClient.deactivateConnection(active),
+    ).thenAnswer((_) async {});
+
+    when(
+      () => mockClient.activateConnection(
+        connection: connection,
+        device: mockWifiDevice,
+      ),
+    ).thenAnswer((_) async => active);
+
+    await repository.updateIPv6Settings(
+      const WifiNetwork(name: 'Home'),
+      IPv6ConfigType.manual,
+      '2001:db8::1',
+      64,
+      '2001:db8::fe',
+    );
+
+    verify(() => connection.update(any())).called(1);
+  });
+
   test('updateDNSSettings updates DNS', () async {
     final connection = MockNetworkManagerSettingsConnection();
     final active = MockNetworkManagerActiveConnection();

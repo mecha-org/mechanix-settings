@@ -104,7 +104,25 @@
   "password": "Password",
   "lowDataMode": "Low Data mode",
   "ipv4Address": "IPv4 Address",
+  "advanced": "Advanced",
+  "advancedMessage": "IP and DNS settings are available after you join {networkName}. These details are assigned by the network when you connect.",  
+  "@advancedMessage": {
+    "description": "Message shown when advanced network settings are read-only until the specified network is joined.",
+    "placeholders": {
+      "networkName": {
+        "type": "String"
+      }
+    }
+  },
+  "ipv6Address": "IPv6 Address",
   "configureIp": "Configure IP",
+  "configureIpv6": "Configure IPv6",
+  "ipv6AddressLabel": "IPv6 Address",
+  "ipv6PrefixLabel": "Subnet Prefix",
+  "ipv6GatewayLabel": "Router",
+  "ipv6PrefixRange": "Subnet prefix must be between 1 and 128.",
+  "invalidIpv6Address": "Enter a valid IPv6 address.",
+  "invalidIpv6Gateway": "Enter a valid IPv6 gateway address.",
   "dns": "DNS",
   "configureDns": "Configure DNS",
   "automatic": "Automatic",

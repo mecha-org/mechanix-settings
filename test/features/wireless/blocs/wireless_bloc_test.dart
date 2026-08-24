@@ -31,6 +31,7 @@ void main() {
     registerFallbackValue(testWifiNetwork);
     registerFallbackValue(WirelessSecurity.none);
     registerFallbackValue(IPv4ConfigType.manual);
+    registerFallbackValue(IPv6ConfigType.manual);
     registerFallbackValue(DNSConfigType.manual);
     registerFallbackValue(const EnterpriseConfig());
   });
@@ -58,6 +59,15 @@ void main() {
     when(() => repository.updateNetwork(any())).thenAnswer((_) async {});
     when(
       () => repository.updateIPSettings(
+        any(),
+        any(),
+        any(that: anything),
+        any(that: anything),
+        any(that: anything),
+      ),
+    ).thenAnswer((_) async {});
+    when(
+      () => repository.updateIPv6Settings(
         any(),
         any(),
         any(that: anything),
@@ -581,6 +591,50 @@ void main() {
             '192.168.1.100',
             '255.255.255.0',
             '192.168.1.1',
+          ),
+        ).called(1);
+      },
+    );
+  });
+
+  group('UpdateIPv6SettingsEvent', () {
+    blocTest<WirelessBloc, WirelessState>(
+      'calls updateIPv6Settings and reloads networks',
+      build: () {
+        mockWirelessRepository = MockWirelessRepository();
+        setupDefaultMocks(mockWirelessRepository);
+        stubWirelessActiveDefaults(
+          mockWirelessRepository,
+          savedNetworks: [testWifiNetwork],
+        );
+        return WirelessBloc(wirelessRepository: mockWirelessRepository);
+      },
+      seed: () => const WirelessState(isWirelessOn: true, savedNetworks: []),
+      act: (bloc) => bloc.add(
+        UpdateIPv6SettingsEvent(
+          network: testWifiNetwork,
+          ipv6ConfigType: IPv6ConfigType.manual,
+          ipv6Address: '2001:db8::100',
+          ipv6Prefix: 64,
+          ipv6Gateway: '2001:db8::1',
+        ),
+      ),
+      expect: () => [
+        WirelessState(
+          isWirelessOn: true,
+          savedNetworks: [testWifiNetwork],
+          myNetworks: [],
+          availableNetworks: [],
+        ),
+      ],
+      verify: (_) {
+        verify(
+          () => mockWirelessRepository.updateIPv6Settings(
+            testWifiNetwork,
+            IPv6ConfigType.manual,
+            '2001:db8::100',
+            64,
+            '2001:db8::1',
           ),
         ).called(1);
       },

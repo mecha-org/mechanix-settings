@@ -128,7 +128,39 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ipv4Address => 'IPv4 Address';
 
   @override
+  String get advanced => 'Advanced';
+
+  @override
+  String advancedMessage(String networkName) {
+    return 'IP and DNS settings are available after you join $networkName. These details are assigned by the network when you connect.';
+  }
+
+  @override
+  String get ipv6Address => 'IPv6 Address';
+
+  @override
   String get configureIp => 'Configure IP';
+
+  @override
+  String get configureIpv6 => 'Configure IPv6';
+
+  @override
+  String get ipv6AddressLabel => 'IPv6 Address';
+
+  @override
+  String get ipv6PrefixLabel => 'Subnet Prefix';
+
+  @override
+  String get ipv6GatewayLabel => 'Router';
+
+  @override
+  String get ipv6PrefixRange => 'Subnet prefix must be between 1 and 128.';
+
+  @override
+  String get invalidIpv6Address => 'Enter a valid IPv6 address.';
+
+  @override
+  String get invalidIpv6Gateway => 'Enter a valid IPv6 gateway address.';
 
   @override
   String get dns => 'DNS';
