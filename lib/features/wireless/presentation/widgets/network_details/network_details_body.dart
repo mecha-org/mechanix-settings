@@ -65,12 +65,14 @@ class NetworkDetailsBody extends StatelessWidget {
               },
             ),
 
-            SettingsInfoRow(
-              title: l10n.password,
-              value: network.password.isEmpty ? "-" : network.password,
-              obscureValue: network.password.isNotEmpty,
-            ),
-            const CustomDivider(verticalPadding: 0),
+            if (network.password.isNotEmpty) ...[
+              SettingsInfoRow(
+                title: l10n.password,
+                value: network.password,
+                obscureValue: network.password.isNotEmpty,
+              ),
+              const CustomDivider(verticalPadding: 0),
+            ],
 
             if (network.speedMbps > 0) ...[
               SettingsInfoRow(

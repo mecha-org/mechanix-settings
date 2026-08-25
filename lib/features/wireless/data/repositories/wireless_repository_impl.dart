@@ -829,7 +829,6 @@ class WirelessRepositoryImpl implements WirelessRepository {
       name: name,
       ap: ap,
       connection: connection,
-      isConnected: isConnected,
       isSecured: isSecured,
       wifiDevice: wifiDevice,
     );
@@ -1258,13 +1257,12 @@ class WirelessRepositoryImpl implements WirelessRepository {
 
   Future<String> _getPassword({
     required String name,
-    required bool isConnected,
     required bool isSecured,
     NetworkManagerAccessPoint? ap,
     NetworkManagerSettingsConnection? connection,
     NetworkManagerDevice? wifiDevice,
   }) async {
-    if (!isConnected || !isSecured) {
+    if (!isSecured) {
       return "";
     }
 
