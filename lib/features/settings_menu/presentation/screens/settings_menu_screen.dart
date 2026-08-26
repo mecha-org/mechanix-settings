@@ -123,7 +123,9 @@ class SettingsMenuScreenState extends State<SettingsMenuScreen> {
                       assetPath: SettingIcons.sound,
                       color: AppColors.onSurfaceVariant,
                     ),
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.of(context).pushNamed(AppRoutes.sound);
+                    },
                   ),
 
                   SectionItem(

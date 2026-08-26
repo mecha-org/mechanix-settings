@@ -39,4 +39,5 @@ class SettingIcons {
   static const String disconnect = 'assets/images/disconnect.png';
 
   static const String charging = 'assets/images/charging.png';
+  static const String loader = 'assets/images/loader.png';
 }

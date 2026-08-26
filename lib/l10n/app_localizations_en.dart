@@ -811,6 +811,87 @@ class AppLocalizationsEn extends AppLocalizations {
   String get failedToUpdateHostname => 'Failed to update hostname.';
 
   @override
+  String get output => 'Output';
+
+  @override
+  String get input => 'Input';
+
+  @override
+  String get device => 'Device';
+
+  @override
+  String get launcher => 'Launcher';
+
+  @override
+  String get hapticFeedback => 'Haptic feedback';
+
+  @override
+  String get notification => 'Notification';
+
+  @override
+  String get outputDevice => 'Output device';
+
+  @override
+  String get inputDevice => 'Input device';
+
+  @override
+  String get noInputDevices => 'No Input Devices';
+
+  @override
+  String get noOutputDevices => 'No Output Devices';
+
+  @override
+  String volumePercentage(int percentage) {
+    return '$percentage %';
+  }
+
+  @override
+  String notificationSoundName(String name) {
+    return '$name';
+  }
+
+  @override
+  String get failedToInitializeSound => 'Failed to initialize sound settings.';
+
+  @override
+  String get failedToGetOutputVolume => 'Failed to get output volume.';
+
+  @override
+  String get failedToUpdateOutputVolume => 'Failed to update output volume.';
+
+  @override
+  String get failedToGetOutputDevices => 'Failed to get output devices.';
+
+  @override
+  String get failedToGetSelectedOutputDevice =>
+      'Failed to get selected output device.';
+
+  @override
+  String get failedToUpdateOutputDevice => 'Failed to update output device.';
+
+  @override
+  String get failedToGetInputVolume => 'Failed to get input volume.';
+
+  @override
+  String get failedToUpdateInputVolume => 'Failed to update input volume.';
+
+  @override
+  String get failedToGetInputDevices => 'Failed to get input devices.';
+
+  @override
+  String get failedToGetSelectedInputDevice =>
+      'Failed to get selected input device.';
+
+  @override
+  String get failedToUpdateInputDevice => 'Failed to update input device.';
+
+  @override
+  String get failedToGetSoundSettings => 'Failed to get sound settings.';
+
+  @override
+  String get failedToUpdateSoundSettings => 'Failed to update sound settings.';
+
+  @override
   String get brightness => 'Brightness';
 
   @override

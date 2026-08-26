@@ -31,6 +31,11 @@ import 'package:mechanix_settings/features/about/data/repositories/about_reposit
 import 'package:mechanix_settings/features/about/blocs/about_bloc.dart';
 import 'package:mechanix_settings/features/about/blocs/about_event.dart';
 import 'package:mechanix_settings/features/about/presentation/screens/about_screen.dart';
+import 'package:mechanix_settings/features/sound/data/repositories/sound_repository.dart';
+import 'package:mechanix_settings/features/sound/data/repositories/sound_repository_impl.dart';
+import 'package:mechanix_settings/features/sound/blocs/sound_bloc.dart';
+import 'package:mechanix_settings/features/sound/blocs/sound_event.dart';
+import 'package:mechanix_settings/features/sound/presentation/screens/sound_screen.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
 import 'package:show_fps/show_fps.dart';
 
@@ -54,6 +59,9 @@ void main() {
         ),
         RepositoryProvider<AboutRepository>(
           create: (_) => AboutRepositoryImpl(),
+        ),
+        RepositoryProvider<SoundRepository>(
+          create: (_) => SoundRepositoryImpl(),
         ),
         RepositoryProvider<DisplayRepository>(
           create: (_) => DisplayRepositoryImpl(),
@@ -95,6 +103,13 @@ void main() {
             create: (context) =>
                 AboutBloc(context.read<AboutRepository>())
                   ..add(const LoadAboutDetails()),
+          ),
+          BlocProvider<SoundBloc>(
+            lazy: false,
+            create: (context) =>
+                SoundBloc(soundRepository: context.read<SoundRepository>())
+                  ..add(const SoundInit())
+                  ..add(const LoadSoundSettings()),
           ),
           BlocProvider<DisplayBloc>(
             create: (context) =>
@@ -142,6 +157,10 @@ class MechanixSettingsApp extends StatelessWidget {
         AppRoutes.about: (context) => BlocProvider.value(
           value: context.read<AboutBloc>(),
           child: const AboutScreen(),
+        ),
+        AppRoutes.sound: (context) => BlocProvider.value(
+          value: context.read<SoundBloc>(),
+          child: const SoundScreen(),
         ),
       },
     );

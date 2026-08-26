@@ -3,6 +3,6 @@ class AppRoutes {
   static const bluetooth = '/bluetooth';
   static const battery = '/battery';
   static const about = '/about';
-
+  static const sound = '/sound';
 }
 
