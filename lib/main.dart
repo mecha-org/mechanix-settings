@@ -112,9 +112,9 @@ void main() {
                   ..add(const LoadSoundSettings()),
           ),
           BlocProvider<DisplayBloc>(
-            create: (context) =>
-                DisplayBloc(context.read<DisplayRepository>())
-                  ..add(const LoadDisplaySettings()),
+            create: (context) => DisplayBloc(context.read<DisplayRepository>())
+              ..add(const DisplayInit())
+              ..add(const LoadDisplaySettings()),
           ),
         ],
         child: const MechanixSettingsApp(),

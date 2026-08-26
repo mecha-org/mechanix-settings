@@ -598,7 +598,7 @@
   "failedToUpdateSoundSettings": "Failed to update sound settings.",
   "@failedToUpdateSoundSettings": {
     "description": "Shown when updating the sound settings fails."
-  }
+  },
   "failedToUpdateHostname": "Failed to update hostname.",
   "brightness": "Brightness",
   "autoBrightness": "Auto brightness",

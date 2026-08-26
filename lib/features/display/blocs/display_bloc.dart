@@ -21,7 +21,6 @@ class DisplayBloc extends Bloc<DisplayEvent, DisplayState> {
     emit(state.copyWith(status: DisplayStatus.loading));
     try {
       await _displayRepository.init();
-      add(const LoadDisplaySettings());
     } on DisplayInitializationException catch (e, stack) {
       AppLogger.e(
         "DisplayBloc: Error during initialization",
@@ -53,34 +52,55 @@ class DisplayBloc extends Bloc<DisplayEvent, DisplayState> {
     LoadDisplaySettings event,
     Emitter<DisplayState> emit,
   ) async {
-    emit(state.copyWith(status: DisplayStatus.loading));
+    emit(state.copyWith(status: DisplayStatus.loading, error: null));
+
+    DisplayError? loadError;
+
+    // Brightness
     try {
       final brightness = await _displayRepository.getBrightness();
-      final autoBrightness = await _displayRepository.getAutoBrightness();
-      final timeout = await _displayRepository.getScreenTimeout();
-
-      emit(
-        state.copyWith(
-          brightness: brightness,
-          isAutoBrightness: autoBrightness,
-          screenTimeout: timeout,
-          status: DisplayStatus.loaded,
-          error: null,
-        ),
-      );
-    } catch (e, stack) {
+      emit(state.copyWith(brightness: brightness, error: null));
+    } on GetBrightnessException catch (e, stack) {
       AppLogger.e(
-        "DisplayBloc: Error loading settings",
+        "DisplayBloc: Error getting brightness",
         error: e,
         stack: stack,
       );
-      emit(
-        state.copyWith(
-          status: DisplayStatus.error,
-          error: DisplayError.unknown,
-        ),
-      );
+      loadError ??= DisplayError.getBrightnessFailed;
     }
+
+    // Auto brightness
+    try {
+      final autoBrightness = await _displayRepository.getAutoBrightness();
+      emit(state.copyWith(isAutoBrightness: autoBrightness, error: null));
+    } on GetAutoBrightnessException catch (e, stack) {
+      AppLogger.e(
+        "DisplayBloc: Error getting auto brightness",
+        error: e,
+        stack: stack,
+      );
+      loadError ??= DisplayError.getAutoBrightnessFailed;
+    }
+
+    // Screen timeout
+    try {
+      final timeout = await _displayRepository.getScreenTimeout();
+      emit(state.copyWith(screenTimeout: timeout, error: null));
+    } on GetScreenTimeoutException catch (e, stack) {
+      AppLogger.e(
+        "DisplayBloc: Error getting screen timeout",
+        error: e,
+        stack: stack,
+      );
+      loadError ??= DisplayError.getScreenTimeoutFailed;
+    }
+
+    emit(
+      state.copyWith(
+        status: loadError == null ? DisplayStatus.loaded : DisplayStatus.error,
+        error: loadError,
+      ),
+    );
   }
 
   Future<void> _onSetBrightness(
