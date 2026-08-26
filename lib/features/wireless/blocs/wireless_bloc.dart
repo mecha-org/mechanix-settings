@@ -381,6 +381,7 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
     Emitter<WirelessState> emit,
   ) async {
     try {
+      _connectionInProgress = true;
       emit(state.copyWith(connectingNetworkName: event.name, error: null));
 
       await wirelessRepository.connectToNetwork(

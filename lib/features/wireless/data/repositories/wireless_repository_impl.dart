@@ -337,7 +337,8 @@ class WirelessRepositoryImpl implements WirelessRepository {
         if (keyMgmt == 'sae') {
           connection['802-11-wireless-security'] = {
             'key-mgmt': const DBusString('sae'),
-            'psk-flags': const DBusUint32(1),
+            'psk': DBusString(password ?? ''),
+            // 'psk-flags': const DBusUint32(1),
           };
         } else if (keyMgmt == 'wpa-eap') {
           final isLeap = enterpriseConfig?.method == EnterpriseEapMethod.leap;
@@ -351,12 +352,16 @@ class WirelessRepositoryImpl implements WirelessRepository {
         } else if (keyMgmt == 'none') {
           connection['802-11-wireless-security'] = {
             'key-mgmt': const DBusString('none'),
-            'wep-key-flags': const DBusUint32(1),
+            'psk': DBusString(password ?? ''),
+
+            //'wep-key-flags': const DBusUint32(1),
           };
         } else {
           connection['802-11-wireless-security'] = {
             'key-mgmt': const DBusString('wpa-psk'),
-            'psk-flags': const DBusUint32(1),
+            'psk': DBusString(password ?? ''),
+
+            // 'psk-flags': const DBusUint32(1),
           };
         }
 
@@ -1392,7 +1397,11 @@ class WirelessRepositoryImpl implements WirelessRepository {
         await _client.close();
       }
     } catch (e, stack) {
-      AppLogger.e('Failed to close NetworkManagerClient', error: e, stack: stack);
+      AppLogger.e(
+        'Failed to close NetworkManagerClient',
+        error: e,
+        stack: stack,
+      );
     }
   }
 }
