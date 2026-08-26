@@ -1,6 +1,7 @@
 import 'package:mechanix_settings/features/about/data/models/enums.dart';
 import 'package:mechanix_settings/features/battery/data/models/enums.dart';
 import 'package:mechanix_settings/features/date_time/data/models/enums.dart';
+import 'package:mechanix_settings/features/display/data/models/display_enums.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
 
 String getDateTimeErrorMessage(AppLocalizations l10n, DateTimeError error) {
@@ -74,6 +75,34 @@ String getAboutErrorMessage(AppLocalizations l10n, AboutError error) {
       return l10n.failedToUpdateHostname;
 
     case AboutError.unknown:
+      return l10n.somethingWentWrong;
+  }
+}
+
+String getDisplayErrorMessage(AppLocalizations l10n, DisplayError error) {
+  switch (error) {
+    case DisplayError.initializationFailed:
+      return l10n.failedToGetDisplaySettings;
+
+    case DisplayError.getBrightnessFailed:
+      return l10n.failedToGetDisplaySettings;
+
+    case DisplayError.setBrightnessFailed:
+      return l10n.failedToUpdateBrightness;
+
+    case DisplayError.getAutoBrightnessFailed:
+      return l10n.failedToGetDisplaySettings;
+
+    case DisplayError.setAutoBrightnessFailed:
+      return l10n.failedToUpdateAutoBrightness;
+
+    case DisplayError.getScreenTimeoutFailed:
+      return l10n.failedToGetDisplaySettings;
+
+    case DisplayError.setScreenTimeoutFailed:
+      return l10n.failedToUpdateScreenTimeout;
+
+    case DisplayError.unknown:
       return l10n.somethingWentWrong;
   }
 }
