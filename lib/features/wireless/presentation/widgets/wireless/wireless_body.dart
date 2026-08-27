@@ -15,6 +15,7 @@ import 'package:mechanix_settings/features/wireless/presentation/screens/manage_
 import 'package:mechanix_settings/features/wireless/presentation/screens/network_detail.dart';
 import 'package:mechanix_settings/features/wireless/presentation/widgets/network_list_item.dart';
 import 'package:mechanix_settings/features/wireless/presentation/widgets/wireless/enterprise_connection_sheet.dart';
+import 'package:mechanix_settings/features/wireless/presentation/widgets/wireless_password.dart';
 import 'package:mechanix_settings/features/wireless/presentation/widgets/wireless_settings/settings_section_header.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
 
@@ -60,20 +61,22 @@ void _connectToNetwork(BuildContext context, WifiNetwork network) async {
   }
 
   if (network.isSecured) {
-    // If it's already a saved network, we can connect directly (NetworkManager will use saved credentials)
+    // Already saved network → connect directly.
     final isSaved = bloc.state.myNetworks.any((n) => n.name == network.name);
+
     if (isSaved) {
       bloc.add(ConnectToNetworkEvent(network.name, null));
       return;
     }
 
-    // For unsaved secured networks:
+    // Enterprise networks → show enterprise sheet.
     if (network.security == WirelessSecurity.wpawpa2Enterprise ||
         network.security == WirelessSecurity.leap) {
       final config = await showEnterpriseConnectionBottomSheet(
         context,
         network,
       );
+
       if (config != null && context.mounted) {
         bloc.add(
           ConnectToNetworkEvent(
@@ -84,11 +87,15 @@ void _connectToNetwork(BuildContext context, WifiNetwork network) async {
         );
       }
     } else {
-      // For personal/WEP networks, delegate to GNOME agent (system dialog)
-      bloc.add(ConnectToNetworkEvent(network.name, null));
+      // Personal/WEP networks → show password sheet.
+      final password = await showPasswordBottomSheet(context, network.name);
+
+      if (password != null && context.mounted) {
+        bloc.add(ConnectToNetworkEvent(network.name, password));
+      }
     }
   } else {
-    // Open network, connect directly
+    // Open network → connect directly.
     bloc.add(ConnectToNetworkEvent(network.name, null));
   }
 }
