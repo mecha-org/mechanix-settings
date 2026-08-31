@@ -51,24 +51,15 @@ class _IPv6AddressScreenState extends State<IPv6AddressScreen> {
 
     _ipController = TextEditingController(text: widget.ipAddress);
     _prefixController = TextEditingController(
-      text: widget.network.ipv6Prefix == 0 ? '' : widget.network.ipv6Prefix.toString(),
+      text: widget.network.ipv6Prefix == 0
+          ? ''
+          : widget.network.ipv6Prefix.toString(),
     );
     _routerController = TextEditingController(text: widget.gateway);
-
-    _ipController.addListener(_onTextChanged);
-    _prefixController.addListener(_onTextChanged);
-    _routerController.addListener(_onTextChanged);
-  }
-
-  void _onTextChanged() {
-    setState(() {});
   }
 
   @override
   void dispose() {
-    _ipController.removeListener(_onTextChanged);
-    _prefixController.removeListener(_onTextChanged);
-    _routerController.removeListener(_onTextChanged);
     _ipController.dispose();
     _prefixController.dispose();
     _routerController.dispose();
@@ -91,11 +82,14 @@ class _IPv6AddressScreenState extends State<IPv6AddressScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final hasChanged = _configType != widget.currentConfig ||
+    final hasChanged =
+        _configType != widget.currentConfig ||
         (_configType == IPv6ConfigType.manual &&
             (_ipController.text.trim() != widget.ipAddress ||
                 _prefixController.text.trim() !=
-                    (widget.network.ipv6Prefix == 0 ? '' : widget.network.ipv6Prefix.toString()) ||
+                    (widget.network.ipv6Prefix == 0
+                        ? ''
+                        : widget.network.ipv6Prefix.toString()) ||
                 _routerController.text.trim() != widget.gateway));
 
     return Scaffold(
@@ -177,6 +171,7 @@ class _IPv6AddressScreenState extends State<IPv6AddressScreen> {
                       hintText: l10n.ipv6AddressLabel,
                       keyboardType: TextInputType.text,
                       textInputAction: TextInputAction.next,
+                      onChanged: (_) => setState(() {}),
                     ),
 
                     const SizedBox(height: 12),
@@ -186,6 +181,7 @@ class _IPv6AddressScreenState extends State<IPv6AddressScreen> {
                       hintText: l10n.ipv6PrefixLabel,
                       keyboardType: TextInputType.number,
                       textInputAction: TextInputAction.next,
+                      onChanged: (_) => setState(() {}),
                     ),
 
                     const SizedBox(height: 12),
@@ -195,6 +191,7 @@ class _IPv6AddressScreenState extends State<IPv6AddressScreen> {
                       hintText: l10n.ipv6GatewayLabel,
                       keyboardType: TextInputType.text,
                       textInputAction: TextInputAction.done,
+                      onChanged: (_) => setState(() {}),
                     ),
                   ],
                 ),
