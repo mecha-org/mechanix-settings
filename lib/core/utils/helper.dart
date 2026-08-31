@@ -1,6 +1,7 @@
 import 'package:mechanix_settings/features/about/data/models/enums.dart';
 import 'package:mechanix_settings/features/battery/data/models/enums.dart';
 import 'package:mechanix_settings/features/date_time/data/models/enums.dart';
+import 'package:mechanix_settings/features/language/data/models/enums.dart';
 import 'package:mechanix_settings/features/sound/data/models/enums.dart';
 import 'package:mechanix_settings/features/display/data/models/display_enums.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
@@ -122,6 +123,22 @@ String getSoundErrorMessage(AppLocalizations l10n, SoundError error) {
       return l10n.failedToUpdateSoundSettings;
 
     case SoundError.unknown:
+      return l10n.somethingWentWrong;
+  }
+}
+
+String getLanguageErrorMessage(AppLocalizations l10n, LanguageError error) {
+  switch (error) {
+    case LanguageError.initializationFailed:
+      return l10n.failedToInitializeLanguage;
+
+    case LanguageError.getLanguageFailed:
+      return l10n.failedToGetLanguage;
+
+    case LanguageError.setLanguageFailed:
+      return l10n.failedToUpdateLanguage;
+
+    case LanguageError.unknown:
       return l10n.somethingWentWrong;
   }
 }

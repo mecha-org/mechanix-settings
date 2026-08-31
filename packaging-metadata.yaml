@@ -1,9 +1,0 @@
-name: packaging-metadata
-version: 1.0.0
-summary: Metadata for Mechanix Settings app packaging
-applications:
-  - name: settings
-    folder: .
-    binary: mechanix_settings
-    description: "Mechanix Settings application"
-    maintainer: "Yogita Hiray <yogitah@mechasystems.com>"

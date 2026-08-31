@@ -892,6 +892,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get failedToUpdateSoundSettings => 'Failed to update sound settings.';
 
   @override
+  String get languageEnglishUK => 'English - UK';
+
+  @override
+  String get languageEnglishUS => 'English - US';
+
+  @override
+  String get failedToInitializeLanguage =>
+      'Failed to initialize language settings.';
+
+  @override
+  String get failedToGetLanguage =>
+      'Failed to retrieve system language settings.';
+
+  @override
+  String get failedToUpdateLanguage => 'Failed to update system language.';
+
+  @override
   String get brightness => 'Brightness';
 
   @override

@@ -599,6 +599,23 @@
   "@failedToUpdateSoundSettings": {
     "description": "Shown when updating the sound settings fails."
   },
+
+  "languageEnglishUK": "English - UK",
+  "languageEnglishUS": "English - US",
+  "failedToInitializeLanguage": "Failed to initialize language settings.",
+  "@failedToInitializeLanguage": {
+    "description": "Shown when language settings initialization fails."
+  },
+
+  "failedToGetLanguage": "Failed to retrieve system language settings.",
+  "@failedToGetLanguage": {
+    "description": "Shown when the current system language cannot be retrieved."
+  },
+
+  "failedToUpdateLanguage": "Failed to update system language.",
+  "@failedToUpdateLanguage": {
+    "description": "Shown when updating the system language fails."
+  },
   "failedToUpdateHostname": "Failed to update hostname.",
   "brightness": "Brightness",
   "autoBrightness": "Auto brightness",

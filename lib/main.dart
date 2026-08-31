@@ -36,6 +36,11 @@ import 'package:mechanix_settings/features/sound/data/repositories/sound_reposit
 import 'package:mechanix_settings/features/sound/blocs/sound_bloc.dart';
 import 'package:mechanix_settings/features/sound/blocs/sound_event.dart';
 import 'package:mechanix_settings/features/sound/presentation/screens/sound_screen.dart';
+import 'package:mechanix_settings/features/language/data/repositories/language_repository.dart';
+import 'package:mechanix_settings/features/language/data/repositories/language_repository_impl.dart';
+import 'package:mechanix_settings/features/language/blocs/language_bloc.dart';
+import 'package:mechanix_settings/features/language/blocs/language_event.dart';
+import 'package:mechanix_settings/features/language/presentation/screens/language_screen.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
 import 'package:show_fps/show_fps.dart';
 
@@ -62,6 +67,9 @@ void main() {
         ),
         RepositoryProvider<SoundRepository>(
           create: (_) => SoundRepositoryImpl(),
+        ),
+        RepositoryProvider<LanguageRepository>(
+          create: (_) => LanguageRepositoryImpl(),
         ),
         RepositoryProvider<DisplayRepository>(
           create: (_) => DisplayRepositoryImpl(),
@@ -110,6 +118,11 @@ void main() {
                 SoundBloc(soundRepository: context.read<SoundRepository>())
                   ..add(const SoundInit())
                   ..add(const LoadSoundSettings()),
+          ),
+          BlocProvider<LanguageBloc>(
+            create: (context) =>
+                LanguageBloc(context.read<LanguageRepository>())
+                  ..add(const InitializeLanguage()),
           ),
           BlocProvider<DisplayBloc>(
             create: (context) => DisplayBloc(context.read<DisplayRepository>())
@@ -161,6 +174,10 @@ class MechanixSettingsApp extends StatelessWidget {
         AppRoutes.sound: (context) => BlocProvider.value(
           value: context.read<SoundBloc>(),
           child: const SoundScreen(),
+        ),
+        AppRoutes.language: (context) => BlocProvider.value(
+          value: context.read<LanguageBloc>(),
+          child: const LanguageScreen(),
         ),
       },
     );

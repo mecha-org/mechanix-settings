@@ -1750,6 +1750,36 @@ abstract class AppLocalizations {
   /// **'Failed to update sound settings.'**
   String get failedToUpdateSoundSettings;
 
+  /// No description provided for @languageEnglishUK.
+  ///
+  /// In en, this message translates to:
+  /// **'English - UK'**
+  String get languageEnglishUK;
+
+  /// No description provided for @languageEnglishUS.
+  ///
+  /// In en, this message translates to:
+  /// **'English - US'**
+  String get languageEnglishUS;
+
+  /// Shown when language settings initialization fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to initialize language settings.'**
+  String get failedToInitializeLanguage;
+
+  /// Shown when the current system language cannot be retrieved.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to retrieve system language settings.'**
+  String get failedToGetLanguage;
+
+  /// Shown when updating the system language fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update system language.'**
+  String get failedToUpdateLanguage;
+
   /// No description provided for @brightness.
   ///
   /// In en, this message translates to:
