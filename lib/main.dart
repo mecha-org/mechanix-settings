@@ -9,6 +9,10 @@ import 'package:mechanix_settings/features/date_time/data/repositories/date_time
 import 'package:mechanix_settings/features/date_time/data/repositories/date_time_repository_impl.dart';
 import 'package:mechanix_settings/features/date_time/blocs/date_time_bloc.dart';
 import 'package:mechanix_settings/features/date_time/blocs/date_time_event.dart';
+import 'package:mechanix_settings/features/display/blocs/display_bloc.dart';
+import 'package:mechanix_settings/features/display/blocs/display_event.dart';
+import 'package:mechanix_settings/features/display/data/repositories/display_repository.dart';
+import 'package:mechanix_settings/features/display/data/repositories/display_repository_impl.dart';
 import 'package:mechanix_settings/features/settings_menu/presentation/screens/settings_menu_screen.dart';
 import 'package:mechanix_settings/features/wireless/data/repositories/wireless_repository.dart';
 import 'package:mechanix_settings/features/wireless/data/repositories/wireless_repository_impl.dart';
@@ -67,6 +71,9 @@ void main() {
         RepositoryProvider<LanguageRepository>(
           create: (_) => LanguageRepositoryImpl(),
         ),
+        RepositoryProvider<DisplayRepository>(
+          create: (_) => DisplayRepositoryImpl(),
+        ),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -116,6 +123,11 @@ void main() {
             create: (context) =>
                 LanguageBloc(context.read<LanguageRepository>())
                   ..add(const InitializeLanguage()),
+          ),
+          BlocProvider<DisplayBloc>(
+            create: (context) => DisplayBloc(context.read<DisplayRepository>())
+              ..add(const DisplayInit())
+              ..add(const LoadDisplaySettings()),
           ),
         ],
         child: const MechanixSettingsApp(),

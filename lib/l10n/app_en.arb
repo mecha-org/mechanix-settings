@@ -615,5 +615,20 @@
   "failedToUpdateLanguage": "Failed to update system language.",
   "@failedToUpdateLanguage": {
     "description": "Shown when updating the system language fails."
-  }
+  },
+  "failedToUpdateHostname": "Failed to update hostname.",
+  "brightness": "Brightness",
+  "autoBrightness": "Auto brightness",
+  "screenOffTime": "Screen off time",
+  "displaySettings": "Settings / Display",
+  "screenOffTenSeconds": "10 s",
+  "screenOffThirtySeconds": "30 s",
+  "screenOffOneMinute": "1 m",
+  "screenOffTwoMinutes": "2 m",
+  "screenOffFiveMinutes": "5 m",
+  "screenOffNever": "Never",
+  "failedToGetDisplaySettings": "Failed to retrieve display settings.",
+  "failedToUpdateBrightness": "Failed to update brightness.",
+  "failedToUpdateAutoBrightness": "Failed to update auto brightness.",
+  "failedToUpdateScreenTimeout": "Failed to update screen off time."
 }

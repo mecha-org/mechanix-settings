@@ -907,4 +907,48 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get failedToUpdateLanguage => 'Failed to update system language.';
+
+  @override
+  String get brightness => 'Brightness';
+
+  @override
+  String get autoBrightness => 'Auto brightness';
+
+  @override
+  String get screenOffTime => 'Screen off time';
+
+  @override
+  String get displaySettings => 'Settings / Display';
+
+  @override
+  String get screenOffTenSeconds => '10 s';
+
+  @override
+  String get screenOffThirtySeconds => '30 s';
+
+  @override
+  String get screenOffOneMinute => '1 m';
+
+  @override
+  String get screenOffTwoMinutes => '2 m';
+
+  @override
+  String get screenOffFiveMinutes => '5 m';
+
+  @override
+  String get screenOffNever => 'Never';
+
+  @override
+  String get failedToGetDisplaySettings =>
+      'Failed to retrieve display settings.';
+
+  @override
+  String get failedToUpdateBrightness => 'Failed to update brightness.';
+
+  @override
+  String get failedToUpdateAutoBrightness =>
+      'Failed to update auto brightness.';
+
+  @override
+  String get failedToUpdateScreenTimeout => 'Failed to update screen off time.';
 }
