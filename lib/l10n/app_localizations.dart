@@ -1809,6 +1809,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Failed to update sound settings.'**
   String get failedToUpdateSoundSettings;
+
+  /// No description provided for @languageEnglishUK.
+  ///
+  /// In en, this message translates to:
+  /// **'English - UK'**
+  String get languageEnglishUK;
+
+  /// No description provided for @languageEnglishUS.
+  ///
+  /// In en, this message translates to:
+  /// **'English - US'**
+  String get languageEnglishUS;
+
+  /// Shown when language settings initialization fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to initialize language settings.'**
+  String get failedToInitializeLanguage;
+
+  /// Shown when the current system language cannot be retrieved.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to retrieve system language settings.'**
+  String get failedToGetLanguage;
+
+  /// Shown when updating the system language fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update system language.'**
+  String get failedToUpdateLanguage;
+
+  /// No description provided for @brightness.
+  ///
+  /// In en, this message translates to:
+  /// **'Brightness'**
+  String get brightness;
+
+  /// No description provided for @autoBrightness.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto brightness'**
+  String get autoBrightness;
+
+  /// No description provided for @screenOffTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Screen off time'**
+  String get screenOffTime;
+
+  /// No description provided for @displaySettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings / Display'**
+  String get displaySettings;
+
+  /// No description provided for @screenOffTenSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'10 s'**
+  String get screenOffTenSeconds;
+
+  /// No description provided for @screenOffThirtySeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'30 s'**
+  String get screenOffThirtySeconds;
+
+  /// No description provided for @screenOffOneMinute.
+  ///
+  /// In en, this message translates to:
+  /// **'1 m'**
+  String get screenOffOneMinute;
+
+  /// No description provided for @screenOffTwoMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'2 m'**
+  String get screenOffTwoMinutes;
+
+  /// No description provided for @screenOffFiveMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'5 m'**
+  String get screenOffFiveMinutes;
+
+  /// No description provided for @screenOffNever.
+  ///
+  /// In en, this message translates to:
+  /// **'Never'**
+  String get screenOffNever;
+
+  /// No description provided for @failedToGetDisplaySettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to retrieve display settings.'**
+  String get failedToGetDisplaySettings;
+
+  /// No description provided for @failedToUpdateBrightness.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update brightness.'**
+  String get failedToUpdateBrightness;
+
+  /// No description provided for @failedToUpdateAutoBrightness.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update auto brightness.'**
+  String get failedToUpdateAutoBrightness;
+
+  /// No description provided for @failedToUpdateScreenTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update screen off time.'**
+  String get failedToUpdateScreenTimeout;
 }
 
 class _AppLocalizationsDelegate

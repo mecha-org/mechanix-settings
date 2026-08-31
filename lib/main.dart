@@ -9,6 +9,10 @@ import 'package:mechanix_settings/features/date_time/data/repositories/date_time
 import 'package:mechanix_settings/features/date_time/data/repositories/date_time_repository_impl.dart';
 import 'package:mechanix_settings/features/date_time/blocs/date_time_bloc.dart';
 import 'package:mechanix_settings/features/date_time/blocs/date_time_event.dart';
+import 'package:mechanix_settings/features/display/blocs/display_bloc.dart';
+import 'package:mechanix_settings/features/display/blocs/display_event.dart';
+import 'package:mechanix_settings/features/display/data/repositories/display_repository.dart';
+import 'package:mechanix_settings/features/display/data/repositories/display_repository_impl.dart';
 import 'package:mechanix_settings/features/settings_menu/presentation/screens/settings_menu_screen.dart';
 import 'package:mechanix_settings/features/wireless/data/repositories/wireless_repository.dart';
 import 'package:mechanix_settings/features/wireless/data/repositories/wireless_repository_impl.dart';
@@ -32,6 +36,11 @@ import 'package:mechanix_settings/features/sound/data/repositories/sound_reposit
 import 'package:mechanix_settings/features/sound/blocs/sound_bloc.dart';
 import 'package:mechanix_settings/features/sound/blocs/sound_event.dart';
 import 'package:mechanix_settings/features/sound/presentation/screens/sound_screen.dart';
+import 'package:mechanix_settings/features/language/data/repositories/language_repository.dart';
+import 'package:mechanix_settings/features/language/data/repositories/language_repository_impl.dart';
+import 'package:mechanix_settings/features/language/blocs/language_bloc.dart';
+import 'package:mechanix_settings/features/language/blocs/language_event.dart';
+import 'package:mechanix_settings/features/language/presentation/screens/language_screen.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
 import 'package:show_fps/show_fps.dart';
 
@@ -58,6 +67,12 @@ void main() {
         ),
         RepositoryProvider<SoundRepository>(
           create: (_) => SoundRepositoryImpl(),
+        ),
+        RepositoryProvider<LanguageRepository>(
+          create: (_) => LanguageRepositoryImpl(),
+        ),
+        RepositoryProvider<DisplayRepository>(
+          create: (_) => DisplayRepositoryImpl(),
         ),
       ],
       child: MultiBlocProvider(
@@ -104,6 +119,16 @@ void main() {
                   ..add(const SoundInit())
                   ..add(const LoadSoundSettings()),
           ),
+          BlocProvider<LanguageBloc>(
+            create: (context) =>
+                LanguageBloc(context.read<LanguageRepository>())
+                  ..add(const InitializeLanguage()),
+          ),
+          BlocProvider<DisplayBloc>(
+            create: (context) => DisplayBloc(context.read<DisplayRepository>())
+              ..add(const DisplayInit())
+              ..add(const LoadDisplaySettings()),
+          ),
         ],
         child: const MechanixSettingsApp(),
       ),
@@ -149,6 +174,10 @@ class MechanixSettingsApp extends StatelessWidget {
         AppRoutes.sound: (context) => BlocProvider.value(
           value: context.read<SoundBloc>(),
           child: const SoundScreen(),
+        ),
+        AppRoutes.language: (context) => BlocProvider.value(
+          value: context.read<LanguageBloc>(),
+          child: const LanguageScreen(),
         ),
       },
     );
