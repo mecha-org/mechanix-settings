@@ -13,8 +13,8 @@ class AboutRepositoryImpl implements AboutRepository {
   final DBusRemoteObject? _injectObject;
 
   AboutRepositoryImpl({DBusClient? client, DBusRemoteObject? object})
-      : _injectClient = client,
-        _injectObject = object;
+    : _injectClient = client,
+      _injectObject = object;
 
   /// Retrieves device, OS, kernel, firmware, and system identification details from hostname1 D-Bus.
   @override
@@ -38,7 +38,8 @@ class AboutRepositoryImpl implements AboutRepository {
     String osWebsite = '';
 
     try {
-      final object = _injectObject ??
+      final object =
+          _injectObject ??
           DBusRemoteObject(
             client,
             name: _busName,
@@ -51,8 +52,9 @@ class AboutRepositoryImpl implements AboutRepository {
       // Hostname
       hostname = await _getStringProperty(object, 'StaticHostname');
 
-      // Fallback to hostname when PrettyHostname is not available.
-      if (deviceName.isEmpty) {
+      // Use StaticHostname as the fallback and initialize PrettyHostname with it.
+      if (deviceName.isEmpty && hostname.isNotEmpty) {
+        await updateDeviceName(hostname);
         deviceName = hostname;
       }
 
@@ -298,7 +300,8 @@ class AboutRepositoryImpl implements AboutRepository {
     final client = _injectClient ?? DBusClient.system();
 
     try {
-      final object = _injectObject ??
+      final object =
+          _injectObject ??
           DBusRemoteObject(
             client,
             name: _busName,
@@ -329,7 +332,8 @@ class AboutRepositoryImpl implements AboutRepository {
     final client = _injectClient ?? DBusClient.system();
 
     try {
-      final object = _injectObject ??
+      final object =
+          _injectObject ??
           DBusRemoteObject(
             client,
             name: _busName,
