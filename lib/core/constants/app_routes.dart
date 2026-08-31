@@ -4,5 +4,6 @@ class AppRoutes {
   static const battery = '/battery';
   static const about = '/about';
   static const sound = '/sound';
+  static const language = '/language';
 }
 

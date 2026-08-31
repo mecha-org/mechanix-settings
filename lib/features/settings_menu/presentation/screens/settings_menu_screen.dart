@@ -159,7 +159,9 @@ class SettingsMenuScreenState extends State<SettingsMenuScreen> {
                       assetPath: SettingIcons.languages,
                       color: AppColors.onSurfaceVariant,
                     ),
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.of(context).pushNamed(AppRoutes.language);
+                    },
                   ),
 
                   SectionItem(
