@@ -105,6 +105,28 @@ extension IPv4ConfigTypeParsing on String {
   }
 }
 
+enum IPv6ConfigType { automatic, manual }
+
+extension IPv6ConfigTypeX on IPv6ConfigType {
+  String label(AppLocalizations l10n) {
+    switch (this) {
+      case IPv6ConfigType.automatic:
+        return l10n.automatic;
+      case IPv6ConfigType.manual:
+        return l10n.manual;
+    }
+  }
+}
+
+extension IPv6ConfigTypeParsing on String {
+  IPv6ConfigType toIPv6ConfigType() {
+    return IPv6ConfigType.values.firstWhere(
+      (e) => e.name == this,
+      orElse: () => IPv6ConfigType.automatic,
+    );
+  }
+}
+
 enum DNSConfigType { automatic, manual }
 
 extension DNSConfigTypeX on DNSConfigType {

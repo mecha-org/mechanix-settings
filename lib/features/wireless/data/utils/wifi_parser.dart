@@ -243,6 +243,72 @@ class WifiParser {
     }
   }
 
+  static IPv6SettingsResult parseIPv6Settings(
+    Map<String, Map<String, DBusValue>>? settings,
+  ) {
+    var ipv6ConfigType = IPv6ConfigType.automatic;
+    var ipv6Address = '';
+    var ipv6Prefix = 64;
+    var ipv6Gateway = '';
+
+    try {
+      final ipv6 = settings?['ipv6'];
+
+      if (ipv6 == null) {
+        return IPv6SettingsResult(
+          ipv6ConfigType: ipv6ConfigType,
+          ipv6Address: ipv6Address,
+          ipv6Prefix: ipv6Prefix,
+          ipv6Gateway: ipv6Gateway,
+        );
+      }
+
+      final method = ipv6['method']?.toNative();
+
+      if (method == 'manual') {
+        ipv6ConfigType = IPv6ConfigType.manual;
+      } else {
+        ipv6ConfigType = IPv6ConfigType.automatic;
+      }
+
+      final addressData = ipv6['address-data'];
+
+      if (addressData is DBusArray && addressData.children.isNotEmpty) {
+        final first = addressData.children.first;
+
+        if (first is DBusDict) {
+          final address = first.children[const DBusString('address')]
+              ?.toNative();
+
+          final prefix = first.children[const DBusString('prefix')]?.toNative();
+
+          if (address is String) {
+            ipv6Address = address;
+          }
+
+          if (prefix is int) {
+            ipv6Prefix = prefix;
+          }
+        }
+      }
+
+      final gateway = ipv6['gateway']?.toNative();
+
+      if (gateway is String) {
+        ipv6Gateway = gateway;
+      }
+    } catch (e, stack) {
+      AppLogger.e('Failed to parse IPv6 settings.', error: e, stack: stack);
+    }
+
+    return IPv6SettingsResult(
+      ipv6ConfigType: ipv6ConfigType,
+      ipv6Address: ipv6Address,
+      ipv6Prefix: ipv6Prefix,
+      ipv6Gateway: ipv6Gateway,
+    );
+  }
+
   /// Parses the Wi-Fi link speed from kb/s to Mb/s.
   static int parseSpeedMbps(NetworkManagerDevice? wifiDevice) {
     final kbps = wifiDevice?.wireless?.bitrate ?? 0;
@@ -269,5 +335,20 @@ class IPv4SettingsResult {
     required this.dnsConfigType,
     required this.dnsServers,
     required this.dnsSearchDomains,
+  });
+}
+
+@immutable
+class IPv6SettingsResult {
+  final IPv6ConfigType ipv6ConfigType;
+  final String ipv6Address;
+  final int ipv6Prefix;
+  final String ipv6Gateway;
+
+  const IPv6SettingsResult({
+    required this.ipv6ConfigType,
+    required this.ipv6Address,
+    required this.ipv6Prefix,
+    required this.ipv6Gateway,
   });
 }

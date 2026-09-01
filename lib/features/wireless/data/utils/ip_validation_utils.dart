@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:mechanix_settings/features/wireless/data/utils/network_manager_utils.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
 
@@ -139,4 +140,31 @@ class IpValidationUtils {
       dns.every(IpValidationUtils.isValidIPv4) &&
       dns.every((ip) => !ip.startsWith('127.') && ip != '0.0.0.0') &&
       dns.toSet().length == dns.length;
+
+  static bool isValidIPv6(String ip) {
+    final addr = InternetAddress.tryParse(ip);
+    return addr != null && addr.type == InternetAddressType.IPv6;
+  }
+
+  static String? validateManualIpv6Config({
+    required String ip,
+    required String prefixStr,
+    required String gateway,
+    required AppLocalizations l10n,
+  }) {
+    if (!isValidIPv6(ip)) {
+      return l10n.invalidIpv6Address;
+    }
+
+    final prefix = int.tryParse(prefixStr);
+    if (prefix == null || prefix < 1 || prefix > 128) {
+      return l10n.ipv6PrefixRange;
+    }
+
+    if (gateway.isNotEmpty && !isValidIPv6(gateway)) {
+      return l10n.invalidIpv6Gateway;
+    }
+
+    return null;
+  }
 }

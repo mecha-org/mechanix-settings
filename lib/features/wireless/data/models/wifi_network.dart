@@ -33,6 +33,11 @@ class WifiNetwork extends Equatable {
 
   final String wirelessAddress;
 
+  final IPv6ConfigType ipv6ConfigType;
+  final String ipv6Address;
+  final int ipv6Prefix;
+  final String ipv6Gateway;
+
   const WifiNetwork({
     required this.name,
     this.password = '',
@@ -58,6 +63,10 @@ class WifiNetwork extends Equatable {
     this.dnsServers = const [],
     this.dnsSearchDomains = const [],
     this.wirelessAddress = "",
+    this.ipv6ConfigType = IPv6ConfigType.automatic,
+    this.ipv6Address = "",
+    this.ipv6Prefix = 64,
+    this.ipv6Gateway = "",
   });
 
   // Computed signal type
@@ -94,6 +103,10 @@ class WifiNetwork extends Equatable {
     List<String>? dnsServers,
     List<String>? dnsSearchDomains,
     String? wirelessAddress,
+    IPv6ConfigType? ipv6ConfigType,
+    String? ipv6Address,
+    int? ipv6Prefix,
+    String? ipv6Gateway,
   }) {
     return WifiNetwork(
       name: name ?? this.name,
@@ -122,6 +135,10 @@ class WifiNetwork extends Equatable {
       dnsServers: dnsServers ?? this.dnsServers,
       dnsSearchDomains: dnsSearchDomains ?? this.dnsSearchDomains,
       wirelessAddress: wirelessAddress ?? this.wirelessAddress,
+      ipv6ConfigType: ipv6ConfigType ?? this.ipv6ConfigType,
+      ipv6Address: ipv6Address ?? this.ipv6Address,
+      ipv6Prefix: ipv6Prefix ?? this.ipv6Prefix,
+      ipv6Gateway: ipv6Gateway ?? this.ipv6Gateway,
     );
   }
 
@@ -151,5 +168,9 @@ class WifiNetwork extends Equatable {
     dnsServers,
     dnsSearchDomains,
     wirelessAddress,
+    ipv6ConfigType,
+    ipv6Address,
+    ipv6Prefix,
+    ipv6Gateway,
   ];
 }

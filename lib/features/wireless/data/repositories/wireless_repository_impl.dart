@@ -581,14 +581,94 @@ class WirelessRepositoryImpl implements WirelessRepository {
           );
         }
 
-        await Future.delayed(const Duration(milliseconds: 500));
-
         await _client.activateConnection(connection: cn, device: wifiDevice);
 
         break;
       }
     } catch (e) {
       AppLogger.e("Failed to update IP settings: $e");
+    }
+  }
+
+  @override
+  Future<void> updateIPv6Settings(
+    WifiNetwork network,
+    IPv6ConfigType ipv6ConfigType,
+    String ipv6Address,
+    int ipv6Prefix,
+    String ipv6Gateway,
+  ) async {
+    if (!_connected) return;
+
+    try {
+      final wifiDevice = getWifiDevice();
+      if (wifiDevice == null) return;
+
+      final connections = _client.settings.connections;
+
+      for (final cn in connections) {
+        if (cn.unsaved) continue;
+
+        final settings = await cn.getSettings();
+
+        final connectionId = settings["connection"]?["id"]?.toNative();
+
+        if (connectionId != network.name) {
+          continue;
+        }
+
+        final updatedSettings = Map<String, Map<String, DBusValue>>.from(
+          settings,
+        );
+
+        final ipv6 = Map<String, DBusValue>.from(settings["ipv6"] ?? {});
+
+        if (ipv6ConfigType == IPv6ConfigType.manual) {
+          ipv6["method"] = const DBusString("manual");
+
+          ipv6["address-data"] = DBusArray(DBusSignature("a{sv}"), [
+            DBusDict.stringVariant({
+              "address": DBusString(ipv6Address),
+              "prefix": DBusUint32(ipv6Prefix),
+            }),
+          ]);
+
+          if (ipv6Gateway.isNotEmpty) {
+            ipv6["gateway"] = DBusString(ipv6Gateway);
+          } else {
+            ipv6.remove("gateway");
+          }
+
+          ipv6.remove("addresses");
+        } else {
+          ipv6["method"] = const DBusString("auto");
+          ipv6.remove("address-data");
+          ipv6.remove("gateway");
+          ipv6.remove("addresses");
+        }
+
+        updatedSettings["ipv6"] = ipv6;
+
+        await cn.update(updatedSettings);
+
+        if (wifiDevice.activeConnection != null) {
+          try {
+            await _client.deactivateConnection(wifiDevice.activeConnection!);
+          } catch (e, stack) {
+            AppLogger.e(
+              'Failed to deactivate current Wi-Fi connection before applying IPv6 settings.',
+              error: e,
+              stack: stack,
+            );
+          }
+        }
+
+        await _client.activateConnection(connection: cn, device: wifiDevice);
+
+        break;
+      }
+    } catch (e) {
+      AppLogger.e("Failed to update IPv6 settings: $e");
     }
   }
 
@@ -754,7 +834,6 @@ class WirelessRepositoryImpl implements WirelessRepository {
       name: name,
       ap: ap,
       connection: connection,
-      isConnected: isConnected,
       isSecured: isSecured,
       wifiDevice: wifiDevice,
     );
@@ -791,6 +870,34 @@ class WirelessRepositoryImpl implements WirelessRepository {
       }
     }
 
+    final ipv6Settings = WifiParser.parseIPv6Settings(settings);
+
+    var ipv6Address = ipv6Settings.ipv6Address;
+    var ipv6Prefix = ipv6Settings.ipv6Prefix;
+    var ipv6Gateway = ipv6Settings.ipv6Gateway;
+    var ipv6ConfigType = ipv6Settings.ipv6ConfigType;
+
+    if (isConnected && wifiDevice != null) {
+      final ip6Config = wifiDevice.ip6Config;
+
+      if (ipv6ConfigType == IPv6ConfigType.automatic &&
+          ip6Config != null &&
+          ip6Config.addressData.isNotEmpty) {
+        final addr = ip6Config.addressData.first;
+
+        ipv6Address = addr["address"] ?? ipv6Address;
+
+        final prefix = addr["prefix"] as int?;
+        if (prefix != null) {
+          ipv6Prefix = prefix;
+        }
+
+        if (ip6Config.gateway.isNotEmpty) {
+          ipv6Gateway = ip6Config.gateway;
+        }
+      }
+    }
+
     final autoJoin = WifiParser.parseAutoConnect(settings);
     final lowDataMode = WifiParser.parseLowDataMode(settings);
 
@@ -818,6 +925,10 @@ class WirelessRepositoryImpl implements WirelessRepository {
       dnsServers: dnsServers,
       dnsSearchDomains: dnsSearchDomains,
       wirelessAddress: wifiDevice?.hwAddress ?? "",
+      ipv6ConfigType: ipv6ConfigType,
+      ipv6Address: ipv6Address,
+      ipv6Prefix: ipv6Prefix,
+      ipv6Gateway: ipv6Gateway,
     );
   }
 
@@ -1151,13 +1262,12 @@ class WirelessRepositoryImpl implements WirelessRepository {
 
   Future<String> _getPassword({
     required String name,
-    required bool isConnected,
     required bool isSecured,
     NetworkManagerAccessPoint? ap,
     NetworkManagerSettingsConnection? connection,
     NetworkManagerDevice? wifiDevice,
   }) async {
-    if (!isConnected || !isSecured) {
+    if (!isSecured) {
       return "";
     }
 

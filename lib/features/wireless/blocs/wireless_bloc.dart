@@ -43,6 +43,7 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
     on<AddNetworkEvent>(_onAddNetwork, transformer: restartable());
     on<UpdateNetworkSettingsEvent>(_onUpdateNetworkSettings);
     on<UpdateIPSettingsEvent>(_onUpdateIPSettings);
+    on<UpdateIPv6SettingsEvent>(_onUpdateIPv6Settings);
     on<UpdateDNSSettingsEvent>(_onUpdateDNSSettings);
     on<ForgetNetworkEvent>(_onForgetNetwork);
     on<ConnectivityStateChangedEvent>(_onConnectivityStateChanged);
@@ -411,6 +412,7 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
     Emitter<WirelessState> emit,
   ) async {
     try {
+      _connectionInProgress = true;
       emit(state.copyWith(connectingNetworkName: event.name, error: null));
 
       await wirelessRepository.addNetwork(
@@ -508,6 +510,40 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
       );
     } catch (e, stackTrace) {
       AppLogger.e('Failed to update IP settings: $e', stack: stackTrace);
+    }
+  }
+
+  /// Updates connection static/dynamic IPv6 Address settings.
+  Future<void> _onUpdateIPv6Settings(
+    UpdateIPv6SettingsEvent event,
+    Emitter<WirelessState> emit,
+  ) async {
+    try {
+      await wirelessRepository.updateIPv6Settings(
+        event.network,
+        event.ipv6ConfigType,
+        event.ipv6Address,
+        event.ipv6Prefix,
+        event.ipv6Gateway,
+      );
+
+      final savedNetworks = await wirelessRepository.getSavedNetworks();
+      final myNetworks = await wirelessRepository.getMyNetworks(
+        savedNetworks: savedNetworks,
+      );
+      final availableNetworks = await wirelessRepository.getAvailableNetworks(
+        savedNetworks: savedNetworks,
+      );
+
+      emit(
+        state.copyWith(
+          savedNetworks: savedNetworks,
+          myNetworks: myNetworks,
+          availableNetworks: availableNetworks,
+        ),
+      );
+    } catch (e, stackTrace) {
+      AppLogger.e('Failed to update IPv6 settings: $e', stack: stackTrace);
     }
   }
 

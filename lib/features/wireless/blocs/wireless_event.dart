@@ -91,6 +91,31 @@ class UpdateIPSettingsEvent extends WirelessEvent {
   ];
 }
 
+class UpdateIPv6SettingsEvent extends WirelessEvent {
+  final WifiNetwork network;
+  final IPv6ConfigType ipv6ConfigType;
+  final String ipv6Address;
+  final int ipv6Prefix;
+  final String ipv6Gateway;
+
+  const UpdateIPv6SettingsEvent({
+    required this.network,
+    required this.ipv6ConfigType,
+    required this.ipv6Address,
+    required this.ipv6Prefix,
+    required this.ipv6Gateway,
+  });
+
+  @override
+  List<Object?> get props => [
+    network,
+    ipv6ConfigType,
+    ipv6Address,
+    ipv6Prefix,
+    ipv6Gateway,
+  ];
+}
+
 class UpdateDNSSettingsEvent extends WirelessEvent {
   final WifiNetwork network;
   final DNSConfigType dnsConfigType;

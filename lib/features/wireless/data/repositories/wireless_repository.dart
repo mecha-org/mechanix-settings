@@ -45,6 +45,14 @@ abstract class WirelessRepository {
     String router,
   );
 
+  Future<void> updateIPv6Settings(
+    WifiNetwork network,
+    IPv6ConfigType ipv6ConfigType,
+    String ipv6Address,
+    int ipv6Prefix,
+    String ipv6Gateway,
+  );
+
   Future<void> updateDNSSettings(
     WifiNetwork network,
     DNSConfigType dnsConfigType,

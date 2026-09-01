@@ -304,11 +304,71 @@ abstract class AppLocalizations {
   /// **'IPv4 Address'**
   String get ipv4Address;
 
+  /// No description provided for @advanced.
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced'**
+  String get advanced;
+
+  /// Message shown when advanced network settings are read-only until the specified network is joined.
+  ///
+  /// In en, this message translates to:
+  /// **'IP and DNS settings are available after you join {networkName}. These details are assigned by the network when you connect.'**
+  String advancedMessage(String networkName);
+
+  /// No description provided for @ipv6Address.
+  ///
+  /// In en, this message translates to:
+  /// **'IPv6 Address'**
+  String get ipv6Address;
+
   /// No description provided for @configureIp.
   ///
   /// In en, this message translates to:
   /// **'Configure IP'**
   String get configureIp;
+
+  /// No description provided for @configureIpv6.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure IPv6'**
+  String get configureIpv6;
+
+  /// No description provided for @ipv6AddressLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'IPv6 Address'**
+  String get ipv6AddressLabel;
+
+  /// No description provided for @ipv6PrefixLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Subnet Prefix'**
+  String get ipv6PrefixLabel;
+
+  /// No description provided for @ipv6GatewayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Router'**
+  String get ipv6GatewayLabel;
+
+  /// No description provided for @ipv6PrefixRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Subnet prefix must be between 1 and 128.'**
+  String get ipv6PrefixRange;
+
+  /// No description provided for @invalidIpv6Address.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid IPv6 address.'**
+  String get invalidIpv6Address;
+
+  /// No description provided for @invalidIpv6Gateway.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid IPv6 gateway address.'**
+  String get invalidIpv6Gateway;
 
   /// No description provided for @dns.
   ///
