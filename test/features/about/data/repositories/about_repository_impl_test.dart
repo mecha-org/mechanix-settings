@@ -160,100 +160,142 @@ void main() {
       expect(details.osWebsite, 'https://os-z.org');
     });
 
-    test('falls back to StaticHostname when PrettyHostname is empty', () async {
-      when(
-        () => mockObject.getProperty(
-          'org.freedesktop.hostname1',
-          'PrettyHostname',
-        ),
-      ).thenAnswer((_) async => const DBusString(''));
-      when(
-        () => mockObject.getProperty(
-          'org.freedesktop.hostname1',
-          'StaticHostname',
-        ),
-      ).thenAnswer((_) async => const DBusString('fallback-hostname'));
+    test(
+      'falls back to StaticHostname and initializes PrettyHostname when empty',
+      () async {
+        when(
+          () => mockObject.getProperty(
+            'org.freedesktop.hostname1',
+            'PrettyHostname',
+          ),
+        ).thenAnswer((_) async => const DBusString(''));
 
-      // Stub remaining properties with empty/defaults to avoid exceptions
-      when(
-        () => mockObject.getProperty(
-          'org.freedesktop.hostname1',
-          'HardwareModel',
-        ),
-      ).thenAnswer((_) async => const DBusString(''));
-      when(
-        () => mockObject.getProperty(
-          'org.freedesktop.hostname1',
-          'HardwareVendor',
-        ),
-      ).thenAnswer((_) async => const DBusString(''));
-      when(
-        () => mockObject.getProperty(
-          'org.freedesktop.hostname1',
-          'OperatingSystemPrettyName',
-        ),
-      ).thenAnswer((_) async => const DBusString(''));
-      when(
-        () => mockObject.getProperty(
-          'org.freedesktop.hostname1',
-          'OperatingSystemSupportEnd',
-        ),
-      ).thenAnswer((_) async => const DBusUint64(0));
-      when(
-        () => mockObject.getProperty('org.freedesktop.hostname1', 'KernelName'),
-      ).thenAnswer((_) async => const DBusString(''));
-      when(
-        () => mockObject.getProperty(
-          'org.freedesktop.hostname1',
-          'KernelRelease',
-        ),
-      ).thenAnswer((_) async => const DBusString(''));
-      when(
-        () => mockObject.getProperty(
-          'org.freedesktop.hostname1',
-          'KernelVersion',
-        ),
-      ).thenAnswer((_) async => const DBusString(''));
-      when(
-        () => mockObject.getProperty(
-          'org.freedesktop.hostname1',
-          'FirmwareVersion',
-        ),
-      ).thenAnswer((_) async => const DBusString(''));
-      when(
-        () => mockObject.getProperty(
-          'org.freedesktop.hostname1',
-          'FirmwareVendor',
-        ),
-      ).thenAnswer((_) async => const DBusString(''));
-      when(
-        () =>
-            mockObject.getProperty('org.freedesktop.hostname1', 'FirmwareDate'),
-      ).thenAnswer((_) async => const DBusUint64(0));
+        when(
+          () => mockObject.getProperty(
+            'org.freedesktop.hostname1',
+            'StaticHostname',
+          ),
+        ).thenAnswer((_) async => const DBusString('fallback-hostname'));
 
-      final mockResponse = MockDBusMethodSuccessResponse();
-      when(() => mockResponse.returnValues).thenReturn([]);
-      when(
-        () => mockObject.callMethod(
-          'org.freedesktop.hostname1',
-          'GetHardwareSerial',
-          [],
-        ),
-      ).thenAnswer((_) async => mockResponse);
+        // Mock SetPrettyHostname used to initialize the empty PrettyHostname.
+        final setPrettyHostnameResponse = MockDBusMethodSuccessResponse();
 
-      when(
-        () => mockObject.getProperty('org.freedesktop.hostname1', 'MachineID'),
-      ).thenAnswer((_) async => const DBusString(''));
-      when(
-        () => mockObject.getProperty('org.freedesktop.hostname1', 'BootID'),
-      ).thenAnswer((_) async => const DBusString(''));
-      when(
-        () => mockObject.getProperty('org.freedesktop.hostname1', 'HomeURL'),
-      ).thenAnswer((_) async => const DBusString(''));
+        when(
+          () => mockObject.callMethod(
+            'org.freedesktop.hostname1',
+            'SetPrettyHostname',
+            [const DBusString('fallback-hostname'), const DBusBoolean(true)],
+          ),
+        ).thenAnswer((_) async => setPrettyHostnameResponse);
 
-      final details = await repository.getAboutDetails();
-      expect(details.deviceName, 'fallback-hostname');
-    });
+        // Stub remaining properties with empty/default values.
+        when(
+          () => mockObject.getProperty(
+            'org.freedesktop.hostname1',
+            'HardwareModel',
+          ),
+        ).thenAnswer((_) async => const DBusString(''));
+
+        when(
+          () => mockObject.getProperty(
+            'org.freedesktop.hostname1',
+            'HardwareVendor',
+          ),
+        ).thenAnswer((_) async => const DBusString(''));
+
+        when(
+          () => mockObject.getProperty(
+            'org.freedesktop.hostname1',
+            'OperatingSystemPrettyName',
+          ),
+        ).thenAnswer((_) async => const DBusString(''));
+
+        when(
+          () => mockObject.getProperty(
+            'org.freedesktop.hostname1',
+            'OperatingSystemSupportEnd',
+          ),
+        ).thenAnswer((_) async => const DBusUint64(0));
+
+        when(
+          () =>
+              mockObject.getProperty('org.freedesktop.hostname1', 'KernelName'),
+        ).thenAnswer((_) async => const DBusString(''));
+
+        when(
+          () => mockObject.getProperty(
+            'org.freedesktop.hostname1',
+            'KernelRelease',
+          ),
+        ).thenAnswer((_) async => const DBusString(''));
+
+        when(
+          () => mockObject.getProperty(
+            'org.freedesktop.hostname1',
+            'KernelVersion',
+          ),
+        ).thenAnswer((_) async => const DBusString(''));
+
+        when(
+          () => mockObject.getProperty(
+            'org.freedesktop.hostname1',
+            'FirmwareVersion',
+          ),
+        ).thenAnswer((_) async => const DBusString(''));
+
+        when(
+          () => mockObject.getProperty(
+            'org.freedesktop.hostname1',
+            'FirmwareVendor',
+          ),
+        ).thenAnswer((_) async => const DBusString(''));
+
+        when(
+          () => mockObject.getProperty(
+            'org.freedesktop.hostname1',
+            'FirmwareDate',
+          ),
+        ).thenAnswer((_) async => const DBusUint64(0));
+
+        final mockResponse = MockDBusMethodSuccessResponse();
+
+        when(() => mockResponse.returnValues).thenReturn([]);
+
+        when(
+          () => mockObject.callMethod(
+            'org.freedesktop.hostname1',
+            'GetHardwareSerial',
+            [],
+          ),
+        ).thenAnswer((_) async => mockResponse);
+
+        when(
+          () =>
+              mockObject.getProperty('org.freedesktop.hostname1', 'MachineID'),
+        ).thenAnswer((_) async => const DBusString(''));
+
+        when(
+          () => mockObject.getProperty('org.freedesktop.hostname1', 'BootID'),
+        ).thenAnswer((_) async => const DBusString(''));
+
+        when(
+          () => mockObject.getProperty('org.freedesktop.hostname1', 'HomeURL'),
+        ).thenAnswer((_) async => const DBusString(''));
+
+        final details = await repository.getAboutDetails();
+
+        expect(details.deviceName, 'fallback-hostname');
+        expect(details.hostname, 'fallback-hostname');
+
+        verify(
+          () => mockObject.callMethod(
+            'org.freedesktop.hostname1',
+            'SetPrettyHostname',
+            [const DBusString('fallback-hostname'), const DBusBoolean(true)],
+          ),
+        ).called(1);
+      },
+    );
 
     test('recovers gracefully when some properties fail to load', () async {
       when(
