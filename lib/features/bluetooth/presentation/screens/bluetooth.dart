@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mechanix_settings/core/widgets/bottom_bar/bottom_bar.dart';
-import 'package:mechanix_settings/core/widgets/custom_icon_button.dart';
 import 'package:mechanix_settings/core/constants/icons.dart';
 import 'package:mechanix_settings/features/bluetooth/blocs/bluetooth_bloc.dart';
 import 'package:mechanix_settings/features/bluetooth/presentation/widgets/bluetooth/bluetooth_body.dart';
-import 'package:mechanix_settings/features/bluetooth/presentation/widgets/bluetooth/bluetooth_app_bar.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
+import 'package:widgets/widgets.dart';
 
 class BluetoothScreen extends StatefulWidget {
   const BluetoothScreen({super.key});
@@ -37,10 +35,35 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+
     return BlocBuilder<BluetoothBloc, BluetoothState>(
       builder: (context, state) {
         return Scaffold(
-          appBar: BluetoothAppBar(breadcrumbController: _breadcrumbController),
+          backgroundColor: theme.colorScheme.surfaceContainerLowest,
+          appBar: MechanixAppBar.small(
+            primary: false,
+            leading: MechanixIconButton.standard(
+              icon: ImageIcon(
+                const AssetImage(SettingIcons.back),
+                color: theme.colorScheme.onSurface,
+              ),
+              onPressed: () {
+                context.read<BluetoothBloc>().add(
+                  const StopBluetoothDiscovery(),
+                );
+                Navigator.pop(context);
+              },
+            ),
+            title: Text(
+              l10n.bluetooth.toUpperCase(),
+              style: theme.textTheme.headlineSmall!.copyWith(
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
+            backgroundColor: Colors.transparent,
+          ),
           body: BlocListener<BluetoothBloc, BluetoothState>(
             listenWhen: (previous, current) =>
                 current.error != null && previous.error != current.error,
@@ -74,27 +97,13 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
                     break;
                 }
 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(message),
-                    backgroundColor: Theme.of(context).colorScheme.error,
-                  ),
-                );
+                MechanixSnackbar.text(
+                  position: MechanixSnackbarPosition.top,
+                  text: message,
+                ).show(context);
               }
             },
             child: const BluetoothBody(),
-          ),
-          bottomNavigationBar: BottomBar(
-            leading: CustomIconButton.asset(
-              assetPath: SettingIcons.back,
-              enabled: true,
-              onPressed: () {
-                context.read<BluetoothBloc>().add(
-                  const StopBluetoothDiscovery(),
-                );
-                Navigator.pop(context);
-              },
-            ),
           ),
         );
       },

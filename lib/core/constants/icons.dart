@@ -40,4 +40,15 @@ class SettingIcons {
 
   static const String charging = 'assets/images/charging.png';
   static const String loader = 'assets/images/loader.png';
+  static const String ellipse = 'assets/images/ellipse.png';
+
+  static const String car = 'assets/images/car.png';
+  static const String comet = 'assets/images/comet.png';
+  static const String devices = 'assets/images/devices.png';
+  static const String monitor = 'assets/images/monitor.png';
+  static const String headphone = 'assets/images/headphone.png';
+  static const String speaker = 'assets/images/speaker.png';
+  static const String television = 'assets/images/devices.png';
+  static const String mobile = 'assets/images/mobile.png';
+  static const String edit = 'assets/images/edit.png';
 }

@@ -401,10 +401,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'The gateway cannot be the same as the IP address.';
 
   @override
-  String get myDevices => 'My devices';
+  String get myDevices => 'My Devices';
 
   @override
-  String get otherDevices => 'Other devices';
+  String get otherDevices => 'Other Devices';
 
   @override
   String get deviceName => 'Device name';
@@ -434,10 +434,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enterCodeToConnect => 'Enter code to connect to';
 
   @override
+  String get aboutDevice => 'About Device';
+
+  @override
+  String get refresh => 'Refresh';
+
+  @override
+  String get enterName => 'Enter Name';
+
+  @override
   String get connectionCode => 'Connection code';
 
   @override
   String get mobileType => 'Mobile';
+
+  @override
+  String get cometType => 'comet';
 
   @override
   String get speakerType => 'Speaker';
@@ -507,7 +519,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get discoverable => 'Discoverable';
+  String get deviceDiscoverable => 'Device discoverable';
 
   @override
   String get bluetoothConnectionFailed =>

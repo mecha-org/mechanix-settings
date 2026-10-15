@@ -835,13 +835,13 @@ abstract class AppLocalizations {
   /// No description provided for @myDevices.
   ///
   /// In en, this message translates to:
-  /// **'My devices'**
+  /// **'My Devices'**
   String get myDevices;
 
   /// No description provided for @otherDevices.
   ///
   /// In en, this message translates to:
-  /// **'Other devices'**
+  /// **'Other Devices'**
   String get otherDevices;
 
   /// No description provided for @deviceName.
@@ -898,6 +898,24 @@ abstract class AppLocalizations {
   /// **'Enter code to connect to'**
   String get enterCodeToConnect;
 
+  /// No description provided for @aboutDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'About Device'**
+  String get aboutDevice;
+
+  /// No description provided for @refresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get refresh;
+
+  /// No description provided for @enterName.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Name'**
+  String get enterName;
+
   /// No description provided for @connectionCode.
   ///
   /// In en, this message translates to:
@@ -909,6 +927,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Mobile'**
   String get mobileType;
+
+  /// No description provided for @cometType.
+  ///
+  /// In en, this message translates to:
+  /// **'comet'**
+  String get cometType;
 
   /// No description provided for @speakerType.
   ///
@@ -1036,11 +1060,11 @@ abstract class AppLocalizations {
   /// **'Failed to add network {networkName}'**
   String addNetworkFailedWithNetwork(String networkName);
 
-  /// No description provided for @discoverable.
+  /// No description provided for @deviceDiscoverable.
   ///
   /// In en, this message translates to:
-  /// **'Discoverable'**
-  String get discoverable;
+  /// **'Device discoverable'**
+  String get deviceDiscoverable;
 
   /// No description provided for @bluetoothConnectionFailed.
   ///
