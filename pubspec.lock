@@ -705,7 +705,7 @@ packages:
     description:
       path: widgets
       ref: "fix/expandable-list"
-      resolved-ref: "4c53ec6ddb660dcd31a4355399f89cad79f072cc"
+      resolved-ref: f0ad180c998f558c1be8a385dbdb58731a32e879
       url: "https://github.com/yogitah-mecha/mechanix-ui.git"
     source: git
     version: "0.0.1"

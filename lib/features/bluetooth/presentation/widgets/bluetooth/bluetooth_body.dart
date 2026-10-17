@@ -62,10 +62,18 @@ class _BluetoothBodyState extends State<BluetoothBody> {
               },
             ),
 
-            BlocSelector<BluetoothBloc, BluetoothState, String>(
-              selector: (state) => state.localDeviceName,
-              builder: (context, deviceName) {
+            BlocSelector<BluetoothBloc, BluetoothState, (String, bool)>(
+              selector: (state) => (state.localDeviceName, state.isBluetoothOn),
+              builder: (context, selectedValues) {
+                final deviceName = selectedValues.$1;
+                final isBluetoothOn = selectedValues.$2;
+
+                if (!isBluetoothOn) {
+                  return const SizedBox.shrink();
+                }
+
                 return MechanixListTile(
+                  key: const ValueKey('about_device_tile'),
                   contentPadding: const EdgeInsets.only(
                     left: 24,
                     right: 8,
@@ -82,6 +90,7 @@ class _BluetoothBodyState extends State<BluetoothBody> {
                       ),
                     ),
                     MechanixIconButton.standard(
+                      key: const ValueKey('about_device_button'),
                       type: IconButtonType.rounded,
                       icon: ImageIcon(
                         const AssetImage(SettingIcons.caretRight),
@@ -303,8 +312,8 @@ class _BluetoothBodyState extends State<BluetoothBody> {
                                   ),
                                 ],
                               ),
-                              showTopDivider: true,
-                              showBottomDivider: true,
+                              showTopBorder: true,
+                              showBottomBorder: true,
                               trailingWidgets: [
                                 scanning
                                     ? SizedBox(
