@@ -50,17 +50,11 @@ dependencies:
   intl: ^0.20.2
   timezone: ^0.10.1
   bloc_concurrency: ^0.3.0
-  # widgets:
-  #   git:
-  #     url: https://github.com/mecha-org/mechanix.dart.git
-  #     path: widgets
-  #     ref: pre-release
-
   widgets:
     git:
-      url: https://github.com/yogitah-mecha/mechanix-ui.git
+      url: https://github.com/mecha-org/mechanix.dart.git
       path: widgets
-      ref: fix/expandable-list
+      ref: pre-release
 
 dev_dependencies:
   flutter_test:

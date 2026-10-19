@@ -248,6 +248,8 @@ class _BluetoothBodyState extends State<BluetoothBody> {
                       },
                     ),
 
+                    const SizedBox(height: 20),
+
                     // Other Devices
                     BlocSelector<BluetoothBloc, BluetoothState, bool>(
                       selector: (state) => state.isScanning,

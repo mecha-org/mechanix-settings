@@ -704,9 +704,9 @@ packages:
     dependency: "direct main"
     description:
       path: widgets
-      ref: "fix/expandable-list"
-      resolved-ref: f0ad180c998f558c1be8a385dbdb58731a32e879
-      url: "https://github.com/yogitah-mecha/mechanix-ui.git"
+      ref: pre-release
+      resolved-ref: "2a5085c1483c0f809a7a313727e9bfad277cb6b8"
+      url: "https://github.com/mecha-org/mechanix.dart.git"
     source: git
     version: "0.0.1"
   xml:
