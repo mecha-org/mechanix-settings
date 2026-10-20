@@ -48,7 +48,7 @@ class SettingIcons {
   static const String monitor = 'assets/images/monitor.png';
   static const String headphone = 'assets/images/headphone.png';
   static const String speaker = 'assets/images/speaker.png';
-  static const String television = 'assets/images/devices.png';
+  static const String television = 'assets/images/television.png';
   static const String mobile = 'assets/images/mobile.png';
   static const String edit = 'assets/images/edit.png';
 }

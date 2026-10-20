@@ -104,6 +104,35 @@ void main() {
       },
     );
 
+    testWidgets('disposing BluetoothScreen dispatches StopBluetoothDiscovery', (
+      WidgetTester tester,
+    ) async {
+      when(
+        () => mockBluetoothBloc.state,
+      ).thenReturn(const BluetoothState(isBluetoothOn: false));
+
+      await tester.pumpWidget(
+        createBluetoothTestWidget(
+          bluetoothBloc: mockBluetoothBloc,
+          child: const BluetoothScreen(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Replace with a different widget to trigger dispose()
+      await tester.pumpWidget(
+        createBluetoothTestWidget(
+          bluetoothBloc: mockBluetoothBloc,
+          child: const SizedBox.shrink(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      verify(
+        () => mockBluetoothBloc.add(const StopBluetoothDiscovery()),
+      ).called(1);
+    });
+
     testWidgets('shows snackbar on connectionFailed error with device name', (
       WidgetTester tester,
     ) async {

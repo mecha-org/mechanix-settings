@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mechanix_settings/core/constants/icons.dart';
@@ -10,9 +11,14 @@ import 'package:mechanix_settings/l10n/app_localizations.dart';
 import 'package:widgets/widgets.dart';
 
 class BluetoothDeviceDetailScreen extends StatelessWidget {
-  final String deviceName;
+  final String macAddress;
+  final String title;
 
-  const BluetoothDeviceDetailScreen({super.key, required this.deviceName});
+  const BluetoothDeviceDetailScreen({
+    super.key,
+    required this.macAddress,
+    required this.title,
+  });
 
   String _getLocalizedType(BluetoothDeviceType type, AppLocalizations l10n) {
     switch (type) {
@@ -39,18 +45,13 @@ class BluetoothDeviceDetailScreen extends StatelessWidget {
     }
   }
 
-  BluetoothDevice _selectDevice(BluetoothState state) {
-    return state.pairedDevices.firstWhere(
-      (d) => d.name == deviceName,
-      orElse: () => state.discoveredDevices.firstWhere(
-        (d) => d.name == deviceName,
-        orElse: () => BluetoothDevice(
-          name: deviceName,
-          deviceName: deviceName,
-          type: BluetoothDeviceType.unknown,
-        ),
-      ),
-    );
+  BluetoothDevice? _selectDevice(BluetoothState state) {
+    return state.pairedDevices.firstWhereOrNull(
+          (d) => d.macAddress == macAddress,
+        ) ??
+        state.discoveredDevices.firstWhereOrNull(
+          (d) => d.macAddress == macAddress,
+        );
   }
 
   @override
@@ -58,9 +59,16 @@ class BluetoothDeviceDetailScreen extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
-    return BlocSelector<BluetoothBloc, BluetoothState, BluetoothDevice>(
+    return BlocSelector<BluetoothBloc, BluetoothState, BluetoothDevice?>(
       selector: (state) => _selectDevice(state),
       builder: (context, device) {
+        if (device == null) {
+          return Scaffold(
+            backgroundColor: theme.colorScheme.surfaceContainerLowest,
+            body: const SizedBox.shrink(),
+          );
+        }
+
         return Scaffold(
           backgroundColor: theme.colorScheme.surfaceContainerLowest,
           appBar: MechanixAppBar.small(
@@ -76,7 +84,7 @@ class BluetoothDeviceDetailScreen extends StatelessWidget {
               },
             ),
             title: Text(
-              deviceName.toUpperCase(),
+              (device.name.isNotEmpty ? device.name : title).toUpperCase(),
               style: theme.textTheme.headlineSmall!.copyWith(
                 color: theme.colorScheme.onSurface,
                 fontWeight: FontWeight.w300,
@@ -101,7 +109,7 @@ class BluetoothDeviceDetailScreen extends StatelessWidget {
                 },
                 entries: [
                   MechanixMenuItem(
-                    value: 'refresh',
+                    value: 'connect_disconnect',
                     leading: ImageIcon(
                       AssetImage(
                         device.isConnected

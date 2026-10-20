@@ -36,30 +36,33 @@ class AboutDeviceScreen extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
-    return BlocBuilder<BluetoothBloc, BluetoothState>(
-      builder: (context, state) {
-        return Scaffold(
-          backgroundColor: theme.colorScheme.surfaceContainerLowest,
-          appBar: MechanixAppBar.small(
-            primary: false,
-            leading: MechanixIconButton.standard(
-              icon: ImageIcon(
-                const AssetImage(SettingIcons.back),
-                color: theme.colorScheme.onSurface,
-              ),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            ),
-            title: Text(
-              l10n.aboutDevice.toUpperCase(),
-              style: theme.textTheme.headlineSmall!.copyWith(
-                color: theme.colorScheme.onSurface,
-              ),
-            ),
-            backgroundColor: Colors.transparent,
+    return Scaffold(
+      backgroundColor: theme.colorScheme.surfaceContainerLowest,
+      appBar: MechanixAppBar.small(
+        primary: false,
+        leading: MechanixIconButton.standard(
+          icon: ImageIcon(
+            const AssetImage(SettingIcons.back),
+            color: theme.colorScheme.onSurface,
           ),
-          body: ScrollConfiguration(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        title: Text(
+          l10n.aboutDevice.toUpperCase(),
+          style: theme.textTheme.headlineSmall!.copyWith(
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+        backgroundColor: Colors.transparent,
+      ),
+      body: BlocSelector<BluetoothBloc, BluetoothState, (String, bool)>(
+        selector: (s) => (s.localDeviceName, s.isDiscoverable),
+        builder: (context, selected) {
+          final (localDeviceName, isDiscoverable) = selected;
+
+          return ScrollConfiguration(
             behavior: ScrollConfiguration.of(context).copyWith(
               dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.mouse},
             ),
@@ -76,7 +79,7 @@ class AboutDeviceScreen extends StatelessWidget {
                     labelText: l10n.deviceName,
                     trailingWidgets: [
                       Text(
-                        state.localDeviceName,
+                        localDeviceName,
                         style: theme.textTheme.titleLarge?.copyWith(
                           color: theme.colorScheme.onSecondaryFixed,
                         ),
@@ -92,16 +95,13 @@ class AboutDeviceScreen extends StatelessWidget {
                         onPressed: () {
                           _openEditDeviceNameBottomSheet(
                             context,
-                            state.localDeviceName,
+                            localDeviceName,
                           );
                         },
                       ),
                     ],
                     onTap: () {
-                      _openEditDeviceNameBottomSheet(
-                        context,
-                        state.localDeviceName,
-                      );
+                      _openEditDeviceNameBottomSheet(context, localDeviceName);
                     },
                   ),
                   const SizedBox(height: 12),
@@ -138,7 +138,7 @@ class AboutDeviceScreen extends StatelessWidget {
                     labelText: l10n.deviceDiscoverable,
                     trailingWidgets: [
                       MechanixSwitch(
-                        value: state.isDiscoverable,
+                        value: isDiscoverable,
                         onChanged: (value) {
                           context.read<BluetoothBloc>().add(
                             ToggleBluetoothDiscoverable(value),
@@ -148,16 +148,16 @@ class AboutDeviceScreen extends StatelessWidget {
                     ],
                     onTap: () {
                       context.read<BluetoothBloc>().add(
-                        ToggleBluetoothDiscoverable(!state.isDiscoverable),
+                        ToggleBluetoothDiscoverable(!isDiscoverable),
                       );
                     },
                   ),
                 ],
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
@@ -246,7 +246,7 @@ class _EditDeviceNameBottomSheetState
                       const AssetImage(SettingIcons.check),
                       color: isValid
                           ? theme.colorScheme.onSurface
-                          : theme.colorScheme.onSurface.withOpacity(0.38),
+                          : theme.colorScheme.onSurface.withValues(alpha: 0.38),
                     ),
                     onPressed: isValid ? _saveAndPop : null,
                   ),

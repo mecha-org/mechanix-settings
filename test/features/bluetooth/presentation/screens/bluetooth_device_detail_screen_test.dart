@@ -34,7 +34,10 @@ void main() {
       await tester.pumpWidget(
         createBluetoothTestWidget(
           bluetoothBloc: mockBluetoothBloc,
-          child: BluetoothDeviceDetailScreen(deviceName: tConnectedDevice.name),
+          child: BluetoothDeviceDetailScreen(
+            macAddress: tConnectedDevice.macAddress,
+            title: tConnectedDevice.name,
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -76,7 +79,10 @@ void main() {
       await tester.pumpWidget(
         createBluetoothTestWidget(
           bluetoothBloc: mockBluetoothBloc,
-          child: BluetoothDeviceDetailScreen(deviceName: tPairedDevice.name),
+          child: BluetoothDeviceDetailScreen(
+            macAddress: tPairedDevice.macAddress,
+            title: tPairedDevice.name,
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -114,7 +120,10 @@ void main() {
         createBluetoothTestWidget(
           bluetoothBloc: mockBluetoothBloc,
           navigatorObserver: navigatorObserver,
-          child: BluetoothDeviceDetailScreen(deviceName: tConnectedDevice.name),
+          child: BluetoothDeviceDetailScreen(
+            macAddress: tConnectedDevice.macAddress,
+            title: tConnectedDevice.name,
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -150,7 +159,8 @@ void main() {
             bluetoothBloc: mockBluetoothBloc,
             navigatorObserver: navigatorObserver,
             child: BluetoothDeviceDetailScreen(
-              deviceName: tConnectedDevice.name,
+              macAddress: tConnectedDevice.macAddress,
+              title: tConnectedDevice.name,
             ),
           ),
         );
@@ -206,7 +216,10 @@ void main() {
           createBluetoothTestWidget(
             bluetoothBloc: mockBluetoothBloc,
             navigatorObserver: navigatorObserver,
-            child: BluetoothDeviceDetailScreen(deviceName: tPairedDevice.name),
+            child: BluetoothDeviceDetailScreen(
+              macAddress: tPairedDevice.macAddress,
+              title: tPairedDevice.name,
+            ),
           ),
         );
         await tester.pumpAndSettle();
@@ -259,7 +272,10 @@ void main() {
         createBluetoothTestWidget(
           bluetoothBloc: mockBluetoothBloc,
           navigatorObserver: navigatorObserver,
-          child: BluetoothDeviceDetailScreen(deviceName: tConnectedDevice.name),
+          child: BluetoothDeviceDetailScreen(
+            macAddress: tConnectedDevice.macAddress,
+            title: tConnectedDevice.name,
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -291,37 +307,5 @@ void main() {
       ).called(1);
       verify(() => navigatorObserver.didPop(any(), any())).called(1);
     });
-
-    testWidgets(
-      'falls back to default unknown device if device is not in list',
-      (WidgetTester tester) async {
-        when(() => mockBluetoothBloc.state).thenReturn(
-          const BluetoothState(
-            isBluetoothOn: true,
-            pairedDevices: [],
-            discoveredDevices: [],
-          ),
-        );
-
-        await tester.pumpWidget(
-          createBluetoothTestWidget(
-            bluetoothBloc: mockBluetoothBloc,
-            child: const BluetoothDeviceDetailScreen(
-              deviceName: 'Unknown Device',
-            ),
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        final context = tester.element(
-          find.byType(BluetoothDeviceDetailScreen),
-        );
-        final l10n = AppLocalizations.of(context)!;
-
-        expect(find.text('UNKNOWN DEVICE'), findsOneWidget);
-        expect(find.text(l10n.unknownType.toUpperCase()), findsOneWidget);
-        expect(find.text(l10n.notConnected.toUpperCase()), findsOneWidget);
-      },
-    );
   });
 }
