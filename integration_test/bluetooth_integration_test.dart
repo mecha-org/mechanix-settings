@@ -3,35 +3,32 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mechanix_settings/features/bluetooth/presentation/widgets/bluetooth/bluetooth_body.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:widgets/widgets.dart';
 
 import 'package:mechanix_settings/main.dart';
-import 'package:mechanix_settings/core/widgets/custom_toggle.dart';
-import 'package:mechanix_settings/core/widgets/custom_icon_button.dart';
 import 'package:mechanix_settings/core/constants/icons.dart';
 import 'package:mechanix_settings/features/settings_menu/presentation/screens/settings_menu_screen.dart';
 import 'package:mechanix_settings/features/bluetooth/presentation/screens/bluetooth.dart';
-import 'package:mechanix_settings/features/bluetooth/presentation/screens/bluetooth_rename.dart';
+import 'package:mechanix_settings/features/bluetooth/presentation/screens/about_device_screen.dart';
 import 'package:mechanix_settings/features/bluetooth/presentation/screens/bluetooth_device_detail.dart';
+import 'package:mechanix_settings/features/bluetooth/presentation/widgets/bluetooth_connected_device_tile.dart';
 import 'package:mechanix_settings/features/bluetooth/presentation/widgets/bluetooth_device_list_item.dart';
 import 'package:mechanix_settings/features/bluetooth/data/repositories/bluetooth_repository.dart';
 import 'package:mechanix_settings/features/bluetooth/blocs/bluetooth_bloc.dart';
 import 'package:mechanix_settings/features/bluetooth/data/models/bluetooth_device.dart';
 import 'package:mechanix_settings/features/bluetooth/data/models/enums.dart';
 
-import 'package:mechanix_settings/features/wireless/data/repositories/wireless_repository.dart';
-import 'package:mechanix_settings/features/wireless/blocs/wireless_bloc.dart';
+import 'package:mechanix_settings/l10n/app_localizations.dart';
 
 class MockBluetoothRepository extends Mock implements BluetoothRepository {}
-
-class MockWirelessRepository extends Mock implements WirelessRepository {}
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   group('Bluetooth Integration Tests', () {
     late MockBluetoothRepository mockBluetoothRepository;
-    late MockWirelessRepository mockWirelessRepository;
 
     late StreamController<bool> bluetoothPowerController;
     late StreamController<bool> bluetoothDiscoverableController;
@@ -56,7 +53,7 @@ void main() {
           StreamController<List<BluetoothDevice>>.broadcast();
 
       mockBluetoothRepository = MockBluetoothRepository();
-      mockWirelessRepository = MockWirelessRepository();
+      // mockWirelessRepository = MockWirelessRepository();
 
       // Setup Bluetooth stubs
       when(() => mockBluetoothRepository.init()).thenAnswer((_) async {});
@@ -87,35 +84,32 @@ void main() {
         () => mockBluetoothRepository.getPairedDevices(),
       ).thenAnswer((_) async => []);
 
-      // Setup Wireless stubs
-      when(() => mockWirelessRepository.init()).thenAnswer((_) async {});
-      when(
-        () => mockWirelessRepository.getWifiEventsStream(),
-      ).thenAnswer((_) => const Stream<List<String>>.empty());
-      when(
-        () => mockWirelessRepository.getDeviceEventsStream(),
-      ).thenAnswer((_) => const Stream<List<String>>.empty());
-      when(
-        () => mockWirelessRepository.getWirelessDeviceEventsStream(),
-      ).thenAnswer((_) => const Stream<List<String>>.empty());
-      when(
-        () => mockWirelessRepository.isWirelessEnabled(),
-      ).thenAnswer((_) => false);
-
       when(
         () => mockBluetoothRepository.startDiscovery(),
       ).thenAnswer((_) async {});
-
       when(
         () => mockBluetoothRepository.stopDiscovery(),
       ).thenAnswer((_) async {});
-
       when(
         () => mockBluetoothRepository.togglePower(any()),
       ).thenAnswer((_) async => true);
-
       when(
         () => mockBluetoothRepository.setDiscoverable(any()),
+      ).thenAnswer((_) async {});
+      when(
+        () => mockBluetoothRepository.updateLocalDeviceName(any()),
+      ).thenAnswer((_) async {});
+      when(
+        () => mockBluetoothRepository.pairDevice(any()),
+      ).thenAnswer((_) async {});
+      when(
+        () => mockBluetoothRepository.connectToDevice(any()),
+      ).thenAnswer((_) async {});
+      when(
+        () => mockBluetoothRepository.disconnectFromDevice(any()),
+      ).thenAnswer((_) async {});
+      when(
+        () => mockBluetoothRepository.forgetDevice(any()),
       ).thenAnswer((_) async {});
     });
 
@@ -126,31 +120,18 @@ void main() {
       bluetoothDevicesController.close();
     });
 
-    Widget createTestApp(
-      MockWirelessRepository mockWirelessRepository,
-      MockBluetoothRepository mockBluetoothRepository,
-    ) {
+    Widget createTestApp(MockBluetoothRepository mockBluetoothRepository) {
       return MultiRepositoryProvider(
         providers: [
-          RepositoryProvider<WirelessRepository>.value(
-            value: mockWirelessRepository,
-          ),
           RepositoryProvider<BluetoothRepository>.value(
             value: mockBluetoothRepository,
           ),
         ],
         child: MultiBlocProvider(
           providers: [
-            BlocProvider<WirelessBloc>(
-              lazy: false,
-              create: (context) => WirelessBloc(
-                wirelessRepository: context.read<WirelessRepository>(),
-              )..add(InitWifi()),
-            ),
             BlocProvider<BluetoothBloc>(
-              lazy: false,
-              create: (context) =>
-                  BluetoothBloc(context.read<BluetoothRepository>())
+              create: (_) =>
+                  BluetoothBloc(mockBluetoothRepository)
                     ..add(const LoadBluetooth()),
             ),
           ],
@@ -159,44 +140,61 @@ void main() {
       );
     }
 
-    Finder findButtonByAsset(String assetPath) {
+    Finder findMechanixIconButtonByAsset(String assetPath) {
       return find.byWidgetPredicate(
         (widget) =>
-            widget is CustomIconButton &&
-            widget.icon is Image &&
-            (widget.icon as Image).image is AssetImage &&
-            ((widget.icon as Image).image as AssetImage).assetName == assetPath,
+            widget is MechanixIconButton &&
+            ((widget.icon is ImageIcon &&
+                    (widget.icon as ImageIcon).image is AssetImage &&
+                    ((widget.icon as ImageIcon).image as AssetImage)
+                            .assetName ==
+                        assetPath) ||
+                (widget.icon is Image &&
+                    (widget.icon as Image).image is AssetImage &&
+                    ((widget.icon as Image).image as AssetImage).assetName ==
+                        assetPath)),
       );
     }
 
     testWidgets(
       'Bluetooth navigation and initial screen state (Bluetooth OFF)',
       (WidgetTester tester) async {
-        await tester.pumpWidget(
-          createTestApp(mockWirelessRepository, mockBluetoothRepository),
-        );
+        await tester.pumpWidget(createTestApp(mockBluetoothRepository));
         await tester.pumpAndSettle();
 
         // We should be on SettingsMenuScreen first.
         expect(find.byType(SettingsMenuScreen), findsOneWidget);
 
-        final bluetoothMenuTile = find.text('Bluetooth');
+        final BuildContext context = tester.element(
+          find.byType(SettingsMenuScreen),
+        );
+        final l10n = AppLocalizations.of(context)!;
+
+        final bluetoothMenuTile = find.text(l10n.bluetooth);
         expect(bluetoothMenuTile, findsOneWidget);
 
-        // Tap on it and wait for transition to complete
+        // Tap on Bluetooth and wait for transition to complete
         await tester.tap(bluetoothMenuTile);
         await tester.pumpAndSettle();
 
         // Verify we are now on BluetoothScreen
         expect(find.byType(BluetoothScreen), findsOneWidget);
 
-        // Verify initial state: other components are hidden.
-        expect(find.text('Discoverable'), findsNothing);
-        expect(find.text('My devices'), findsNothing);
-        expect(find.text('Other devices'), findsNothing);
+        // Verify title and label display uppercase BLUETOOTH
+        expect(find.text(l10n.bluetooth.toUpperCase()), findsNWidgets(2));
+
+        // Verify Bluetooth power switch is OFF
+        final powerSwitch = find.byType(MechanixSwitch);
+        expect(powerSwitch, findsOneWidget);
+        expect(tester.widget<MechanixSwitch>(powerSwitch).value, isFalse);
+
+        // Verify device sections are hidden when Bluetooth is OFF
+        expect(find.byKey(const ValueKey('my_devices')), findsNothing);
+        expect(find.byKey(const ValueKey('other_devices')), findsNothing);
+        expect(find.byType(BluetoothConnectedDeviceTile), findsNothing);
 
         // Go back using the back button
-        final backButton = findButtonByAsset(SettingIcons.back);
+        final backButton = findMechanixIconButtonByAsset(SettingIcons.back);
         expect(backButton, findsOneWidget);
         await tester.tap(backButton);
         await tester.pumpAndSettle();
@@ -206,32 +204,31 @@ void main() {
       },
     );
 
-    testWidgets('Toggling Bluetooth ON and discoverability', (
+    testWidgets('Toggling Bluetooth ON and displaying device sections', (
       WidgetTester tester,
     ) async {
-      await tester.pumpWidget(
-        createTestApp(mockWirelessRepository, mockBluetoothRepository),
-      );
+      await tester.pumpWidget(createTestApp(mockBluetoothRepository));
       await tester.pumpAndSettle();
+
+      final BuildContext context = tester.element(
+        find.byType(SettingsMenuScreen),
+      );
+      final l10n = AppLocalizations.of(context)!;
 
       // Go to Bluetooth Screen
-      await tester.tap(find.text('Bluetooth'));
+      await tester.tap(find.text(l10n.bluetooth));
       await tester.pumpAndSettle();
 
-      // Find the toggle for Bluetooth power.
-      final powerToggle = find.descendant(
-        of: find
-            .ancestor(of: find.text('Bluetooth'), matching: find.byType(Row))
-            .first,
-        matching: find.byType(CustomToggle),
-      );
-      expect(powerToggle, findsOneWidget);
+      // Find the toggle for Bluetooth power
+      final powerSwitch = find.byType(MechanixSwitch);
+      expect(powerSwitch, findsOneWidget);
+      expect(tester.widget<MechanixSwitch>(powerSwitch).value, isFalse);
 
-      // Tap to toggle ON.
-      await tester.tap(powerToggle);
+      // Tap to toggle ON
+      await tester.tap(powerSwitch);
       await tester.pump();
 
-      // Verify togglePower(true) is called.
+      // Verify togglePower(true) is called
       verify(() => mockBluetoothRepository.togglePower(true)).called(1);
 
       // Simulate repository streams emitting Bluetooth ON
@@ -240,74 +237,75 @@ void main() {
         () => mockBluetoothRepository.isBluetoothEnabled(),
       ).thenAnswer((_) async => true);
 
-      // Let's also emit list of devices
-      const testDevice = BluetoothDevice(
+      // Emit connected device, paired device, and discovered device
+      const connectedDevice = BluetoothDevice(
+        name: 'Connected Audio',
+        deviceName: 'Connected Audio',
+        type: BluetoothDeviceType.headphones,
+        macAddress: '11:11:11:11:11:11',
+        isSaved: true,
+        isConnected: true,
+      );
+      const pairedDevice = BluetoothDevice(
         name: 'Paired Phone',
         deviceName: 'Paired Phone',
         type: BluetoothDeviceType.mobile,
-        macAddress: '11:22:33:44:55:66',
+        macAddress: '22:22:22:22:22:22',
         isSaved: true,
         isConnected: false,
       );
-      const testDiscoveredDevice = BluetoothDevice(
-        name: 'Headphones',
-        deviceName: 'Headphones',
-        type: BluetoothDeviceType.headphones,
-        macAddress: 'AA:BB:CC:DD:EE:FF',
+      const discoveredDevice = BluetoothDevice(
+        name: 'Nearby Speaker',
+        deviceName: 'Nearby Speaker',
+        type: BluetoothDeviceType.speaker,
+        macAddress: '33:33:33:33:33:33',
         isSaved: false,
         isConnected: false,
       );
 
-      bluetoothDevicesController.add([testDevice, testDiscoveredDevice]);
+      bluetoothDevicesController.add([
+        connectedDevice,
+        pairedDevice,
+        discoveredDevice,
+      ]);
 
-      // Pump to reflect state
       await tester.pumpAndSettle();
 
-      // Verify that discoverable option appears and My/Other devices headers appear.
-      expect(find.text('Discoverable'), findsOneWidget);
-      expect(find.text('My devices'), findsOneWidget);
-      expect(find.text('Other devices'), findsOneWidget);
+      // Verify power switch is now ON
+      expect(tester.widget<MechanixSwitch>(powerSwitch).value, isTrue);
 
-      // Verify devices are listed
+      // Verify connected device is displayed as BluetoothConnectedDeviceTile
+      expect(find.byType(BluetoothConnectedDeviceTile), findsOneWidget);
+      expect(find.text('Connected Audio'), findsOneWidget);
+
+      // Verify My devices section is displayed
+      expect(find.byKey(const ValueKey('my_devices')), findsOneWidget);
+      expect(find.text(l10n.myDevices), findsOneWidget);
       expect(find.text('Paired Phone'), findsOneWidget);
-      expect(find.text('Headphones'), findsOneWidget);
 
-      // Toggle Discoverable ON
-      final discoverableToggle = find.descendant(
-        of: find
-            .ancestor(of: find.text('Discoverable'), matching: find.byType(Row))
-            .first,
-        matching: find.byType(CustomToggle),
-      );
-      expect(discoverableToggle, findsOneWidget);
-
-      await tester.tap(discoverableToggle);
-      await tester.pump();
-
-      // Verify setDiscoverable(true) is called
-      verify(() => mockBluetoothRepository.setDiscoverable(true)).called(1);
+      // Verify Other devices section is displayed
+      expect(find.byKey(const ValueKey('other_devices')), findsOneWidget);
+      expect(find.text(l10n.otherDevices), findsOneWidget);
+      expect(find.text('Nearby Speaker'), findsOneWidget);
     });
 
     testWidgets('Toggling Bluetooth ON and tapping Refresh/Scan', (
       WidgetTester tester,
     ) async {
-      await tester.pumpWidget(
-        createTestApp(mockWirelessRepository, mockBluetoothRepository),
-      );
+      await tester.pumpWidget(createTestApp(mockBluetoothRepository));
       await tester.pumpAndSettle();
+
+      final BuildContext context = tester.element(
+        find.byType(SettingsMenuScreen),
+      );
+      final l10n = AppLocalizations.of(context)!;
 
       // Go to Bluetooth Screen
-      await tester.tap(find.text('Bluetooth'));
+      await tester.tap(find.text(l10n.bluetooth));
       await tester.pumpAndSettle();
 
-      // Enable Bluetooth
-      final powerToggle = find.descendant(
-        of: find
-            .ancestor(of: find.text('Bluetooth'), matching: find.byType(Row))
-            .first,
-        matching: find.byType(CustomToggle),
-      );
-      await tester.tap(powerToggle);
+      // Turn on Bluetooth
+      await tester.tap(find.byType(MechanixSwitch));
       await tester.pump();
 
       bluetoothPowerController.add(true);
@@ -316,92 +314,349 @@ void main() {
       ).thenAnswer((_) async => true);
       await tester.pumpAndSettle();
 
-      // The refresh button only displays in the bottom bar when Bluetooth is ON.
-      final refreshBtn = findButtonByAsset(SettingIcons.refresh);
+      // Refresh button is located in the Other devices expandable tile header
+      final refreshBtn = find.descendant(
+        of: find.byKey(const ValueKey('other_devices')),
+        matching: findMechanixIconButtonByAsset(SettingIcons.refresh),
+      );
       expect(refreshBtn, findsOneWidget);
+
+      // Tap refresh
       await tester.tap(refreshBtn);
       await tester.pump();
-    });
 
-    testWidgets('Rename local device flow', (WidgetTester tester) async {
-      when(
-        () => mockBluetoothRepository.togglePower(true),
-      ).thenAnswer((_) async => true);
-      when(
-        () => mockBluetoothRepository.updateLocalDeviceName(any()),
-      ).thenAnswer((_) async {});
-
-      await tester.pumpWidget(
-        createTestApp(mockWirelessRepository, mockBluetoothRepository),
-      );
-      await tester.pumpAndSettle();
-
-      // Go to Bluetooth Screen
-      await tester.tap(find.text('Bluetooth'));
-      await tester.pumpAndSettle();
-
-      // Tap on Device name config row
-      final deviceNameRow = find.text('Device name');
-      expect(deviceNameRow, findsOneWidget);
-      await tester.tap(deviceNameRow);
-      await tester.pumpAndSettle();
-
-      // Now we should be on BluetoothRenameScreen
-      expect(find.byType(BluetoothRenameScreen), findsOneWidget);
-
-      // Verify text field contains initial name 'comet'
-      final textFormFieldFinder = find.byType(TextField);
-      expect(textFormFieldFinder, findsOneWidget);
-
-      // Enter new name
-      await tester.enterText(textFormFieldFinder, 'new-comet');
-      await tester.pumpAndSettle();
-
-      // Tap confirm button (SettingIcons.check)
-      final checkButton = findButtonByAsset(SettingIcons.check);
-      expect(checkButton, findsOneWidget);
-      await tester.tap(checkButton);
-      await tester.pumpAndSettle();
-
-      // Verify updateLocalDeviceName was called on repo
+      // Verify startDiscovery was called
       verify(
-        () => mockBluetoothRepository.updateLocalDeviceName('new-comet'),
-      ).called(1);
+        () => mockBluetoothRepository.startDiscovery(),
+      ).called(greaterThanOrEqualTo(1));
 
-      // Verify we are back on BluetoothScreen
-      expect(find.byType(BluetoothScreen), findsOneWidget);
+      // Emit scanning = true
+      bluetoothScanningController.add(true);
+      await tester.pump();
+
+      // Verify CircularProgressIndicator is shown and refresh button is absent
+      final scanningIndicator = find.descendant(
+        of: find.byKey(const ValueKey('other_devices')),
+        matching: find.byType(CircularProgressIndicator),
+      );
+      expect(scanningIndicator, findsOneWidget);
+      expect(refreshBtn, findsNothing);
+
+      // Emit scanning = false
+      bluetoothScanningController.add(false);
+      await tester.pump();
+
+      // Verify refresh button reappears
+      expect(refreshBtn, findsOneWidget);
+      expect(scanningIndicator, findsNothing);
     });
 
-    testWidgets('Device Detail interactions (Disconnect & Forget)', (
+    testWidgets(
+      'About device flow (navigation, discoverability toggle, and device rename)',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(createTestApp(mockBluetoothRepository));
+        await tester.pumpAndSettle();
+
+        final BuildContext context = tester.element(
+          find.byType(SettingsMenuScreen),
+        );
+        final l10n = AppLocalizations.of(context)!;
+
+        // Go to Bluetooth Screen
+        await tester.tap(find.text(l10n.bluetooth));
+        await tester.pumpAndSettle();
+
+        bluetoothPowerController.add(true);
+        when(
+          () => mockBluetoothRepository.isBluetoothEnabled(),
+        ).thenAnswer((_) async => true);
+        await tester.pumpAndSettle();
+
+        // Verify About Device tile and button are present
+        final aboutDeviceTile = find.text(l10n.aboutDevice);
+        expect(aboutDeviceTile, findsOneWidget);
+
+        final aboutDeviceBtn = find.descendant(
+          of: find.byType(BluetoothBody),
+          matching: find.byKey(const ValueKey("about_device_button")),
+        );
+        expect(aboutDeviceBtn, findsOneWidget);
+
+        // Tap About Device button to navigate
+        await tester.tap(aboutDeviceBtn);
+        await tester.pumpAndSettle();
+
+        // Verify we are now on AboutDeviceScreen
+        expect(find.byType(AboutDeviceScreen), findsOneWidget);
+        expect(find.text(l10n.aboutDevice.toUpperCase()), findsOneWidget);
+
+        // Verify Device name, Device type, and Discoverable rows are present
+        expect(find.text(l10n.deviceName), findsOneWidget);
+        expect(find.text('comet'), findsOneWidget);
+        expect(find.text(l10n.deviceType), findsOneWidget);
+        expect(find.text(l10n.cometType.toUpperCase()), findsOneWidget);
+        expect(find.text(l10n.deviceDiscoverable), findsOneWidget);
+
+        // Verify Discoverable switch state (initially false)
+        final discoverableSwitch = find.descendant(
+          of: find.byType(AboutDeviceScreen),
+          matching: find.byType(MechanixSwitch),
+        );
+        expect(discoverableSwitch, findsOneWidget);
+        expect(
+          tester.widget<MechanixSwitch>(discoverableSwitch).value,
+          isFalse,
+        );
+
+        // Toggle discoverable switch
+        await tester.tap(discoverableSwitch);
+        await tester.pump();
+
+        verify(() => mockBluetoothRepository.setDiscoverable(true)).called(1);
+
+        bluetoothDiscoverableController.add(true);
+        await tester.pumpAndSettle();
+        expect(tester.widget<MechanixSwitch>(discoverableSwitch).value, isTrue);
+
+        // Tap Device Name row to open edit bottom sheet
+        await tester.tap(find.text(l10n.deviceName));
+        await tester.pumpAndSettle();
+
+        // Verify text field contains initial name 'comet'
+        final textFormFieldFinder = find.byType(TextField);
+        expect(textFormFieldFinder, findsOneWidget);
+
+        // Enter new device name
+        await tester.enterText(textFormFieldFinder, 'new-comet');
+        await tester.pumpAndSettle();
+
+        // Tap confirm button (SettingIcons.check)
+        final checkButton = findMechanixIconButtonByAsset(SettingIcons.check);
+        expect(checkButton, findsOneWidget);
+        await tester.tap(checkButton);
+        await tester.pumpAndSettle();
+
+        // Verify updateLocalDeviceName was called on repo
+        verify(
+          () => mockBluetoothRepository.updateLocalDeviceName('new-comet'),
+        ).called(1);
+
+        // Verify bottom sheet is dismissed and new name is displayed on AboutDeviceScreen
+        expect(find.byType(TextField), findsNothing);
+        expect(find.text('new-comet'), findsOneWidget);
+
+        // Tap back button to return to BluetoothScreen
+        final backButton = findMechanixIconButtonByAsset(SettingIcons.back);
+        expect(backButton, findsOneWidget);
+        await tester.tap(backButton);
+        await tester.pumpAndSettle();
+
+        // Verify we are back on BluetoothScreen and new device name is visible
+        expect(find.byType(BluetoothScreen), findsOneWidget);
+        expect(find.text('new-comet'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'Connect to device interactions from My Devices and Other Devices',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(createTestApp(mockBluetoothRepository));
+        await tester.pumpAndSettle();
+
+        final BuildContext context = tester.element(
+          find.byType(SettingsMenuScreen),
+        );
+        final l10n = AppLocalizations.of(context)!;
+
+        // Go to Bluetooth Screen
+        await tester.tap(find.text(l10n.bluetooth));
+        await tester.pumpAndSettle();
+
+        // Turn on Bluetooth
+        await tester.tap(find.byType(MechanixSwitch));
+        await tester.pump();
+
+        bluetoothPowerController.add(true);
+        when(
+          () => mockBluetoothRepository.isBluetoothEnabled(),
+        ).thenAnswer((_) async => true);
+
+        const pairedDevice = BluetoothDevice(
+          name: 'Paired Phone',
+          deviceName: 'Paired Phone',
+          type: BluetoothDeviceType.mobile,
+          macAddress: '22:22:22:22:22:22',
+          isSaved: true,
+          isConnected: false,
+        );
+        const discoveredDevice = BluetoothDevice(
+          name: 'Nearby Speaker',
+          deviceName: 'Nearby Speaker',
+          type: BluetoothDeviceType.speaker,
+          macAddress: '33:33:33:33:33:33',
+          isSaved: false,
+          isConnected: false,
+        );
+
+        bluetoothDevicesController.add([pairedDevice, discoveredDevice]);
+        await tester.pumpAndSettle();
+
+        // Connect to saved device in My Devices: calls connectToDevice directly
+        await tester.tap(find.text('Paired Phone'));
+        await tester.pump();
+
+        verify(
+          () => mockBluetoothRepository.connectToDevice('22:22:22:22:22:22'),
+        ).called(1);
+        verifyNever(
+          () => mockBluetoothRepository.pairDevice('22:22:22:22:22:22'),
+        );
+
+        // Connect to unsaved device in Other Devices: calls pairDevice then connectToDevice
+        await tester.tap(find.text('Nearby Speaker'));
+        await tester.pump();
+
+        verify(
+          () => mockBluetoothRepository.pairDevice('33:33:33:33:33:33'),
+        ).called(1);
+        verify(
+          () => mockBluetoothRepository.connectToDevice('33:33:33:33:33:33'),
+        ).called(1);
+      },
+    );
+
+    testWidgets(
+      'Device Detail interactions (Connect, Disconnect, and Forget)',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(createTestApp(mockBluetoothRepository));
+        await tester.pumpAndSettle();
+
+        final BuildContext context = tester.element(
+          find.byType(SettingsMenuScreen),
+        );
+        final l10n = AppLocalizations.of(context)!;
+
+        // Go to Bluetooth Screen
+        await tester.tap(find.text(l10n.bluetooth));
+        await tester.pumpAndSettle();
+
+        // Enable Bluetooth
+        await tester.tap(find.byType(MechanixSwitch));
+        await tester.pump();
+
+        bluetoothPowerController.add(true);
+        when(
+          () => mockBluetoothRepository.isBluetoothEnabled(),
+        ).thenAnswer((_) async => true);
+
+        // Emit connected device and paired disconnected device
+        const connectedDevice = BluetoothDevice(
+          name: 'Connected Audio',
+          deviceName: 'Connected Audio',
+          type: BluetoothDeviceType.headphones,
+          macAddress: '11:11:11:11:11:11',
+          isSaved: true,
+          isConnected: true,
+        );
+        const pairedDevice = BluetoothDevice(
+          name: 'Paired Phone',
+          deviceName: 'Paired Phone',
+          type: BluetoothDeviceType.mobile,
+          macAddress: '22:22:22:22:22:22',
+          isSaved: true,
+          isConnected: false,
+        );
+
+        bluetoothDevicesController.add([connectedDevice, pairedDevice]);
+        await tester.pumpAndSettle();
+
+        // Tap settings button on Connected Audio
+        final connectedSettingsBtn = find.descendant(
+          of: find.byType(BluetoothConnectedDeviceTile),
+          matching: findMechanixIconButtonByAsset(SettingIcons.setting),
+        );
+        expect(connectedSettingsBtn, findsOneWidget);
+        await tester.tap(connectedSettingsBtn);
+        await tester.pumpAndSettle();
+
+        // Verify on BluetoothDeviceDetailScreen
+        expect(find.byType(BluetoothDeviceDetailScreen), findsOneWidget);
+        expect(find.text('CONNECTED AUDIO'), findsOneWidget);
+        expect(find.text(l10n.headphones.toUpperCase()), findsOneWidget);
+        expect(find.text(l10n.connected.toUpperCase()), findsOneWidget);
+
+        // Open 3-dots popup menu
+        final moreBtn = findMechanixIconButtonByAsset(SettingIcons.moreVert);
+        expect(moreBtn, findsOneWidget);
+        await tester.tap(moreBtn);
+        await tester.pumpAndSettle();
+
+        // Tap Disconnect
+        final disconnectItem = find.text(l10n.disconnect);
+        expect(disconnectItem, findsOneWidget);
+        await tester.tap(disconnectItem);
+        await tester.pumpAndSettle();
+
+        // Verify disconnect was called and navigated back
+        verify(
+          () =>
+              mockBluetoothRepository.disconnectFromDevice('11:11:11:11:11:11'),
+        ).called(1);
+        expect(find.byType(BluetoothScreen), findsOneWidget);
+
+        // Now tap settings on Paired Phone
+        final pairedSettingsBtn = find.descendant(
+          of: find.widgetWithText(BluetoothDeviceListItem, 'Paired Phone'),
+          matching: findMechanixIconButtonByAsset(SettingIcons.setting),
+        );
+        expect(pairedSettingsBtn, findsOneWidget);
+        await tester.tap(pairedSettingsBtn);
+        await tester.pumpAndSettle();
+
+        // Verify on BluetoothDeviceDetailScreen for Paired Phone
+        expect(find.byType(BluetoothDeviceDetailScreen), findsOneWidget);
+        expect(find.text('PAIRED PHONE'), findsOneWidget);
+        expect(find.text(l10n.mobileType.toUpperCase()), findsOneWidget);
+        expect(find.text(l10n.notConnected.toUpperCase()), findsOneWidget);
+
+        // Open 3-dots popup menu
+        await tester.tap(findMechanixIconButtonByAsset(SettingIcons.moreVert));
+        await tester.pumpAndSettle();
+
+        // Verify Connect and Forget Device options are visible
+        expect(find.text(l10n.connect), findsOneWidget);
+        final forgetItem = find.text(l10n.forgetDevice);
+        expect(forgetItem, findsOneWidget);
+
+        // Tap Forget Device
+        await tester.tap(forgetItem);
+        await tester.pumpAndSettle();
+
+        // Verify forgetDevice was called and navigated back
+        verify(
+          () => mockBluetoothRepository.forgetDevice('22:22:22:22:22:22'),
+        ).called(1);
+        expect(find.byType(BluetoothScreen), findsOneWidget);
+      },
+    );
+
+    testWidgets('Error notification display on connection or pairing failure', (
       WidgetTester tester,
     ) async {
-      when(
-        () => mockBluetoothRepository.togglePower(true),
-      ).thenAnswer((_) async => true);
-      when(
-        () => mockBluetoothRepository.disconnectFromDevice(any()),
-      ).thenAnswer((_) async {});
-      when(
-        () => mockBluetoothRepository.forgetDevice(any()),
-      ).thenAnswer((_) async {});
-
-      await tester.pumpWidget(
-        createTestApp(mockWirelessRepository, mockBluetoothRepository),
-      );
+      await tester.pumpWidget(createTestApp(mockBluetoothRepository));
       await tester.pumpAndSettle();
+
+      final BuildContext context = tester.element(
+        find.byType(SettingsMenuScreen),
+      );
+      final l10n = AppLocalizations.of(context)!;
 
       // Go to Bluetooth Screen
-      await tester.tap(find.text('Bluetooth'));
+      await tester.tap(find.text(l10n.bluetooth));
       await tester.pumpAndSettle();
 
-      // Enable Bluetooth
-      final powerToggle = find.descendant(
-        of: find
-            .ancestor(of: find.text('Bluetooth'), matching: find.byType(Row))
-            .first,
-        matching: find.byType(CustomToggle),
-      );
-      await tester.tap(powerToggle);
+      // Turn on Bluetooth
+      await tester.tap(find.byType(MechanixSwitch));
       await tester.pump();
 
       bluetoothPowerController.add(true);
@@ -409,92 +664,32 @@ void main() {
         () => mockBluetoothRepository.isBluetoothEnabled(),
       ).thenAnswer((_) async => true);
 
-      // Emit connected device
-      const testDevice = BluetoothDevice(
-        name: 'Paired Phone',
-        deviceName: 'Paired Phone',
-        type: BluetoothDeviceType.mobile,
-        macAddress: '11:22:33:44:55:66',
-        isSaved: true,
-        isConnected: true,
-      );
-      bluetoothDevicesController.add([testDevice]);
-      await tester.pumpAndSettle();
-
-      // Tap on settings button of Paired Phone
-      final settingsButton = find.descendant(
-        of: find.widgetWithText(BluetoothDeviceListItem, 'Paired Phone'),
-        matching: findButtonByAsset(SettingIcons.setting),
-      );
-      expect(settingsButton, findsOneWidget);
-      await tester.tap(settingsButton);
-      await tester.pumpAndSettle();
-
-      // Verify we are on BluetoothDeviceDetailScreen
-      expect(find.byType(BluetoothDeviceDetailScreen), findsOneWidget);
-
-      // Verify details are correct
-      expect(find.text('Paired Phone'), findsNWidgets(2));
-      expect(find.text('Mobile'), findsOneWidget);
-      expect(find.text('Connected'), findsOneWidget);
-
-      // Verify that "Disconnect" button is present and click it
-      final disconnectBtn = findButtonByAsset(SettingIcons.disconnect);
-      expect(disconnectBtn, findsOneWidget);
-      await tester.tap(disconnectBtn);
-      await tester.pumpAndSettle();
-
-      // Verify disconnectFromDevice is called
-      verify(
-        () =>
-            mockBluetoothRepository.disconnectFromDevice(testDevice.macAddress),
-      ).called(1);
-
-      // Verify we navigated back to BluetoothScreen
-      expect(find.byType(BluetoothScreen), findsOneWidget);
-
-      // Go to details page again (this time device is disconnected)
-      const testDisconnectedDevice = BluetoothDevice(
-        name: 'Paired Phone',
-        deviceName: 'Paired Phone',
-        type: BluetoothDeviceType.mobile,
-        macAddress: '11:22:33:44:55:66',
-        isSaved: true,
+      const discoveredDevice = BluetoothDevice(
+        name: 'Failing Device',
+        deviceName: 'Failing Device',
+        type: BluetoothDeviceType.unknown,
+        macAddress: '44:44:44:44:44:44',
+        isSaved: false,
         isConnected: false,
       );
-      bluetoothDevicesController.add([testDisconnectedDevice]);
+
+      bluetoothDevicesController.add([discoveredDevice]);
       await tester.pumpAndSettle();
 
-      final settingsButton2 = find.descendant(
-        of: find.widgetWithText(BluetoothDeviceListItem, 'Paired Phone'),
-        matching: findButtonByAsset(SettingIcons.setting),
+      // Make pairDevice throw an exception
+      when(
+        () => mockBluetoothRepository.pairDevice('44:44:44:44:44:44'),
+      ).thenThrow(Exception('Pairing timed out'));
+
+      // Tap to connect
+      await tester.tap(find.text('Failing Device'));
+      await tester.pumpAndSettle();
+
+      // Verify MechanixSnackbar error message is displayed
+      expect(
+        find.text(l10n.bluetoothPairingFailedWithName('Failing Device')),
+        findsOneWidget,
       );
-      await tester.tap(settingsButton2);
-      await tester.pumpAndSettle();
-
-      // Now verify we are on details screen and device status is Not connected
-      expect(find.byType(BluetoothDeviceDetailScreen), findsOneWidget);
-      expect(find.text('Not connected'), findsOneWidget);
-
-      // Verify that "Connect" button is present (because device.isConnected is false)
-      final connectBtn = findButtonByAsset(SettingIcons.connect);
-      expect(connectBtn, findsOneWidget);
-
-      // Tap forget device button (delete icon)
-      final forgetBtn = findButtonByAsset(SettingIcons.delete);
-      expect(forgetBtn, findsOneWidget);
-      await tester.tap(forgetBtn);
-      await tester.pumpAndSettle();
-
-      // Verify forgetDevice is called on repo
-      verify(
-        () => mockBluetoothRepository.forgetDevice(
-          testDisconnectedDevice.macAddress,
-        ),
-      ).called(1);
-
-      // Verify we navigated back to BluetoothScreen
-      expect(find.byType(BluetoothScreen), findsOneWidget);
     });
   });
 }

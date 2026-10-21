@@ -1,9 +1,7 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mechanix_settings/core/constants/app_routes.dart';
-import 'package:mechanix_settings/core/theme/app_theme.dart';
+import 'package:widgets/widgets.dart';
 import 'package:mechanix_settings/features/bluetooth/data/repositories/bluetooth_repository_impl.dart';
 import 'package:mechanix_settings/features/date_time/data/repositories/date_time_repository.dart';
 import 'package:mechanix_settings/features/date_time/data/repositories/date_time_repository_impl.dart';
@@ -42,7 +40,6 @@ import 'package:mechanix_settings/features/language/blocs/language_bloc.dart';
 import 'package:mechanix_settings/features/language/blocs/language_event.dart';
 import 'package:mechanix_settings/features/language/presentation/screens/language_screen.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
-import 'package:show_fps/show_fps.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -141,44 +138,45 @@ class MechanixSettingsApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final showFps = Platform.environment['SHOW_FPS'] == 'true';
-
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      builder: showFps
-          ? (context, child) {
-              return ShowFPS(visible: showFps, showChart: false, child: child!);
-            }
-          : null,
-      theme: AppTheme.darkTheme,
-      home: const SettingsMenuScreen(),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      routes: {
-        AppRoutes.wireless: (context) => BlocProvider.value(
-          value: context.read<WirelessBloc>(),
-          child: const WirelessScreen(),
-        ),
-        AppRoutes.bluetooth: (context) => BlocProvider.value(
-          value: context.read<BluetoothBloc>(),
-          child: const BluetoothScreen(),
-        ),
-        AppRoutes.battery: (context) => BlocProvider.value(
-          value: context.read<BatteryBloc>(),
-          child: const BatteryScreen(),
-        ),
-        AppRoutes.about: (context) => BlocProvider.value(
-          value: context.read<AboutBloc>(),
-          child: const AboutScreen(),
-        ),
-        AppRoutes.sound: (context) => BlocProvider.value(
-          value: context.read<SoundBloc>(),
-          child: const SoundScreen(),
-        ),
-        AppRoutes.language: (context) => BlocProvider.value(
-          value: context.read<LanguageBloc>(),
-          child: const LanguageScreen(),
-        ),
+    return MechanixTheme(
+      builder: (context, theme, child) {
+        final darkTheme = theme.dark;
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Mechanix Settings',
+          theme: darkTheme,
+          darkTheme: darkTheme,
+          themeMode: theme.mode,
+          home: const SettingsMenuScreen(),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routes: {
+            AppRoutes.wireless: (context) => BlocProvider.value(
+              value: context.read<WirelessBloc>(),
+              child: const WirelessScreen(),
+            ),
+            AppRoutes.bluetooth: (context) => BlocProvider.value(
+              value: context.read<BluetoothBloc>(),
+              child: const BluetoothScreen(),
+            ),
+            AppRoutes.battery: (context) => BlocProvider.value(
+              value: context.read<BatteryBloc>(),
+              child: const BatteryScreen(),
+            ),
+            AppRoutes.about: (context) => BlocProvider.value(
+              value: context.read<AboutBloc>(),
+              child: const AboutScreen(),
+            ),
+            AppRoutes.sound: (context) => BlocProvider.value(
+              value: context.read<SoundBloc>(),
+              child: const SoundScreen(),
+            ),
+            AppRoutes.language: (context) => BlocProvider.value(
+              value: context.read<LanguageBloc>(),
+              child: const LanguageScreen(),
+            ),
+          },
+        );
       },
     );
   }

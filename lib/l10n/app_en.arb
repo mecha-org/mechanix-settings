@@ -249,8 +249,8 @@
   },
 
 
-  "myDevices": "My devices",
-  "otherDevices": "Other devices",
+  "myDevices": "My Devices",
+  "otherDevices": "Other Devices",
   "deviceName": "Device name",
   "deviceType": "Device type",
   "deviceStatus": "Device status",
@@ -260,9 +260,13 @@
   "forgetDevice": "Forget Device",
   "connectionRequest": "Connection request",
   "enterCodeToConnect": "Enter code to connect to",
+  "aboutDevice": "About Device",
+  "refresh": "Refresh",
+  "enterName": "Enter Name",
 
   "connectionCode": "Connection code",
   "mobileType": "Mobile",
+  "cometType": "comet",
   "speakerType": "Speaker",
   "unknownType": "Unknown",
   "car" : "Car",
@@ -299,7 +303,7 @@
       }
     }
   },
-  "discoverable": "Discoverable",
+  "deviceDiscoverable": "Device discoverable",
   "bluetoothConnectionFailed": "Failed to connect to Bluetooth device",
   "bluetoothConnectionFailedWithName": "Failed to connect to {deviceName}",
   "@bluetoothConnectionFailedWithName": {

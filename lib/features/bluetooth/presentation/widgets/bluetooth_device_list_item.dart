@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mechanix_settings/core/constants/icons.dart';
-import 'package:mechanix_settings/core/theme/app_theme.dart';
-import 'package:mechanix_settings/core/widgets/custom_icon_button.dart';
-import 'package:mechanix_settings/core/widgets/custom_image_asset.dart';
 import 'package:mechanix_settings/features/bluetooth/data/models/bluetooth_device.dart';
+import 'package:mechanix_settings/features/bluetooth/data/models/enums.dart';
+import 'package:widgets/widgets.dart';
 
 class BluetoothDeviceListItem extends StatelessWidget {
   final BluetoothDevice device;
@@ -19,52 +18,49 @@ class BluetoothDeviceListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: device.isConnecting ? null : onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  device.name,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-              ),
+    final colorScheme = Theme.of(context).colorScheme;
 
-              if (device.isConnecting)
-                const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      AppColors.onSurface,
-                    ),
-                  ),
-                )
-              else if (device.isConnected)
-                const CustomImage(assetPath: SettingIcons.connected),
-
-              if ((device.isConnecting || device.isConnected) &&
-                  device.isSaved &&
-                  onSettingsTap != null)
-                const SizedBox(width: 16),
-
-              if (device.isSaved && onSettingsTap != null)
-                CustomIconButton.asset(
-                  assetPath: SettingIcons.setting,
-                  onPressed: onSettingsTap,
-                  padding: EdgeInsets.zero,
-                ),
-            ],
-          ),
+    return MechanixListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
+      onTap: device.isConnecting ? null : onTap,
+      leadingWidgets: [
+        ImageIcon(
+          AssetImage(device.type.icon),
+          color: colorScheme.onSurface,
+          size: 20,
         ),
+      ],
+      label: Text(
+        device.name,
+        style: Theme.of(
+          context,
+        ).textTheme.titleLarge!.copyWith(color: colorScheme.onSurface),
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
       ),
+      trailingWidgets: [
+        if (device.isConnecting)
+          SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+              backgroundColor: colorScheme.secondaryContainer,
+            ),
+          ),
+
+        if (device.isSaved && onSettingsTap != null)
+          MechanixIconButton.standard(
+            icon: ImageIcon(
+              const AssetImage(SettingIcons.setting),
+              color: colorScheme.onSurface,
+              size: 20,
+            ),
+            type: IconButtonType.rounded,
+            onPressed: onSettingsTap,
+          ),
+      ],
     );
   }
 }
