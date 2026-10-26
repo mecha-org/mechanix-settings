@@ -106,6 +106,12 @@ abstract class AppLocalizations {
   /// **'Wireless'**
   String get wireless;
 
+  /// No description provided for @wifi.
+  ///
+  /// In en, this message translates to:
+  /// **'WiFi'**
+  String get wifi;
+
   /// No description provided for @cellularData.
   ///
   /// In en, this message translates to:
@@ -172,6 +178,12 @@ abstract class AppLocalizations {
   /// **'Manage wireless'**
   String get manageWireless;
 
+  /// No description provided for @manageNetworks.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Networks'**
+  String get manageNetworks;
+
   /// No description provided for @noInternetConnection.
   ///
   /// In en, this message translates to:
@@ -201,6 +213,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Available networks'**
   String get avaialableNetworks;
+
+  /// No description provided for @joinNetworkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Join Network'**
+  String get joinNetworkTitle;
 
   /// No description provided for @joinNetwork.
   ///
@@ -375,6 +393,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'DNS'**
   String get dns;
+
+  /// No description provided for @pleaseEnterAtLeastOneDnsServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Please add at least one DNS server'**
+  String get pleaseEnterAtLeastOneDnsServer;
+
+  /// No description provided for @invalidDnsServers.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter valid DNS server addresses.'**
+  String get invalidDnsServers;
+
+  /// No description provided for @duplicateDnsServers.
+  ///
+  /// In en, this message translates to:
+  /// **'Duplicate DNS server addresses are not allowed.'**
+  String get duplicateDnsServers;
 
   /// No description provided for @configureDns.
   ///
@@ -751,7 +787,7 @@ abstract class AppLocalizations {
   /// No description provided for @addServer.
   ///
   /// In en, this message translates to:
-  /// **'Add Server'**
+  /// **'Add server'**
   String get addServer;
 
   /// No description provided for @addDomainsHintText.
@@ -910,11 +946,53 @@ abstract class AppLocalizations {
   /// **'Refresh'**
   String get refresh;
 
+  /// No description provided for @forgetNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Forget network'**
+  String get forgetNetwork;
+
+  /// No description provided for @connectAutomatically.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect automatically'**
+  String get connectAutomatically;
+
+  /// No description provided for @linkSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Link speed'**
+  String get linkSpeed;
+
   /// No description provided for @enterName.
   ///
   /// In en, this message translates to:
   /// **'Enter Name'**
   String get enterName;
+
+  /// No description provided for @close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
+
+  /// No description provided for @forgetWifiPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Forget Wifi Network “{name}” ?'**
+  String forgetWifiPrompt(String name);
+
+  /// No description provided for @serverNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Server {number}'**
+  String serverNumber(int number);
+
+  /// No description provided for @advanceSettingsNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Advance settings available to view upon connecting device to the network'**
+  String get advanceSettingsNotice;
 
   /// No description provided for @connectionCode.
   ///

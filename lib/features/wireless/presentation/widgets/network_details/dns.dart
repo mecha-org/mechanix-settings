@@ -1,14 +1,339 @@
 import 'package:flutter/material.dart';
-import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
-import 'package:mechanix_settings/core/widgets/bottom_bar/bottom_bar.dart';
-import 'package:mechanix_settings/core/widgets/custom_icon_button.dart';
 import 'package:mechanix_settings/core/constants/icons.dart';
+import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
 import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
 import 'package:mechanix_settings/features/wireless/data/utils/ip_validation_utils.dart';
-import 'package:mechanix_settings/features/wireless/presentation/widgets/dns/dns_app_bar.dart';
-import 'package:mechanix_settings/features/wireless/presentation/widgets/dns/dns_body.dart';
+import 'package:mechanix_settings/l10n/app_localizations.dart';
+import 'package:widgets/widgets.dart';
 
-class DNSScreen extends StatefulWidget {
+class _DnsItem {
+  final TextEditingController controller;
+
+  _DnsItem(String text) : controller = TextEditingController(text: text);
+}
+
+class DNSBottomSheet extends StatefulWidget {
+  final WifiNetwork network;
+  final DNSConfigType currentConfig;
+  final List<String> servers;
+  final ValueChanged<Map<String, dynamic>> onSaved;
+
+  const DNSBottomSheet({
+    super.key,
+    required this.network,
+    required this.currentConfig,
+    required this.servers,
+    required this.onSaved,
+  });
+
+  static Future<void> show({
+    required BuildContext context,
+    required WifiNetwork network,
+    required DNSConfigType currentConfig,
+    required List<String> servers,
+    required ValueChanged<Map<String, dynamic>> onSaved,
+  }) {
+    return MechanixBottomSheet.showModal(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return DNSBottomSheet(
+          network: network,
+          currentConfig: currentConfig,
+          servers: servers,
+          onSaved: onSaved,
+        );
+      },
+    );
+  }
+
+  @override
+  State<DNSBottomSheet> createState() => _DNSBottomSheetState();
+}
+
+class _DNSBottomSheetState extends State<DNSBottomSheet> {
+  late DNSConfigType _configType;
+  final List<_DnsItem> _items = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _configType = widget.currentConfig;
+
+    for (final s in widget.servers) {
+      if (s.trim().isNotEmpty) {
+        _items.add(_DnsItem(s.trim()));
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final item in _items) {
+      item.controller.dispose();
+    }
+    super.dispose();
+  }
+
+  void _saveAndPop() {
+    final l10n = AppLocalizations.of(context)!;
+    final servers = _items
+        .map((e) => e.controller.text.trim())
+        .where((t) => t.isNotEmpty)
+        .toList();
+
+    if (_configType == DNSConfigType.manual) {
+      if (servers.isEmpty) {
+        MechanixSnackbar.text(
+          position: MechanixSnackbarPosition.top,
+          text: l10n.pleaseEnterAtLeastOneDnsServer,
+        ).show(context);
+        return;
+      }
+
+      if (!IpValidationUtils.areDnsAddressesValid(servers)) {
+        MechanixSnackbar.text(
+          position: MechanixSnackbarPosition.top,
+          text: l10n.invalidDnsServers,
+        ).show(context);
+        return;
+      }
+
+      if (IpValidationUtils.hasDuplicateDnsAddresses(servers)) {
+        MechanixSnackbar.text(
+          position: MechanixSnackbarPosition.top,
+          text: l10n.duplicateDnsServers,
+        ).show(context);
+        return;
+      }
+    }
+
+    widget.onSaved({
+      'config': _configType,
+      'servers': servers,
+      'searchDomains': widget.network.dnsSearchDomains,
+    });
+
+    Navigator.of(context).pop();
+  }
+
+  Widget _buildServerRow({
+    required BuildContext context,
+    required int index,
+    required _DnsItem item,
+  }) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          MechanixIconButton.filled(
+            backgroundColor: theme.colorScheme.secondaryContainer,
+            size: IconButtonSize.small,
+            type: IconButtonType.rounded,
+            icon: ImageIcon(
+              const AssetImage(SettingIcons.delete),
+              color: theme.colorScheme.error,
+              size: 20,
+            ),
+            onPressed: () {
+              setState(() {
+                final removed = _items.removeAt(index);
+                removed.controller.dispose();
+              });
+            },
+          ),
+
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 3,
+            child: MechanixTextField(
+              decoration: InputDecoration(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 20,
+                ),
+                fillColor: theme.colorScheme.surfaceContainerHigh,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+              ),
+              controller: item.controller,
+              keyboardType: TextInputType.text,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                color: theme.colorScheme.onSecondaryContainer,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: 8,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header Row
+            Row(
+              children: [
+                MechanixIconButton.standard(
+                  icon: ImageIcon(
+                    const AssetImage(SettingIcons.back),
+                    color: theme.colorScheme.onSurface,
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  'DNS',
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+                const Spacer(),
+                MechanixIconButton.standard(
+                  icon: ImageIcon(
+                    const AssetImage(SettingIcons.check),
+                    color: theme.colorScheme.onSurface,
+                  ),
+                  onPressed: _saveAndPop,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Radio item: Automatic
+            MechanixListTile(
+              key: const Key('option_dns_automatic'),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 8,
+                vertical: 8,
+              ),
+              leadingWidgets: [
+                MechanixRadio<DNSConfigType>(
+                  value: DNSConfigType.automatic,
+                  groupValue: _configType,
+                  onChanged: (val) {
+                    if (val != null) {
+                      setState(() => _configType = val);
+                    }
+                  },
+                ),
+              ],
+              label: Text(
+                l10n.automatic,
+                style: theme.textTheme.headlineSmall!.copyWith(
+                  color: _configType == DNSConfigType.automatic
+                      ? theme.colorScheme.onSecondaryFixed
+                      : theme.colorScheme.onPrimary,
+                ),
+              ),
+              onTap: () {
+                setState(() => _configType = DNSConfigType.automatic);
+              },
+            ),
+
+            // Radio item: Manual
+            MechanixListTile(
+              key: const Key('option_dns_manual'),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 8,
+                vertical: 8,
+              ),
+              leadingWidgets: [
+                MechanixRadio<DNSConfigType>(
+                  value: DNSConfigType.manual,
+                  groupValue: _configType,
+                  onChanged: (val) {
+                    if (val != null) {
+                      setState(() => _configType = val);
+                    }
+                  },
+                ),
+              ],
+              label: Text(
+                l10n.manual,
+                style: theme.textTheme.headlineSmall!.copyWith(
+                  color: _configType == DNSConfigType.manual
+                      ? theme.colorScheme.onSecondaryFixed
+                      : theme.colorScheme.onPrimary,
+                ),
+              ),
+              onTap: () {
+                setState(() => _configType = DNSConfigType.manual);
+              },
+            ),
+
+            // Manual DNS list
+            if (_configType == DNSConfigType.manual) ...[
+              const SizedBox(height: 8),
+              ...List.generate(
+                _items.length,
+                (index) => _buildServerRow(
+                  context: context,
+                  index: index,
+                  item: _items[index],
+                ),
+              ),
+
+              MechanixListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 8,
+                ),
+                label: Text(
+                  l10n.addServer,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+                leadingWidgets: [
+                  MechanixIconButton.filled(
+                    type: IconButtonType.rounded,
+                    size: IconButtonSize.xSmall,
+                    icon: ImageIcon(
+                      const AssetImage(SettingIcons.add),
+                      color: theme.colorScheme.onSurface,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _items.add(_DnsItem(''));
+                      });
+                    },
+                  ),
+                ],
+                onTap: () {
+                  setState(() {
+                    _items.add(_DnsItem(''));
+                  });
+                },
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class DNSScreen extends StatelessWidget {
   final WifiNetwork network;
   final DNSConfigType currentConfig;
   final List<String> servers;
@@ -23,271 +348,16 @@ class DNSScreen extends StatefulWidget {
   });
 
   @override
-  State<DNSScreen> createState() => _DNSScreenState();
-}
-
-class _DNSScreenState extends State<DNSScreen> {
-  late DNSConfigType _configType;
-  final ScrollController _breadcrumbScrollController = ScrollController();
-
-  final List<TextEditingController> _serverControllers = [];
-  final List<TextEditingController> _domainControllers = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _configType = widget.currentConfig;
-
-    // Load initial servers
-    final initialServers = List<String>.from(widget.servers);
-    final displayServers = initialServers.isNotEmpty ? initialServers : [];
-
-    for (final server in displayServers) {
-      _addServerController(server);
-    }
-    _addServerController(); // Add final empty input
-
-    // Load initial search domains
-    final initialDomains = List<String>.from(widget.network.dnsSearchDomains);
-    final displayDomains = initialDomains.isNotEmpty ? initialDomains : [];
-
-    for (final domain in displayDomains) {
-      _addDomainController(domain);
-    }
-    _addDomainController(); // Add final empty input
-  }
-
-  @override
-  void dispose() {
-    _breadcrumbScrollController.dispose();
-    for (final c in _serverControllers) {
-      c.dispose();
-    }
-    for (final c in _domainControllers) {
-      c.dispose();
-    }
-    super.dispose();
-  }
-
-  void _addController(
-    List<TextEditingController> controllers,
-    void Function(TextEditingController controller) onChanged, [
-    String text = '',
-  ]) {
-    final controller = TextEditingController(text: text);
-    controller.addListener(() {
-      onChanged(controller);
-      setState(() {});
-    });
-    controllers.add(controller);
-  }
-
-  void _handleFieldChanged(
-    TextEditingController controller,
-    List<TextEditingController> controllers,
-    VoidCallback addController,
-  ) {
-    final index = controllers.indexOf(controller);
-    if (index == -1) return;
-
-    if (index == controllers.length - 1 && controller.text.trim().isNotEmpty) {
-      setState(addController);
-    }
-    _removeExtraEmptyControllers(controllers);
-  }
-
-  void _removeControllerField(
-    int index,
-    List<TextEditingController> controllers,
-    VoidCallback addController,
-  ) {
-    if (controllers.length <= 1) return;
-    setState(() {
-      controllers[index].dispose();
-      controllers.removeAt(index);
-      if (controllers.isEmpty || controllers.last.text.trim().isNotEmpty) {
-        addController();
-      }
-    });
-  }
-
-  void _removeExtraEmptyControllers(List<TextEditingController> controllers) {
-    final emptyIndexes = <int>[];
-    for (int i = 0; i < controllers.length; i++) {
-      if (controllers[i].text.trim().isEmpty) {
-        emptyIndexes.add(i);
-      }
-    }
-    if (emptyIndexes.length <= 1) return;
-
-    setState(() {
-      for (int i = emptyIndexes.length - 2; i >= 0; i--) {
-        final removeIndex = emptyIndexes[i];
-        controllers[removeIndex].dispose();
-        controllers.removeAt(removeIndex);
-      }
-    });
-  }
-
-  // Server management
-  void _addServerController([String text = '']) {
-    _addController(_serverControllers, _handleServerFieldChanged, text);
-  }
-
-  void _handleServerFieldChanged(TextEditingController controller) {
-    _handleFieldChanged(controller, _serverControllers, _addServerController);
-  }
-
-  void _removeServerField(int index) {
-    _removeControllerField(index, _serverControllers, _addServerController);
-  }
-
-  // Domain management
-  void _addDomainController([String text = '']) {
-    _addController(_domainControllers, _handleDomainFieldChanged, text);
-  }
-
-  void _handleDomainFieldChanged(TextEditingController controller) {
-    _handleFieldChanged(controller, _domainControllers, _addDomainController);
-  }
-
-  void _removeDomainField(int index) {
-    _removeControllerField(index, _domainControllers, _addDomainController);
-  }
-
-  void _saveAndPop() {
-    final servers = _serverControllers
-        .map((c) => c.text.trim())
-        .where((text) => text.isNotEmpty)
-        .toList();
-    final searchDomains = _domainControllers
-        .map((c) => c.text.trim())
-        .where((text) => text.isNotEmpty)
-        .toList();
-
-    if (_configType == DNSConfigType.manual) {
-      if (servers.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please enter at least one DNS Server')),
-        );
-        return;
-      }
-      if (!IpValidationUtils.isValidDnsList(servers)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Invalid DNS Server(s) or duplicate entries'),
-          ),
-        );
-        return;
-      }
-    }
-
-    if (_hasDnsConfigurationChanged(servers, searchDomains)) {
-      widget.onSaved({
-        'config': _configType,
-        'servers': servers,
-        'searchDomains': searchDomains,
-      });
-    }
-    Navigator.of(context).pop();
-  }
-
-  /// Returns true if the current DNS values match the previously saved DNS values
-  /// in the same order.
-  bool _hasSameDnsValues(List<String> currentValues, List<String> savedValues) {
-    if (identical(currentValues, savedValues)) {
-      return true;
-    }
-
-    if (currentValues.length != savedValues.length) {
-      return false;
-    }
-
-    for (var index = 0; index < currentValues.length; index++) {
-      if (currentValues[index] != savedValues[index]) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  /// Returns true if any DNS configuration value has changed.
-  bool _hasDnsConfigurationChanged(
-    List<String> servers,
-    List<String> searchDomains,
-  ) {
-    return _configType != widget.currentConfig ||
-        !_hasSameDnsValues(servers, widget.servers) ||
-        !_hasSameDnsValues(searchDomains, widget.network.dnsSearchDomains);
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final servers = _serverControllers
-        .map((c) => c.text.trim())
-        .where((text) => text.isNotEmpty)
-        .toList();
-    final searchDomains = _domainControllers
-        .map((c) => c.text.trim())
-        .where((text) => text.isNotEmpty)
-        .toList();
-
-    final hasChanged = _hasDnsConfigurationChanged(servers, searchDomains);
-
     return Scaffold(
-      appBar: DNSAppBar(
-        networkName: widget.network.name,
-        breadcrumbController: _breadcrumbScrollController,
-        onSettingsTap: () {
-          Navigator.of(context).popUntil((route) => route.isFirst);
-        },
-        onWirelessTap: () {
-          Navigator.of(context).pop();
-          Navigator.of(context).pop();
-        },
-        onNetworkTap: () {
-          Navigator.of(context).pop();
-        },
-      ),
-      body: DNSBody(
-        configType: _configType,
-        onConfigChanged: (value) {
-          setState(() {
-            _configType = value;
-          });
-        },
-        autoServers: widget.servers.isNotEmpty ? widget.servers : [],
-        serverControllers: _serverControllers,
-        domainControllers: _domainControllers,
-        onAddServer: () {
-          setState(() {
-            _addServerController();
-          });
-        },
-        onRemoveServer: _removeServerField,
-        onAddDomain: () {
-          setState(() {
-            _addDomainController();
-          });
-        },
-        onRemoveDomain: _removeDomainField,
-      ),
-      bottomNavigationBar: BottomBar(
-        leading: CustomIconButton.asset(
-          assetPath: SettingIcons.back,
-          enabled: true,
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
+      body: SafeArea(
+        child: DNSBottomSheet(
+          network: network,
+          currentConfig: currentConfig,
+          servers: servers,
+          onSaved: onSaved,
         ),
-        trailing: [
-          CustomIconButton.asset(
-            assetPath: SettingIcons.check,
-            enabled: hasChanged,
-            onPressed: hasChanged ? _saveAndPop : null,
-          ),
-        ],
       ),
     );
   }

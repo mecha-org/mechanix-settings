@@ -15,6 +15,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wireless => 'Wireless';
 
   @override
+  String get wifi => 'WiFi';
+
+  @override
   String get cellularData => 'Cellular data (LTE)';
 
   @override
@@ -48,6 +51,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get manageWireless => 'Manage wireless';
 
   @override
+  String get manageNetworks => 'Manage Networks';
+
+  @override
   String get noInternetConnection => 'No Internet Connection';
 
   @override
@@ -61,6 +67,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get avaialableNetworks => 'Available networks';
+
+  @override
+  String get joinNetworkTitle => 'Join Network';
 
   @override
   String joinNetwork(String networkName) {
@@ -164,6 +173,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dns => 'DNS';
+
+  @override
+  String get pleaseEnterAtLeastOneDnsServer =>
+      'Please add at least one DNS server';
+
+  @override
+  String get invalidDnsServers => 'Enter valid DNS server addresses.';
+
+  @override
+  String get duplicateDnsServers =>
+      'Duplicate DNS server addresses are not allowed.';
 
   @override
   String get configureDns => 'Configure DNS';
@@ -352,7 +372,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchDomains => 'Search Domains';
 
   @override
-  String get addServer => 'Add Server';
+  String get addServer => 'Add server';
 
   @override
   String get addDomainsHintText => 'domain.com';
@@ -440,7 +460,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get refresh => 'Refresh';
 
   @override
+  String get forgetNetwork => 'Forget network';
+
+  @override
+  String get connectAutomatically => 'Connect automatically';
+
+  @override
+  String get linkSpeed => 'Link speed';
+
+  @override
   String get enterName => 'Enter Name';
+
+  @override
+  String get close => 'Close';
+
+  @override
+  String forgetWifiPrompt(String name) {
+    return 'Forget Wifi Network “$name” ?';
+  }
+
+  @override
+  String serverNumber(int number) {
+    return 'Server $number';
+  }
+
+  @override
+  String get advanceSettingsNotice =>
+      'Advance settings available to view upon connecting device to the network';
 
   @override
   String get connectionCode => 'Connection code';
