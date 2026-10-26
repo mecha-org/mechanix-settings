@@ -14,12 +14,10 @@ import 'package:mechanix_settings/features/wireless/presentation/screens/wireles
 import 'package:mechanix_settings/features/wireless/presentation/screens/network_detail.dart';
 import 'package:mechanix_settings/features/wireless/presentation/screens/add_network.dart';
 import 'package:mechanix_settings/features/wireless/presentation/screens/manage_network.dart';
-import 'package:mechanix_settings/features/wireless/presentation/widgets/wireless_password.dart';
 import 'package:mechanix_settings/features/wireless/data/repositories/wireless_repository.dart';
 import 'package:mechanix_settings/features/wireless/blocs/wireless_bloc.dart';
 import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
 import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
-import 'package:mechanix_settings/features/wireless/data/models/enterprise_config.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
 
 class MockWirelessRepository extends Mock implements WirelessRepository {}
@@ -73,7 +71,6 @@ void main() {
       registerFallbackValue(IPv4ConfigType.automatic);
       registerFallbackValue(IPv6ConfigType.automatic);
       registerFallbackValue(DNSConfigType.automatic);
-      registerFallbackValue(const EnterpriseConfig());
     });
 
     setUp(() {
@@ -121,14 +118,10 @@ void main() {
         () => mockWirelessRepository.setWifiEnabled(any()),
       ).thenAnswer((_) async {});
       when(
-        () => mockWirelessRepository.connectToNetwork(
-          any(),
-          any(),
-          enterpriseConfig: any(named: 'enterpriseConfig'),
-        ),
+        () => mockWirelessRepository.connectToNetwork(any(), any()),
       ).thenAnswer((_) async {});
       when(
-        () => mockWirelessRepository.addNetwork(any(), any(), any()),
+        () => mockWirelessRepository.addNetwork(any(), any()),
       ).thenAnswer((_) async {});
       when(
         () => mockWirelessRepository.forgetNetwork(any()),

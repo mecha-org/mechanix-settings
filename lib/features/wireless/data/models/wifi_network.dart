@@ -12,7 +12,6 @@ class WifiNetwork extends Equatable {
   final int frequency;
   final bool isSecured;
   final WirelessSecurity security;
-  final EnterpriseEapMethod? eapMethod;
   final bool isConnected;
   final bool isConnecting;
   final bool hasNoInternet;
@@ -47,7 +46,6 @@ class WifiNetwork extends Equatable {
     this.frequency = 0,
     this.isSecured = true,
     this.security = WirelessSecurity.none,
-    this.eapMethod,
     this.isConnected = false,
     this.isConnecting = false,
     this.hasNoInternet = false,
@@ -86,7 +84,6 @@ class WifiNetwork extends Equatable {
     int? frequency,
     bool? isSecured,
     WirelessSecurity? security,
-    EnterpriseEapMethod? eapMethod,
     bool? isConnected,
     bool? isConnecting,
     bool? hasNoInternet,
@@ -118,7 +115,6 @@ class WifiNetwork extends Equatable {
       frequency: frequency ?? this.frequency,
       isSecured: isSecured ?? this.isSecured,
       security: security ?? this.security,
-      eapMethod: eapMethod ?? this.eapMethod,
       isConnected: isConnected ?? this.isConnected,
       isConnecting: isConnecting ?? this.isConnecting,
       hasNoInternet: hasNoInternet ?? this.hasNoInternet,
@@ -152,7 +148,6 @@ class WifiNetwork extends Equatable {
     frequency,
     isSecured,
     security,
-    eapMethod,
     isConnected,
     isConnecting,
     hasNoInternet,

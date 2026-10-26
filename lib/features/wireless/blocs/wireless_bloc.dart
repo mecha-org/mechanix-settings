@@ -388,7 +388,7 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
       await wirelessRepository.connectToNetwork(
         event.name,
         event.password,
-        enterpriseConfig: event.enterpriseConfig,
+        autoConnect: event.autoConnect,
       );
     } catch (e, stackTrace) {
       _connectionInProgress = false;
@@ -418,7 +418,7 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
       await wirelessRepository.addNetwork(
         event.name,
         event.security,
-        event.enterpriseConfig,
+        password: event.password,
       );
 
       final savedNetworks = await wirelessRepository.getSavedNetworks();

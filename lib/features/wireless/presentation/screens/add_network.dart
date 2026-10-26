@@ -4,9 +4,14 @@ import 'package:mechanix_settings/features/wireless/presentation/widgets/add_net
 import 'package:mechanix_settings/l10n/app_localizations.dart';
 import 'package:widgets/widgets.dart';
 
-class AddNetworkPage extends StatelessWidget {
-  AddNetworkPage({super.key});
+class AddNetworkPage extends StatefulWidget {
+  const AddNetworkPage({super.key});
 
+  @override
+  State<AddNetworkPage> createState() => _AddNetworkPageState();
+}
+
+class _AddNetworkPageState extends State<AddNetworkPage> {
   final _formKey = GlobalKey<AddNetworkBodyState>();
 
   @override

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mechanix_settings/core/constants/icons.dart';
 import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
+import 'package:mechanix_settings/features/wireless/data/models/typed_sheet_results.dart';
 import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
 import 'package:mechanix_settings/features/wireless/data/utils/ip_validation_utils.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
@@ -16,7 +17,7 @@ class DNSBottomSheet extends StatefulWidget {
   final WifiNetwork network;
   final DNSConfigType currentConfig;
   final List<String> servers;
-  final ValueChanged<Map<String, dynamic>> onSaved;
+  final ValueChanged<DNSSettingsResult> onSaved;
 
   const DNSBottomSheet({
     super.key,
@@ -31,7 +32,7 @@ class DNSBottomSheet extends StatefulWidget {
     required WifiNetwork network,
     required DNSConfigType currentConfig,
     required List<String> servers,
-    required ValueChanged<Map<String, dynamic>> onSaved,
+    required ValueChanged<DNSSettingsResult> onSaved,
   }) {
     return MechanixBottomSheet.showModal(
       context: context,
@@ -108,11 +109,13 @@ class _DNSBottomSheetState extends State<DNSBottomSheet> {
       }
     }
 
-    widget.onSaved({
-      'config': _configType,
-      'servers': servers,
-      'searchDomains': widget.network.dnsSearchDomains,
-    });
+    widget.onSaved(
+      DNSSettingsResult(
+        configType: _configType,
+        servers: servers,
+        searchDomains: widget.network.dnsSearchDomains,
+      ),
+    );
 
     Navigator.of(context).pop();
   }
@@ -124,6 +127,7 @@ class _DNSBottomSheetState extends State<DNSBottomSheet> {
   }) {
     final theme = Theme.of(context);
     return Padding(
+      key: ValueKey(item),
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -202,7 +206,7 @@ class _DNSBottomSheetState extends State<DNSBottomSheet> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  'DNS',
+                  l10n.dns,
                   style: theme.textTheme.headlineSmall?.copyWith(
                     color: theme.colorScheme.onSurface,
                   ),
@@ -337,7 +341,7 @@ class DNSScreen extends StatelessWidget {
   final WifiNetwork network;
   final DNSConfigType currentConfig;
   final List<String> servers;
-  final ValueChanged<Map<String, dynamic>> onSaved;
+  final ValueChanged<DNSSettingsResult> onSaved;
 
   const DNSScreen({
     super.key,

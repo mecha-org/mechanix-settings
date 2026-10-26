@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mechanix_settings/core/constants/icons.dart';
-import 'package:mechanix_settings/core/widgets/toast/custom_app_toast.dart';
 import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
+import 'package:mechanix_settings/features/wireless/data/models/typed_sheet_results.dart';
 import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
 import 'package:mechanix_settings/features/wireless/data/utils/ip_validation_utils.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
@@ -13,7 +13,7 @@ class IPv6AddressBottomSheet extends StatefulWidget {
   final String ipAddress;
   final int prefix;
   final String gateway;
-  final ValueChanged<Map<String, dynamic>> onSaved;
+  final ValueChanged<IPv6SettingsResult> onSaved;
 
   const IPv6AddressBottomSheet({
     super.key,
@@ -32,7 +32,7 @@ class IPv6AddressBottomSheet extends StatefulWidget {
     required String ipAddress,
     required int prefix,
     required String gateway,
-    required ValueChanged<Map<String, dynamic>> onSaved,
+    required ValueChanged<IPv6SettingsResult> onSaved,
   }) {
     return MechanixBottomSheet.showModal(
       context: context,
@@ -94,22 +94,23 @@ class _IPv6AddressBottomSheetState extends State<IPv6AddressBottomSheet> {
       );
 
       if (error != null) {
-        CustomAppToast.show(
-          context: context,
-          message: error,
-          type: ToastType.error,
-        );
+        MechanixSnackbar.text(
+          position: MechanixSnackbarPosition.top,
+          text: error,
+        ).show(context);
         return;
       }
     }
 
     final prefixVal = int.tryParse(_prefixController.text.trim()) ?? 64;
-    widget.onSaved({
-      'config': _configType,
-      'ipAddress': _ipController.text.trim(),
-      'gateway': _routerController.text.trim(),
-      'prefix': prefixVal,
-    });
+    widget.onSaved(
+      IPv6SettingsResult(
+        configType: _configType,
+        ipAddress: _ipController.text.trim(),
+        gateway: _routerController.text.trim(),
+        prefix: prefixVal,
+      ),
+    );
 
     Navigator.of(context).pop();
   }
@@ -306,7 +307,7 @@ class IPv6AddressScreen extends StatelessWidget {
   final String ipAddress;
   final int prefix;
   final String gateway;
-  final ValueChanged<Map<String, dynamic>> onSaved;
+  final ValueChanged<IPv6SettingsResult> onSaved;
 
   const IPv6AddressScreen({
     super.key,

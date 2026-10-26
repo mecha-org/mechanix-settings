@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mechanix_settings/core/constants/icons.dart';
-import 'package:mechanix_settings/core/widgets/toast/custom_app_toast.dart';
 import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
+import 'package:mechanix_settings/features/wireless/data/models/typed_sheet_results.dart';
 import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
 import 'package:mechanix_settings/features/wireless/data/utils/ip_validation_utils.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
@@ -13,7 +13,7 @@ class IPv4AddressBottomSheet extends StatefulWidget {
   final String ipAddress;
   final String gateway;
   final String? subnetMask;
-  final ValueChanged<Map<String, dynamic>> onSaved;
+  final ValueChanged<IPv4SettingsResult> onSaved;
 
   const IPv4AddressBottomSheet({
     super.key,
@@ -32,7 +32,7 @@ class IPv4AddressBottomSheet extends StatefulWidget {
     required String ipAddress,
     required String gateway,
     String? subnetMask,
-    required ValueChanged<Map<String, dynamic>> onSaved,
+    required ValueChanged<IPv4SettingsResult> onSaved,
   }) {
     return MechanixBottomSheet.showModal(
       context: context,
@@ -90,21 +90,22 @@ class _IPv4AddressBottomSheetState extends State<IPv4AddressBottomSheet> {
       );
 
       if (error != null) {
-        CustomAppToast.show(
-          context: context,
-          message: error,
-          type: ToastType.error,
-        );
+        MechanixSnackbar.text(
+          position: MechanixSnackbarPosition.top,
+          text: error,
+        ).show(context);
         return;
       }
     }
 
-    widget.onSaved({
-      'config': _configType,
-      'ipAddress': _ipController.text.trim(),
-      'gateway': _routerController.text.trim(),
-      'subnetMask': _subnetController.text.trim(),
-    });
+    widget.onSaved(
+      IPv4SettingsResult(
+        configType: _configType,
+        ipAddress: _ipController.text.trim(),
+        subnetMask: _subnetController.text.trim(),
+        gateway: _routerController.text.trim(),
+      ),
+    );
 
     Navigator.of(context).pop();
   }
@@ -302,7 +303,7 @@ class IPv4AddressScreen extends StatelessWidget {
   final String ipAddress;
   final String gateway;
   final String? subnetMask;
-  final ValueChanged<Map<String, dynamic>> onSaved;
+  final ValueChanged<IPv4SettingsResult> onSaved;
 
   const IPv4AddressScreen({
     super.key,

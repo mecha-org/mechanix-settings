@@ -120,13 +120,3 @@ class NetworkDetailScreen extends StatelessWidget {
     );
   }
 }
-
-void connectToNetwork(BuildContext context, WifiNetwork network) {
-  final bloc = context.read<WirelessBloc>();
-
-  if (bloc.state.connectedNetworkName == network.name) {
-    return;
-  }
-
-  bloc.add(ConnectToNetworkEvent(network.name, null));
-}

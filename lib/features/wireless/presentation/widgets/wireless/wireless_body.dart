@@ -64,14 +64,20 @@ void _connectToNetwork(BuildContext context, WifiNetwork network) async {
     final l10n = AppLocalizations.of(context)!;
     final securityLabel = network.security.label(l10n);
 
-    final password = await showPasswordBottomSheet(
+    final passwordResult = await showPasswordBottomSheet(
       context,
       network.name,
       security: securityLabel,
     );
 
-    if (password != null && context.mounted) {
-      bloc.add(ConnectToNetworkEvent(network.name, password));
+    if (passwordResult != null && context.mounted) {
+      bloc.add(
+        ConnectToNetworkEvent(
+          network.name,
+          passwordResult.password,
+          autoConnect: passwordResult.connectAutomatically,
+        ),
+      );
     }
   } else {
     // Open network → connect directly.
@@ -314,7 +320,7 @@ class _MyNetworksList extends StatelessWidget {
               children: [
                 Text(
                   l10n.myNetworks,
-                  style: context.textTheme.headlineSmall?.copyWith(
+                  style: context.textTheme.titleLarge?.copyWith(
                     color: context.colorScheme.onSecondaryFixed,
                     fontWeight: FontWeight.w400,
                   ),
@@ -400,7 +406,7 @@ class _AvailableNetworksList extends StatelessWidget {
               children: [
                 Text(
                   l10n.avaialableNetworks,
-                  style: context.textTheme.headlineSmall?.copyWith(
+                  style: context.textTheme.titleLarge?.copyWith(
                     color: context.colorScheme.onSecondaryFixed,
                     fontWeight: FontWeight.w400,
                   ),

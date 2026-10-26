@@ -62,22 +62,15 @@ class _NetworkDetailsBodyState extends State<NetworkDetailsBody> {
     });
   }
 
-  // String _formatWirelessAddress(String address) {
-  //   if (address.isEmpty) return '';
-  //   if (address.contains(':')) {
-  //     return address.toUpperCase().split(':').join(' : ');
-  //   }
-  //   return address.toUpperCase();
-  // }
-
-  String _getSignalStrengthText(WifiNetwork network) {
+  String _getSignalStrengthText(BuildContext context, WifiNetwork network) {
+    final l10n = AppLocalizations.of(context)!;
     final strength = network.rawSignalStrength;
 
-    if (strength >= 80) return 'EXCELLENT';
-    if (strength >= 60) return 'GOOD';
-    if (strength >= 40) return 'FAIR';
-    if (strength > 0) return 'WEAK';
-    return 'NONE';
+    if (strength >= 80) return l10n.signalStrengthExcellent;
+    if (strength >= 60) return l10n.signalStrengthGood;
+    if (strength >= 40) return l10n.signalStrengthFair;
+    if (strength > 0) return l10n.signalStrengthWeak;
+    return l10n.signalStrengthNone;
   }
 
   String _formatFrequency(BuildContext context, int frequency) {
@@ -207,7 +200,10 @@ class _NetworkDetailsBodyState extends State<NetworkDetailsBody> {
                 ),
                 label: Text(l10n.signalStrength, style: titleStyle),
                 trailingWidgets: [
-                  Text(_getSignalStrengthText(network), style: valueStyle),
+                  Text(
+                    _getSignalStrengthText(context, network),
+                    style: valueStyle,
+                  ),
                 ],
               ),
 
@@ -323,7 +319,7 @@ class _NetworkDetailsBodyState extends State<NetworkDetailsBody> {
             MechanixExpandableListTile(
               key: const ValueKey('ipv4_address_tile'),
               contentPadding: const EdgeInsets.symmetric(
-                vertical: 18,
+                vertical: 8,
                 horizontal: 24,
               ),
               label: Text(
@@ -369,11 +365,10 @@ class _NetworkDetailsBodyState extends State<NetworkDetailsBody> {
                               bloc.add(
                                 UpdateIPSettingsEvent(
                                   network: network,
-                                  ipConfigType:
-                                      data['config'] as IPv4ConfigType,
-                                  ipAddress: data['ipAddress'] as String,
-                                  subnetMask: data['subnetMask'] as String,
-                                  router: data['gateway'] as String,
+                                  ipConfigType: data.configType,
+                                  ipAddress: data.ipAddress,
+                                  subnetMask: data.subnetMask,
+                                  router: data.gateway,
                                 ),
                               );
                             },
@@ -442,7 +437,7 @@ class _NetworkDetailsBodyState extends State<NetworkDetailsBody> {
             MechanixExpandableListTile(
               key: const ValueKey('ipv6_address_tile'),
               contentPadding: const EdgeInsets.symmetric(
-                vertical: 18,
+                vertical: 8,
                 horizontal: 24,
               ),
               label: Text(
@@ -488,11 +483,10 @@ class _NetworkDetailsBodyState extends State<NetworkDetailsBody> {
                               bloc.add(
                                 UpdateIPv6SettingsEvent(
                                   network: network,
-                                  ipv6ConfigType:
-                                      data['config'] as IPv6ConfigType,
-                                  ipv6Address: data['ipAddress'] as String,
-                                  ipv6Prefix: data['prefix'] as int,
-                                  ipv6Gateway: data['gateway'] as String,
+                                  ipv6ConfigType: data.configType,
+                                  ipv6Address: data.ipAddress,
+                                  ipv6Prefix: data.prefix,
+                                  ipv6Gateway: data.gateway,
                                 ),
                               );
                             },
@@ -589,7 +583,7 @@ class _NetworkDetailsBodyState extends State<NetworkDetailsBody> {
             MechanixExpandableListTile(
               key: const ValueKey('dns_tile'),
               contentPadding: const EdgeInsets.symmetric(
-                vertical: 18,
+                vertical: 8,
                 horizontal: 24,
               ),
               label: Text(
@@ -633,14 +627,9 @@ class _NetworkDetailsBodyState extends State<NetworkDetailsBody> {
                               bloc.add(
                                 UpdateDNSSettingsEvent(
                                   network: network,
-                                  dnsConfigType:
-                                      data['config'] as DNSConfigType,
-                                  dnsServers: List<String>.from(
-                                    data['servers'] as List,
-                                  ),
-                                  dnsSearchDomains: List<String>.from(
-                                    data['searchDomains'] as List,
-                                  ),
+                                  dnsConfigType: data.configType,
+                                  dnsServers: data.servers,
+                                  dnsSearchDomains: data.searchDomains,
                                 ),
                               );
                             },

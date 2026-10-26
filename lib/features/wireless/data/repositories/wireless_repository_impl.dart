@@ -6,11 +6,9 @@ import 'package:dbus/dbus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:mechanix_settings/core/utils/app_logger.dart';
 import 'package:mechanix_settings/features/wireless/data/models/access_points.dart';
-import 'package:mechanix_settings/features/wireless/data/models/enterprise_config.dart';
 import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
 import 'package:mechanix_settings/features/wireless/data/models/saved_networks.dart';
 import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
-import 'package:mechanix_settings/features/wireless/data/utils/enterprise_connection_builder.dart';
 import 'package:mechanix_settings/features/wireless/data/utils/network_connection_builder.dart';
 import 'package:mechanix_settings/features/wireless/data/utils/network_manager_utils.dart';
 import 'package:mechanix_settings/features/wireless/data/utils/wifi_parser.dart';
@@ -262,7 +260,7 @@ class WirelessRepositoryImpl implements WirelessRepository {
   Future<void> connectToNetwork(
     String name,
     String? password, {
-    EnterpriseConfig? enterpriseConfig,
+    bool autoConnect = true,
   }) async {
     if (!_connected) return;
     final wifiDevice = getWifiDevice();
@@ -321,7 +319,7 @@ class WirelessRepositoryImpl implements WirelessRepository {
           'connection': {
             'id': DBusString(name),
             'type': const DBusString('802-11-wireless'),
-            'autoconnect': const DBusBoolean(true),
+            'autoconnect': DBusBoolean(autoConnect),
           },
           '802-11-wireless': {
             'ssid': DBusArray(
@@ -340,15 +338,6 @@ class WirelessRepositoryImpl implements WirelessRepository {
             'psk': DBusString(password ?? ''),
             // 'psk-flags': const DBusUint32(1),
           };
-        } else if (keyMgmt == 'wpa-eap') {
-          final isLeap = enterpriseConfig?.method == EnterpriseEapMethod.leap;
-          connection['802-11-wireless-security'] = {
-            'key-mgmt': DBusString(isLeap ? 'ieee8021x' : 'wpa-eap'),
-          };
-          connection['802-1x'] = EnterpriseConnectionBuilder.build8021xSettings(
-            enterpriseConfig ??
-                const EnterpriseConfig(method: EnterpriseEapMethod.peap),
-          );
         } else if (keyMgmt == 'none') {
           connection['802-11-wireless-security'] = {
             'key-mgmt': const DBusString('none'),
@@ -386,16 +375,13 @@ class WirelessRepositoryImpl implements WirelessRepository {
   ///
   /// If a saved profile with the same SSID already exists, it is reused instead
   /// of creating a duplicate connection.
-  ///
-  /// For enterprise networks, [enterpriseConfig] must contain the required
-  /// 802.1X/EAP configuration.
   @override
   Future<void> addNetwork(
     String name,
-    WirelessSecurity security,
-    EnterpriseConfig? enterpriseConfig,
-  ) async {
-    final wifiDevice = await getWifiDevice();
+    WirelessSecurity security, {
+    String? password,
+  }) async {
+    final wifiDevice = getWifiDevice();
 
     if (wifiDevice == null) {
       throw Exception('No Wi-Fi device found');
@@ -422,7 +408,7 @@ class WirelessRepositoryImpl implements WirelessRepository {
 
     // Base NetworkManager connection settings.
     //
-    // Security-specific configuration (WEP/WPA/WPA3/Enterprise) is applied
+    // Security-specific configuration (WEP/WPA/WPA3) is applied
     // separately by NetworkConnectionBuilder.
     final connection = <String, Map<String, DBusValue>>{
       'connection': {
@@ -442,12 +428,11 @@ class WirelessRepositoryImpl implements WirelessRepository {
       'ipv6': {'method': const DBusString('ignore')},
     };
 
-    // Apply security configuration, including 802.1X settings for
-    // enterprise networks when required.
+    // Apply security configuration.
     NetworkConnectionBuilder.applySecuritySettings(
       connection: connection,
       security: security,
-      enterpriseConfig: enterpriseConfig,
+      password: password,
     );
 
     // Save the connection profile and immediately activate it.
@@ -821,8 +806,6 @@ class WirelessRepositoryImpl implements WirelessRepository {
       settings: settings,
     );
 
-    final eapMethod = WifiParser.parseEapMethod(settings);
-
     final signalLevel = WifiParser.parseSignalLevel(ap);
 
     final connectionState = await _getConnectionState(name: name, ap: ap);
@@ -907,7 +890,6 @@ class WirelessRepositoryImpl implements WirelessRepository {
       name: name,
       password: password,
       security: security,
-      eapMethod: eapMethod,
       signalLevel: signalLevel,
       rawSignalStrength: ap?.strength ?? 0,
       speedMbps: speedMbps,

@@ -153,12 +153,6 @@ class NetworkManagerUtils {
     }
 
     if (flags.contains(
-      NetworkManagerWifiAccessPointSecurityFlag.keyManagement802_1X,
-    )) {
-      return 'wpa-eap';
-    }
-
-    if (flags.contains(
       NetworkManagerWifiAccessPointSecurityFlag.keyManagementPsk,
     )) {
       return 'wpa-psk';

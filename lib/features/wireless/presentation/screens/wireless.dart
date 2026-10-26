@@ -4,22 +4,11 @@ import 'package:mechanix_settings/core/constants/icons.dart';
 import 'package:mechanix_settings/features/wireless/blocs/wireless_bloc.dart';
 import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
 import 'package:mechanix_settings/features/wireless/presentation/widgets/wireless/wireless_body.dart';
-
 import 'package:mechanix_settings/l10n/app_localizations.dart';
 import 'package:widgets/widgets.dart';
 
-class WirelessScreen extends StatefulWidget {
+class WirelessScreen extends StatelessWidget {
   const WirelessScreen({super.key});
-
-  @override
-  State<WirelessScreen> createState() => _WirelessScreenState();
-}
-
-class _WirelessScreenState extends State<WirelessScreen> {
-  @override
-  void dispose() {
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {

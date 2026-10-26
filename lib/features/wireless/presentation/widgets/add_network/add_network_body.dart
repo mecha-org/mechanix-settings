@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mechanix_settings/features/wireless/blocs/wireless_bloc.dart';
 import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
+import 'package:mechanix_settings/features/wireless/data/utils/wifi_password_validator.dart';
 import 'package:mechanix_settings/features/wireless/presentation/widgets/add_network/security_selector.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
 import 'package:widgets/widgets.dart';
@@ -19,7 +20,6 @@ class AddNetworkBodyState extends State<AddNetworkBody> {
   final _nameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
-  bool _obscureNetworkName = false;
 
   WirelessSecurity _security = WirelessSecurity.none;
   Map<String, String> _errors = {};
@@ -41,9 +41,14 @@ class AddNetworkBodyState extends State<AddNetworkBody> {
     }
 
     if (_security.requiresPassword) {
-      final password = _passwordController.text.trim();
-      if (password.isEmpty) {
-        errors['password'] = l10n.passwordRequired;
+      final password = _passwordController.text;
+      final error = WifiPasswordValidator.getErrorMessage(
+        password,
+        _security,
+        l10n,
+      );
+      if (error != null) {
+        errors['password'] = error;
       }
     }
 
@@ -60,8 +65,13 @@ class AddNetworkBodyState extends State<AddNetworkBody> {
     }
 
     final name = _nameController.text.trim();
+    final password = _security.requiresPassword
+        ? _passwordController.text
+        : null;
 
-    context.read<WirelessBloc>().add(AddNetworkEvent(name, _security));
+    context.read<WirelessBloc>().add(
+      AddNetworkEvent(name, _security, password: password),
+    );
     return true;
   }
 
@@ -82,7 +92,6 @@ class AddNetworkBodyState extends State<AddNetworkBody> {
             MechanixTextField.outlined(
               controller: _nameController,
               errorText: _errors['name'],
-              obscureText: _obscureNetworkName,
               decoration: InputDecoration(
                 hintText: l10n.networkName,
                 hintStyle: theme.textTheme.titleLarge?.copyWith(

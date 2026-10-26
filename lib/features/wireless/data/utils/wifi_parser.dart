@@ -168,11 +168,7 @@ class WifiParser {
       final sec = settings['802-11-wireless-security'];
       if (sec != null) {
         final keyMgmt = sec['key-mgmt']?.toNative()?.toString();
-        if (keyMgmt == 'wpa-eap') {
-          return WirelessSecurity.wpawpa2Enterprise;
-        } else if (keyMgmt == 'ieee8021x') {
-          return WirelessSecurity.leap;
-        } else if (keyMgmt == 'sae') {
+        if (keyMgmt == 'sae') {
           return WirelessSecurity.wpa3Personal;
         } else if (keyMgmt == 'wpa-psk') {
           return WirelessSecurity.wpaWpa2Personal;
@@ -190,8 +186,6 @@ class WifiParser {
         final keyMgmt = NetworkManagerUtils.keyMgmtFromAccessPoint(ap);
         if (keyMgmt == 'sae') {
           return WirelessSecurity.wpa3Personal;
-        } else if (keyMgmt == 'wpa-eap') {
-          return WirelessSecurity.wpawpa2Enterprise;
         } else if (keyMgmt == 'wpa-psk') {
           return WirelessSecurity.wpaWpa2Personal;
         } else {
@@ -201,24 +195,6 @@ class WifiParser {
     }
 
     return WirelessSecurity.none;
-  }
-
-  static EnterpriseEapMethod? parseEapMethod(
-    Map<String, Map<String, DBusValue>>? settings,
-  ) {
-    final x1 = settings?['802-1x'];
-    if (x1 != null) {
-      final eapVal = x1['eap'];
-      if (eapVal is DBusArray && eapVal.children.isNotEmpty) {
-        final eapStr = eapVal.children.first.toNative().toString();
-        for (final val in EnterpriseEapMethod.values) {
-          if (val.nmValue == eapStr) {
-            return val;
-          }
-        }
-      }
-    }
-    return null;
   }
 
   static bool parseAutoConnect(Map<String, Map<String, DBusValue>>? settings) {
