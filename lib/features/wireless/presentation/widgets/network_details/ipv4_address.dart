@@ -1,42 +1,61 @@
 import 'package:flutter/material.dart';
 import 'package:mechanix_settings/core/constants/icons.dart';
-import 'package:mechanix_settings/core/theme/app_theme.dart';
+import 'package:mechanix_settings/core/widgets/toast/custom_app_toast.dart';
 import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
-import 'package:mechanix_settings/core/widgets/bottom_bar/bottom_bar.dart';
-import 'package:mechanix_settings/core/widgets/breadcrumbs.dart';
-import 'package:mechanix_settings/core/widgets/custom_divider.dart';
-import 'package:mechanix_settings/core/widgets/custom_icon_button.dart';
-import 'package:mechanix_settings/core/widgets/custom_text_field.dart';
 import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
 import 'package:mechanix_settings/features/wireless/data/utils/ip_validation_utils.dart';
-import 'package:mechanix_settings/features/wireless/presentation/screens/network_detail.dart';
-import 'package:mechanix_settings/features/wireless/presentation/widgets/wireless_settings/settings_section_header.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
+import 'package:widgets/widgets.dart';
 
-class IPv4AddressScreen extends StatefulWidget {
+class IPv4AddressBottomSheet extends StatefulWidget {
   final WifiNetwork network;
   final IPv4ConfigType currentConfig;
   final String ipAddress;
   final String gateway;
+  final String? subnetMask;
   final ValueChanged<Map<String, dynamic>> onSaved;
 
-  const IPv4AddressScreen({
+  const IPv4AddressBottomSheet({
     super.key,
     required this.network,
     required this.currentConfig,
     required this.ipAddress,
     required this.gateway,
+    this.subnetMask,
     required this.onSaved,
   });
 
+  static Future<void> show({
+    required BuildContext context,
+    required WifiNetwork network,
+    required IPv4ConfigType currentConfig,
+    required String ipAddress,
+    required String gateway,
+    String? subnetMask,
+    required ValueChanged<Map<String, dynamic>> onSaved,
+  }) {
+    return MechanixBottomSheet.showModal(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        return IPv4AddressBottomSheet(
+          network: network,
+          currentConfig: currentConfig,
+          ipAddress: ipAddress,
+          gateway: gateway,
+          subnetMask: subnetMask,
+          onSaved: onSaved,
+        );
+      },
+    );
+  }
+
   @override
-  State<IPv4AddressScreen> createState() => _IPv4AddressScreenState();
+  State<IPv4AddressBottomSheet> createState() => _IPv4AddressBottomSheetState();
 }
 
-class _IPv4AddressScreenState extends State<IPv4AddressScreen> {
+class _IPv4AddressBottomSheetState extends State<IPv4AddressBottomSheet> {
   late IPv4ConfigType _configType;
-
-  final ScrollController _breadcrumbScrollController = ScrollController();
   late final TextEditingController _ipController;
   late final TextEditingController _subnetController;
   late final TextEditingController _routerController;
@@ -44,35 +63,42 @@ class _IPv4AddressScreenState extends State<IPv4AddressScreen> {
   @override
   void initState() {
     super.initState();
-
     _configType = widget.currentConfig;
-
     _ipController = TextEditingController(text: widget.ipAddress);
-    _subnetController = TextEditingController(text: widget.network.subnetMask);
+    _subnetController = TextEditingController(
+      text: widget.subnetMask ?? widget.network.subnetMask,
+    );
     _routerController = TextEditingController(text: widget.gateway);
-
-    _ipController.addListener(_onTextChanged);
-    _subnetController.addListener(_onTextChanged);
-    _routerController.addListener(_onTextChanged);
-  }
-
-  void _onTextChanged() {
-    setState(() {});
   }
 
   @override
   void dispose() {
-    _ipController.removeListener(_onTextChanged);
-    _subnetController.removeListener(_onTextChanged);
-    _routerController.removeListener(_onTextChanged);
     _ipController.dispose();
     _subnetController.dispose();
     _routerController.dispose();
-    _breadcrumbScrollController.dispose();
     super.dispose();
   }
 
   void _saveAndPop() {
+    final l10n = AppLocalizations.of(context)!;
+    if (_configType == IPv4ConfigType.manual) {
+      final error = IpValidationUtils.validateManualIpConfig(
+        ip: _ipController.text.trim(),
+        subnetMask: _subnetController.text.trim(),
+        gateway: _routerController.text.trim(),
+        l10n: l10n,
+      );
+
+      if (error != null) {
+        CustomAppToast.show(
+          context: context,
+          message: error,
+          type: ToastType.error,
+        );
+        return;
+      }
+    }
+
     widget.onSaved({
       'config': _configType,
       'ipAddress': _ipController.text.trim(),
@@ -83,163 +109,224 @@ class _IPv4AddressScreenState extends State<IPv4AddressScreen> {
     Navigator.of(context).pop();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final hasChanged = _configType != widget.currentConfig ||
-        (_configType == IPv4ConfigType.manual &&
-            (_ipController.text.trim() != widget.ipAddress ||
-                _subnetController.text.trim() !=
-                    widget.network.subnetMask ||
-                _routerController.text.trim() != widget.gateway));
-
-    return Scaffold(
-      appBar: AppBar(
-        scrolledUnderElevation: 0,
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        automaticallyImplyLeading: false,
-        title: AppBreadcrumbs(
-          scrollController: _breadcrumbScrollController,
-          items: [
-            BreadcrumbItem(
-              label: l10n.settings,
-              onTap: () {
-                Navigator.of(context).popUntil((route) => route.isFirst);
-              },
-            ),
-            BreadcrumbItem(
-              label: l10n.wireless,
-              onTap: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pop();
-              },
-            ),
-            BreadcrumbItem(
-              label: widget.network.name,
-              onTap: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            BreadcrumbItem(label: l10n.ipv4Address),
-          ],
-        ),
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(1),
-          child: CustomDivider(verticalPadding: 0),
-        ),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            RadioGroup<IPv4ConfigType>(
-              groupValue: _configType,
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _configType = value);
-                }
-              },
-              child: Column(
-                children: IPv4ConfigType.values
-                    .map(
-                      (type) => RadioListTile<IPv4ConfigType>(
-                        value: type,
-                        minTileHeight: 58,
-                        activeColor: AppColors.onSurface,
-                        title: Text(
-                          type.label(l10n),
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                      ),
-                    )
-                    .toList(),
+  Widget _buildInputFieldRow({
+    required BuildContext context,
+    required String label,
+    required TextEditingController controller,
+    required String hintText,
+  }) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            flex: 4,
+            child: Text(
+              label,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                color: theme.colorScheme.onPrimaryFixed,
               ),
             ),
-
-            const CustomDivider(verticalPadding: 16),
-
-            if (_configType == IPv4ConfigType.manual) ...[
-              SettingsSectionHeader(title: l10n.manualIp),
-
-              const SizedBox(height: 12),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  children: [
-                    CustomTextField(
-                      controller: _ipController,
-                      hintText: l10n.ipAddressLabel,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      textInputAction: TextInputAction.next,
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    CustomTextField(
-                      controller: _subnetController,
-                      hintText: l10n.subnetMaskLabel,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      textInputAction: TextInputAction.next,
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    CustomTextField(
-                      controller: _routerController,
-                      hintText: l10n.routerLabel,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      textInputAction: TextInputAction.done,
-                    ),
-                  ],
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            flex: 3,
+            child: MechanixTextField(
+              decoration: InputDecoration(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 20,
                 ),
+                fillColor: theme.colorScheme.surfaceContainerHigh,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
               ),
-            ],
-          ],
-        ),
-      ),
-      bottomNavigationBar: BottomBar(
-        leading: CustomIconButton.asset(
-          assetPath: SettingIcons.back,
-          enabled: true,
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        trailing: [
-          CustomIconButton.asset(
-            assetPath: SettingIcons.check,
-            enabled: hasChanged,
-            onPressed: hasChanged
-                ? () {
-                    if (_configType == IPv4ConfigType.manual) {
-                      final error = IpValidationUtils.validateManualIpConfig(
-                        ip: _ipController.text.trim(),
-                        subnetMask: _subnetController.text.trim(),
-                        gateway: _routerController.text.trim(),
-                        l10n: l10n,
-                      );
-
-                      if (error != null) {
-                        ScaffoldMessenger.of(
-                          context,
-                        ).showSnackBar(SnackBar(content: Text(error)));
-                        return;
-                      }
-                    }
-
-                    connectToNetwork(context, widget.network);
-                    _saveAndPop();
-                  }
-                : null,
+              controller: controller,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              style: theme.textTheme.headlineSmall?.copyWith(
+                color: theme.colorScheme.onSecondaryContainer,
+              ),
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 8,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header Row
+          Row(
+            children: [
+              MechanixIconButton.standard(
+                icon: ImageIcon(
+                  const AssetImage(SettingIcons.back),
+                  color: theme.colorScheme.onSurface,
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'IPV4 -Configure IP',
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+              const Spacer(),
+              MechanixIconButton.standard(
+                icon: ImageIcon(
+                  const AssetImage(SettingIcons.check),
+                  color: theme.colorScheme.onSurface,
+                ),
+                onPressed: _saveAndPop,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Radio item: Automatic
+          MechanixListTile(
+            key: const Key('option_ipv4_automatic'),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 8,
+            ),
+            leadingWidgets: [
+              MechanixRadio<IPv4ConfigType>(
+                value: IPv4ConfigType.automatic,
+                groupValue: _configType,
+                onChanged: (val) {
+                  if (val != null) {
+                    setState(() => _configType = val);
+                  }
+                },
+              ),
+            ],
+            label: Text(
+              l10n.automatic,
+              style: theme.textTheme.headlineSmall!.copyWith(
+                color: _configType == IPv4ConfigType.automatic
+                    ? theme.colorScheme.onSecondaryFixed
+                    : theme.colorScheme.onPrimary,
+              ),
+            ),
+            onTap: () {
+              setState(() => _configType = IPv4ConfigType.automatic);
+            },
+          ),
+
+          // Radio item: Manual
+          MechanixListTile(
+            key: const Key('option_ipv4_manual'),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 8,
+            ),
+            leadingWidgets: [
+              MechanixRadio<IPv4ConfigType>(
+                value: IPv4ConfigType.manual,
+                groupValue: _configType,
+                onChanged: (val) {
+                  if (val != null) {
+                    setState(() => _configType = val);
+                  }
+                },
+              ),
+            ],
+            label: Text(
+              l10n.manual,
+              style: theme.textTheme.headlineSmall!.copyWith(
+                color: _configType == IPv4ConfigType.manual
+                    ? theme.colorScheme.onSecondaryFixed
+                    : theme.colorScheme.onPrimary,
+              ),
+            ),
+            onTap: () {
+              setState(() => _configType = IPv4ConfigType.manual);
+            },
+          ),
+
+          // Manual inputs
+          if (_configType == IPv4ConfigType.manual) ...[
+            const SizedBox(height: 8),
+            _buildInputFieldRow(
+              context: context,
+              label: l10n.ipAddressLabel,
+              controller: _ipController,
+              hintText: '0.0.0.0',
+            ),
+            _buildInputFieldRow(
+              context: context,
+              label: l10n.subnetMaskLabel,
+              controller: _subnetController,
+              hintText: '255.255.0.0',
+            ),
+            _buildInputFieldRow(
+              context: context,
+              label: l10n.routerLabel,
+              controller: _routerController,
+              hintText: '-',
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class IPv4AddressScreen extends StatelessWidget {
+  final WifiNetwork network;
+  final IPv4ConfigType currentConfig;
+  final String ipAddress;
+  final String gateway;
+  final String? subnetMask;
+  final ValueChanged<Map<String, dynamic>> onSaved;
+
+  const IPv4AddressScreen({
+    super.key,
+    required this.network,
+    required this.currentConfig,
+    required this.ipAddress,
+    required this.gateway,
+    this.subnetMask,
+    required this.onSaved,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
+      body: SafeArea(
+        child: IPv4AddressBottomSheet(
+          network: network,
+          currentConfig: currentConfig,
+          ipAddress: ipAddress,
+          gateway: gateway,
+          subnetMask: subnetMask,
+          onSaved: onSaved,
+        ),
       ),
     );
   }

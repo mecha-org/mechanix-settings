@@ -1,6 +1,7 @@
 {
   "settings": "Settings",
   "wireless": "Wireless", 
+  "wifi" : "WiFi",
   "cellularData": "Cellular data (LTE)",
   "bluetooth": "Bluetooth",
   "display": "Display",
@@ -13,11 +14,13 @@
 
   "addWireless": "Add wireless",
   "manageWireless": "Manage wireless",
+  "manageNetworks": "Manage Networks",
   "noInternetConnection": "No Internet Connection",
   "onToggle": "ON",
   "offToggle": "OFF",
   "myNetworks": "My networks",
   "avaialableNetworks": "Available networks",
+  "joinNetworkTitle": "Join Network",
   "joinNetwork": "Join {networkName}",
   "@joinNetwork": {
     "placeholders": {
@@ -124,6 +127,9 @@
   "invalidIpv6Address": "Enter a valid IPv6 address.",
   "invalidIpv6Gateway": "Enter a valid IPv6 gateway address.",
   "dns": "DNS",
+  "pleaseEnterAtLeastOneDnsServer": "Please add at least one DNS server",
+  "invalidDnsServers": "Enter valid DNS server addresses.",
+  "duplicateDnsServers": "Duplicate DNS server addresses are not allowed.",
   "configureDns": "Configure DNS",
   "automatic": "Automatic",
   "automaticDhcp": "Automatic (DHCP)",
@@ -197,7 +203,7 @@
   "noSavedNetwork" : "No saved networks",
   "dnsServers": "DNS Servers",
   "searchDomains": "Search Domains",
-  "addServer": "Add Server",
+  "addServer": "Add server",
   "addDomainsHintText": "domain.com",
   "invalidIpAddress": "Enter a valid IPv4 address.",
   "@invalidIpAddress": {
@@ -262,7 +268,28 @@
   "enterCodeToConnect": "Enter code to connect to",
   "aboutDevice": "About Device",
   "refresh": "Refresh",
+  "forgetNetwork": "Forget network",
+  "connectAutomatically": "Connect automatically",
+  "linkSpeed": "Link speed",
   "enterName": "Enter Name",
+  "close": "Close",
+  "forgetWifiPrompt": "Forget Wifi Network “{name}” ?",
+  "@forgetWifiPrompt": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "serverNumber": "Server {number}",
+  "@serverNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "advanceSettingsNotice": "Advance settings available to view upon connecting device to the network",
 
   "connectionCode": "Connection code",
   "mobileType": "Mobile",

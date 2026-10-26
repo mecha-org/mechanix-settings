@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mechanix_settings/core/constants/icons.dart';
-import 'package:mechanix_settings/core/theme/app_theme.dart';
-import 'package:mechanix_settings/core/widgets/custom_icon_button.dart';
-import 'package:mechanix_settings/core/widgets/custom_image_asset.dart';
 import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
+import 'package:widgets/widgets.dart';
 
 import 'wifi_signal_icon.dart';
 
@@ -31,68 +29,53 @@ class NetworkListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: isSelected ? Colors.white.withOpacity(0.1) : Colors.transparent,
-      child: InkWell(
-        onTap: isConnecting ? null : onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Row(
-            children: [
-              // Leading status icon
-              if (isConnecting)
-                const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      AppColors.onSurface,
-                    ),
-                  ),
-                )
-              else
-                WifiSignalIcon(type: signalType),
-              const SizedBox(width: 16),
+    final theme = Theme.of(context);
 
-              // Network name and status subtitle
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(name, style: Theme.of(context).textTheme.bodyLarge),
-                    if (subtitle != null && subtitle!.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle!,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: AppColors.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-
-              if (isConnected)
-                const CustomImage(assetPath: SettingIcons.connected),
-
-              const SizedBox(width: 16),
-
-              // Trailing action or gear
-              if (onSettingsTap != null)
-                CustomIconButton.asset(
-                  assetPath: SettingIcons.setting,
-                  onPressed: onSettingsTap,
-                  padding: EdgeInsets.zero,
-                )
-              else
-                const SizedBox.shrink(),
-            ],
-          ),
-        ),
+    return MechanixListTile(
+      onTap: isConnecting ? null : onTap,
+      contentPadding: EdgeInsets.symmetric(
+        horizontal: 24,
+        vertical: onSettingsTap != null ? 8 : 18,
       ),
+      leadingWidgets: [
+        if (isConnected)
+          ImageIcon(
+            const AssetImage(SettingIcons.ellipse),
+            color: theme.colorScheme.primary,
+            size: 8,
+          ),
+        // Leading status icon
+        if (isConnecting)
+          SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                theme.colorScheme.primary,
+              ),
+            ),
+          )
+        else
+          WifiSignalIcon(type: signalType),
+      ],
+      // Network name and status subtitle
+      label: Text(name, style: Theme.of(context).textTheme.titleLarge),
+      supportingText: (subtitle?.isNotEmpty ?? false) ? subtitle : null,
+      // Trailing action or gear
+      trailingWidgets: [
+        if (onSettingsTap != null)
+          MechanixIconButton.standard(
+            size: IconButtonSize.small,
+            icon: ImageIcon(
+              const AssetImage(SettingIcons.setting),
+              color: theme.colorScheme.onSurface,
+              size: 20,
+            ),
+            type: IconButtonType.rounded,
+            onPressed: onSettingsTap,
+          ),
+      ],
     );
   }
 }

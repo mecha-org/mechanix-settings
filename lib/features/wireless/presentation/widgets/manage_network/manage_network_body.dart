@@ -12,6 +12,9 @@ class ManageNetworksBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+
     return ScrollConfiguration(
       behavior: ScrollConfiguration.of(context).copyWith(
         dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.mouse},
@@ -25,8 +28,10 @@ class ManageNetworksBody extends StatelessWidget {
                 padding: const EdgeInsets.all(24),
                 child: Center(
                   child: Text(
-                    AppLocalizations.of(context)!.noSavedNetwork,
-                    style: Theme.of(context).textTheme.labelSmall,
+                    l10n.noSavedNetwork,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
               );
