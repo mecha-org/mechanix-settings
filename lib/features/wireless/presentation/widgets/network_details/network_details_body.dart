@@ -534,8 +534,7 @@ class _AutoJoinTile extends StatelessWidget {
         return _ConnectedSwitchTile(
           label: l10n.connectAutomatically,
           isConnected: data.isConnected,
-          // Shown as off while disconnected.
-          value: data.isConnected ? data.autoJoin : false,
+          value: data.autoJoin,
           onChanged: (val) {
             final network = _currentNetwork(context, networkName);
             context.read<WirelessBloc>().add(
