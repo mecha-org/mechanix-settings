@@ -48,7 +48,7 @@ class _BluetoothBodyState extends State<BluetoothBody> {
                         horizontal: 24,
                       ),
                       label: Text(
-                        l10n.bluetooth.toUpperCase(),
+                        l10n.bluetooth,
                         style: Theme.of(context).textTheme.headlineSmall,
                       ),
                       trailingWidgets: [
@@ -85,13 +85,18 @@ class _BluetoothBodyState extends State<BluetoothBody> {
                         top: 4,
                         bottom: 4,
                       ),
-                      labelText: l10n.aboutDevice,
+                      label: Text(
+                        l10n.aboutDevice,
+                        style: theme.textTheme.titleLarge!.copyWith(
+                          color: theme.colorScheme.onSecondaryFixed,
+                        ),
+                      ),
                       onTap: () => _navigateToAboutDevice(context),
                       trailingWidgets: [
                         Text(
                           deviceName,
                           style: theme.textTheme.titleLarge!.copyWith(
-                            color: theme.colorScheme.onSecondaryFixed,
+                            color: theme.colorScheme.onPrimaryFixed,
                           ),
                         ),
                         MechanixIconButton.standard(
@@ -108,6 +113,8 @@ class _BluetoothBodyState extends State<BluetoothBody> {
                     );
                   },
                 ),
+
+                const SizedBox(height: 12),
 
                 // Connected, My Devices, Other Devices Header
                 BlocSelector<BluetoothBloc, BluetoothState, bool>(
@@ -134,11 +141,6 @@ class _BluetoothBodyState extends State<BluetoothBody> {
                             }
                             return Column(
                               children: [
-                                const MechanixDivider(
-                                  indent: 24,
-                                  endIndent: 24,
-                                  space: 0,
-                                ),
                                 for (final device in connectedDevices)
                                   BluetoothConnectedDeviceTile(
                                     key: ValueKey(device.macAddress),
@@ -194,7 +196,7 @@ class _BluetoothBodyState extends State<BluetoothBody> {
                                       children: [
                                         Text(
                                           l10n.myDevices,
-                                          style: context.textTheme.headlineSmall
+                                          style: context.textTheme.titleLarge
                                               ?.copyWith(
                                                 color: context
                                                     .colorScheme
@@ -279,7 +281,7 @@ class _BluetoothBodyState extends State<BluetoothBody> {
                                       children: [
                                         Text(
                                           l10n.otherDevices,
-                                          style: context.textTheme.headlineSmall
+                                          style: context.textTheme.titleLarge
                                               ?.copyWith(
                                                 color: context
                                                     .colorScheme
@@ -387,7 +389,7 @@ class _BluetoothBodyState extends State<BluetoothBody> {
                     key: ValueKey(device.macAddress),
                     device: device,
                     onTap: () => _connectToDevice(context, device),
-                    onSettingsTap: () => _navigateToDetails(context, device),
+                    onSettingsTap: null,
                   );
                 },
               );

@@ -736,6 +736,12 @@ abstract class AppLocalizations {
   /// **'Device name'**
   String get deviceName;
 
+  /// No description provided for @editDeviceName.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit device name'**
+  String get editDeviceName;
+
   /// No description provided for @deviceType.
   ///
   /// In en, this message translates to:
@@ -745,7 +751,7 @@ abstract class AppLocalizations {
   /// No description provided for @deviceStatus.
   ///
   /// In en, this message translates to:
-  /// **'Device status'**
+  /// **'Status'**
   String get deviceStatus;
 
   /// No description provided for @connected.
@@ -754,11 +760,11 @@ abstract class AppLocalizations {
   /// **'Connected'**
   String get connected;
 
-  /// No description provided for @notConnected.
+  /// No description provided for @disonnected.
   ///
   /// In en, this message translates to:
-  /// **'Not connected'**
-  String get notConnected;
+  /// **'Disconnected'**
+  String get disonnected;
 
   /// No description provided for @disconnect.
   ///

@@ -21,7 +21,10 @@ class BluetoothDeviceListItem extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return MechanixListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
+      contentPadding: EdgeInsets.symmetric(
+        horizontal: 24,
+        vertical: onSettingsTap != null ? 8 : 20,
+      ),
       onTap: device.isConnecting ? null : onTap,
       leadingWidgets: [
         ImageIcon(
