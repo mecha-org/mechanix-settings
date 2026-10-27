@@ -410,16 +410,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deviceName => 'Device name';
 
   @override
+  String get editDeviceName => 'Edit device name';
+
+  @override
   String get deviceType => 'Device type';
 
   @override
-  String get deviceStatus => 'Device status';
+  String get deviceStatus => 'Status';
 
   @override
   String get connected => 'Connected';
 
   @override
-  String get notConnected => 'Not connected';
+  String get disonnected => 'Disconnected';
 
   @override
   String get disconnect => 'Disconnect';
