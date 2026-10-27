@@ -267,8 +267,27 @@ void main() {
       expect(find.text(l10n.advanceSettingsNotice), findsOneWidget);
 
       final switches = find.byType(MechanixSwitch);
-      // Auto-join is always shown as off while disconnected.
-      expect(tester.widget<MechanixSwitch>(switches.at(0)).value, isFalse);
+      // While disconnected the switches reflect the saved values but are
+      // disabled (wrapped in IgnorePointer).
+      expect(
+        tester.widget<MechanixSwitch>(switches.at(0)).value,
+        tSavedNetwork.autoJoin,
+      );
+      expect(
+        tester.widget<MechanixSwitch>(switches.at(1)).value,
+        tSavedNetwork.lowDataMode,
+      );
+      for (var i = 0; i < 2; i++) {
+        expect(
+          find.ancestor(
+            of: switches.at(i),
+            matching: find.byWidgetPredicate(
+              (w) => w is IgnorePointer && w.ignoring,
+            ),
+          ),
+          findsWidgets,
+        );
+      }
 
       await tester.tap(switches.at(0), warnIfMissed: false);
       await tester.tap(switches.at(1), warnIfMissed: false);

@@ -120,61 +120,6 @@ class _DNSBottomSheetState extends State<DNSBottomSheet> {
     Navigator.of(context).pop();
   }
 
-  Widget _buildServerRow({
-    required BuildContext context,
-    required int index,
-    required _DnsItem item,
-  }) {
-    final theme = Theme.of(context);
-    return Padding(
-      key: ValueKey(item),
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          MechanixIconButton.filled(
-            backgroundColor: theme.colorScheme.secondaryContainer,
-            size: IconButtonSize.small,
-            type: IconButtonType.rounded,
-            icon: ImageIcon(
-              const AssetImage(SettingIcons.delete),
-              color: theme.colorScheme.error,
-              size: 20,
-            ),
-            onPressed: () {
-              setState(() {
-                final removed = _items.removeAt(index);
-                removed.controller.dispose();
-              });
-            },
-          ),
-
-          const SizedBox(width: 12),
-          Expanded(
-            flex: 3,
-            child: MechanixTextField(
-              decoration: InputDecoration(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 20,
-                ),
-                fillColor: theme.colorScheme.surfaceContainerHigh,
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-              ),
-              controller: item.controller,
-              keyboardType: TextInputType.text,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                color: theme.colorScheme.onSecondaryContainer,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -290,10 +235,15 @@ class _DNSBottomSheetState extends State<DNSBottomSheet> {
               const SizedBox(height: 8),
               ...List.generate(
                 _items.length,
-                (index) => _buildServerRow(
-                  context: context,
-                  index: index,
-                  item: _items[index],
+                (index) => _DnsServerRow(
+                  key: ValueKey(_items[index]),
+                  controller: _items[index].controller,
+                  onDelete: () {
+                    setState(() {
+                      final removed = _items.removeAt(index);
+                      removed.controller.dispose();
+                    });
+                  },
                 ),
               ),
 
@@ -332,6 +282,63 @@ class _DNSBottomSheetState extends State<DNSBottomSheet> {
             ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _DnsServerRow extends StatelessWidget {
+  final TextEditingController controller;
+  final VoidCallback onDelete;
+
+  const _DnsServerRow({
+    super.key,
+    required this.controller,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          MechanixIconButton.filled(
+            backgroundColor: theme.colorScheme.secondaryContainer,
+            size: IconButtonSize.small,
+            type: IconButtonType.rounded,
+            icon: ImageIcon(
+              const AssetImage(SettingIcons.delete),
+              color: theme.colorScheme.error,
+              size: 20,
+            ),
+            onPressed: onDelete,
+          ),
+
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 3,
+            child: MechanixTextField(
+              decoration: InputDecoration(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 20,
+                ),
+                fillColor: theme.colorScheme.surfaceContainerHigh,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+              ),
+              controller: controller,
+              keyboardType: TextInputType.text,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                color: theme.colorScheme.onSecondaryContainer,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -110,55 +110,6 @@ class _IPv4AddressBottomSheetState extends State<IPv4AddressBottomSheet> {
     Navigator.of(context).pop();
   }
 
-  Widget _buildInputFieldRow({
-    required BuildContext context,
-    required String label,
-    required TextEditingController controller,
-    required String hintText,
-  }) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            flex: 4,
-            child: Text(
-              label,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                color: theme.colorScheme.onPrimaryFixed,
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            flex: 3,
-            child: MechanixTextField(
-              decoration: InputDecoration(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 20,
-                ),
-                fillColor: theme.colorScheme.surfaceContainerHigh,
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-              ),
-              controller: controller,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              style: theme.textTheme.headlineSmall?.copyWith(
-                color: theme.colorScheme.onSecondaryContainer,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -272,25 +223,79 @@ class _IPv4AddressBottomSheetState extends State<IPv4AddressBottomSheet> {
           // Manual inputs
           if (_configType == IPv4ConfigType.manual) ...[
             const SizedBox(height: 8),
-            _buildInputFieldRow(
-              context: context,
+            _IPv4InputFieldRow(
               label: l10n.ipAddressLabel,
               controller: _ipController,
               hintText: '0.0.0.0',
             ),
-            _buildInputFieldRow(
-              context: context,
+            _IPv4InputFieldRow(
               label: l10n.subnetMaskLabel,
               controller: _subnetController,
               hintText: '255.255.0.0',
             ),
-            _buildInputFieldRow(
-              context: context,
+            _IPv4InputFieldRow(
               label: l10n.routerLabel,
               controller: _routerController,
               hintText: '-',
             ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+class _IPv4InputFieldRow extends StatelessWidget {
+  final String label;
+  final TextEditingController controller;
+  final String hintText;
+
+  const _IPv4InputFieldRow({
+    required this.label,
+    required this.controller,
+    required this.hintText,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            flex: 4,
+            child: Text(
+              label,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                color: theme.colorScheme.onPrimaryFixed,
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            flex: 3,
+            child: MechanixTextField(
+              decoration: InputDecoration(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 20,
+                ),
+                fillColor: theme.colorScheme.surfaceContainerHigh,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+              ),
+              controller: controller,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              style: theme.textTheme.headlineSmall?.copyWith(
+                color: theme.colorScheme.onSecondaryContainer,
+              ),
+            ),
+          ),
         ],
       ),
     );

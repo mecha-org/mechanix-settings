@@ -115,54 +115,6 @@ class _IPv6AddressBottomSheetState extends State<IPv6AddressBottomSheet> {
     Navigator.of(context).pop();
   }
 
-  Widget _buildInputFieldRow({
-    required BuildContext context,
-    required String label,
-    required TextEditingController controller,
-    required String hintText,
-    TextInputType keyboardType = TextInputType.text,
-  }) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            flex: 1,
-            child: Text(
-              label,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                color: theme.colorScheme.onPrimaryFixed,
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            flex: 2,
-            child: MechanixTextField(
-              decoration: InputDecoration(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 20,
-                ),
-                fillColor: theme.colorScheme.surfaceContainerHigh,
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-              ),
-              controller: controller,
-              keyboardType: keyboardType,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                color: theme.colorScheme.onSecondaryContainer,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -275,26 +227,80 @@ class _IPv6AddressBottomSheetState extends State<IPv6AddressBottomSheet> {
           // Manual inputs
           if (_configType == IPv6ConfigType.manual) ...[
             const SizedBox(height: 8),
-            _buildInputFieldRow(
-              context: context,
+            _IPv6InputFieldRow(
               label: l10n.ipv6AddressLabel,
               controller: _ipController,
               hintText: '::',
             ),
-            _buildInputFieldRow(
-              context: context,
+            _IPv6InputFieldRow(
               label: l10n.ipv6PrefixLabel,
               controller: _prefixController,
               hintText: '64',
               keyboardType: TextInputType.number,
             ),
-            _buildInputFieldRow(
-              context: context,
+            _IPv6InputFieldRow(
               label: l10n.ipv6GatewayLabel,
               controller: _routerController,
               hintText: '::',
             ),
           ],
+        ],
+      ),
+    );
+  }
+}
+
+class _IPv6InputFieldRow extends StatelessWidget {
+  final String label;
+  final TextEditingController controller;
+  final String hintText;
+  final TextInputType keyboardType;
+
+  const _IPv6InputFieldRow({
+    required this.label,
+    required this.controller,
+    required this.hintText,
+    this.keyboardType = TextInputType.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            flex: 1,
+            child: Text(
+              label,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                color: theme.colorScheme.onPrimaryFixed,
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            flex: 2,
+            child: MechanixTextField(
+              decoration: InputDecoration(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 20,
+                ),
+                fillColor: theme.colorScheme.surfaceContainerHigh,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+              ),
+              controller: controller,
+              keyboardType: keyboardType,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                color: theme.colorScheme.onSecondaryContainer,
+              ),
+            ),
+          ),
         ],
       ),
     );

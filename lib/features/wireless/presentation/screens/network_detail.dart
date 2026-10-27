@@ -61,6 +61,7 @@ class NetworkDetailScreen extends StatelessWidget {
                 },
               );
             },
+            style: const MenuThemeDataConfig(borderRadius: BorderRadius.zero),
             entries: [
               MechanixMenuItem(
                 value: 'refresh',
