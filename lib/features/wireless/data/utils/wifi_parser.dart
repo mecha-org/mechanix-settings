@@ -197,6 +197,40 @@ class WifiParser {
     return WirelessSecurity.none;
   }
 
+  /// Security stored in a saved profile, independent of what the access
+  /// point currently advertises.
+  ///
+  /// Returns `null` when [settings] is not a saved Wi-Fi profile or uses a
+  /// key management this app does not support.
+  static WirelessSecurity? parseSavedSecurity(
+    Map<String, Map<String, DBusValue>>? settings,
+  ) {
+    if (settings == null || settings['802-11-wireless'] == null) return null;
+
+    final sec = settings['802-11-wireless-security'];
+    if (sec == null) return WirelessSecurity.none;
+
+    switch (sec['key-mgmt']?.toNative()?.toString()) {
+      case 'sae':
+        return WirelessSecurity.wpa3Personal;
+      case 'wpa-psk':
+        return WirelessSecurity.wpaWpa2Personal;
+      case 'owe':
+        return WirelessSecurity.enhancedOpen;
+      case 'none':
+        return WirelessSecurity.wep;
+      default:
+        return null;
+    }
+  }
+
+  /// Security currently advertised by the access point, or `null` when the
+  /// network is not in range.
+  static WirelessSecurity? parseScannedSecurity(NetworkManagerAccessPoint? ap) {
+    if (ap == null) return null;
+    return parseSecurityType(name: '', ap: ap);
+  }
+
   static bool parseAutoConnect(Map<String, Map<String, DBusValue>>? settings) {
     try {
       final value = settings?['connection']?['autoconnect']?.toNative();

@@ -6,6 +6,8 @@ import 'package:mechanix_settings/core/utils/app_logger.dart';
 import 'package:mechanix_settings/features/wireless/blocs/wireless_event.dart';
 import 'package:mechanix_settings/features/wireless/blocs/wireless_state.dart';
 import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
+import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
+import 'package:mechanix_settings/features/wireless/data/models/wireless_exceptions.dart';
 import 'package:mechanix_settings/features/wireless/data/repositories/wireless_repository.dart';
 import 'package:nm/nm.dart';
 
@@ -48,6 +50,10 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
     on<ForgetNetworkEvent>(_onForgetNetwork);
     on<ConnectivityStateChangedEvent>(_onConnectivityStateChanged);
     on<OpenCaptivePortal>(_onOpenCaptivePortal);
+    on<RefreshNetworkDetails>(
+      _onRefreshNetworkDetails,
+      transformer: sequential(),
+    );
   }
 
   /// Initial setup: listens to D-Bus events and triggers an initial loading of networks.
@@ -376,6 +382,51 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
     }
   }
 
+  /// Re-reads only the network named in [event] (no scan) and replaces it in
+  /// every list it appears in. Other networks are left untouched. If the
+  /// network can no longer be found, the current state is kept.
+  Future<void> _onRefreshNetworkDetails(
+    RefreshNetworkDetails event,
+    Emitter<WirelessState> emit,
+  ) async {
+    try {
+      if (!wirelessRepository.isWirelessEnabled()) return;
+
+      final updated = await wirelessRepository.getNetworkDetails(
+        event.networkName,
+      );
+      if (updated == null || isClosed) return;
+
+      // Re-read the state after the await so concurrent updates are kept.
+      final current = state;
+      final newState = current.copyWith(
+        savedNetworks: _replaceNetwork(current.savedNetworks, updated),
+        myNetworks: _replaceNetwork(current.myNetworks, updated),
+        availableNetworks: _replaceNetwork(current.availableNetworks, updated),
+      );
+
+      if (newState != current) {
+        emit(newState);
+      }
+    } catch (e, stackTrace) {
+      AppLogger.e(
+        'Failed to refresh details of ${event.networkName}: $e',
+        stack: stackTrace,
+      );
+    }
+  }
+
+  /// Returns [networks] with the entry named like [updated] replaced, or the
+  /// same list instance when it does not contain that network.
+  static List<WifiNetwork> _replaceNetwork(
+    List<WifiNetwork> networks,
+    WifiNetwork updated,
+  ) {
+    final index = networks.indexWhere((n) => n.name == updated.name);
+    if (index == -1) return networks;
+    return [...networks]..[index] = updated;
+  }
+
   /// Initiates a connection request to the designated Wi-Fi network.
   Future<void> _onConnectToNetwork(
     ConnectToNetworkEvent event,
@@ -389,6 +440,19 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
         event.name,
         event.password,
         autoConnect: event.autoConnect,
+      );
+    } on WifiPasswordRequiredException catch (e) {
+      _connectionInProgress = false;
+      AppLogger.i('Password required to join "${e.networkName}".');
+      emit(
+        state.copyWith(
+          connectingNetworkName: null,
+          error: WirelessFailure(
+            type: WirelessErrorType.passwordRequired,
+            message: e.toString(),
+            data: {'networkName': e.networkName, 'security': e.security},
+          ),
+        ),
       );
     } catch (e, stackTrace) {
       _connectionInProgress = false;

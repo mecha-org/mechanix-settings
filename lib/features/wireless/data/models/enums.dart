@@ -198,7 +198,15 @@ extension WifiSignalTypeIcon on WifiSignalType {
   }
 }
 
-enum WirelessErrorType { connectionFailed, addNetworkFailed, unknown }
+enum WirelessErrorType {
+  connectionFailed,
+  addNetworkFailed,
+
+  /// The network needs a (new) password from the user before it can be
+  /// joined. The UI shows the password sheet instead of an error message.
+  passwordRequired,
+  unknown,
+}
 
 enum WifiConnectionStatus {
   disconnected,

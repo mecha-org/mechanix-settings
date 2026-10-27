@@ -7,6 +7,8 @@ import 'package:widgets/widgets.dart';
 
 import 'package:mechanix_settings/core/constants/icons.dart';
 import 'package:mechanix_settings/features/wireless/blocs/wireless_bloc.dart';
+import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
+import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
 import 'package:mechanix_settings/features/wireless/presentation/screens/add_network.dart';
 import 'package:mechanix_settings/features/wireless/presentation/screens/manage_network.dart';
 import 'package:mechanix_settings/features/wireless/presentation/screens/network_detail.dart';
@@ -327,6 +329,152 @@ void main() {
         },
       );
 
+      testWidgets(
+        'saved network whose security changed asks for a new password',
+        (WidgetTester tester) async {
+          const changed = WifiNetwork(
+            name: 'Cafe',
+            isSecured: true,
+            signalLevel: 2,
+            security: WirelessSecurity.wpaWpa2Personal,
+            savedSecurity: WirelessSecurity.none,
+            scannedSecurity: WirelessSecurity.wpaWpa2Personal,
+          );
+          await pumpBody(
+            tester,
+            const WirelessState(
+              isWirelessOn: true,
+              myNetworks: [changed],
+              savedNetworks: [changed],
+            ),
+          );
+
+          await tester.tap(find.text('Cafe'));
+          await tester.pumpAndSettle();
+
+          // No silent reconnect with the stale (open) profile.
+          verifyNever(
+            () => mockWirelessBloc.add(const ConnectToNetworkEvent('Cafe', null)),
+          );
+
+          final sheet = find.byType(WirelessPasswordBottomSheet);
+          expect(sheet, findsOneWidget);
+          expect(
+            tester.widget<WirelessPasswordBottomSheet>(sheet).securityType,
+            WirelessSecurity.wpaWpa2Personal,
+          );
+
+          await tester.enterText(find.byType(MechanixTextField), 'newpass123');
+          await tester.pump();
+          await tester.tap(find.descendant(of: sheet, matching: findCheckButton));
+          await tester.pumpAndSettle();
+
+          verify(
+            () => mockWirelessBloc.add(
+              const ConnectToNetworkEvent('Cafe', 'newpass123'),
+            ),
+          ).called(1);
+        },
+      );
+
+      testWidgets(
+        'saved network moved from WPA2 to WPA3 asks for a WPA3 password',
+        (WidgetTester tester) async {
+          const upgraded = WifiNetwork(
+            name: 'Home',
+            isSecured: true,
+            signalLevel: 3,
+            security: WirelessSecurity.wpaWpa2Personal,
+            savedSecurity: WirelessSecurity.wpaWpa2Personal,
+            scannedSecurity: WirelessSecurity.wpa3Personal,
+          );
+          await pumpBody(
+            tester,
+            const WirelessState(
+              isWirelessOn: true,
+              myNetworks: [upgraded],
+              savedNetworks: [upgraded],
+            ),
+          );
+
+          await tester.tap(find.text('Home'));
+          await tester.pumpAndSettle();
+
+          final sheet = find.byType(WirelessPasswordBottomSheet);
+          expect(sheet, findsOneWidget);
+          expect(
+            tester.widget<WirelessPasswordBottomSheet>(sheet).securityType,
+            WirelessSecurity.wpa3Personal,
+          );
+        },
+      );
+
+      testWidgets(
+        'cancelling the password sheet for a changed network does not connect',
+        (WidgetTester tester) async {
+          const changed = WifiNetwork(
+            name: 'Cafe',
+            isSecured: true,
+            signalLevel: 2,
+            security: WirelessSecurity.wpaWpa2Personal,
+            savedSecurity: WirelessSecurity.none,
+            scannedSecurity: WirelessSecurity.wpaWpa2Personal,
+          );
+          await pumpBody(
+            tester,
+            const WirelessState(
+              isWirelessOn: true,
+              myNetworks: [changed],
+              savedNetworks: [changed],
+            ),
+          );
+
+          await tester.tap(find.text('Cafe'));
+          await tester.pumpAndSettle();
+          await tester.tap(
+            find.descendant(
+              of: find.byType(WirelessPasswordBottomSheet),
+              matching: findBackButton,
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          verifyNever(
+            () => mockWirelessBloc.add(any(that: isA<ConnectToNetworkEvent>())),
+          );
+        },
+      );
+
+      testWidgets(
+        'saved network with unchanged security connects without a password',
+        (WidgetTester tester) async {
+          const unchanged = WifiNetwork(
+            name: 'Home',
+            isSecured: true,
+            signalLevel: 3,
+            security: WirelessSecurity.wpaWpa2Personal,
+            savedSecurity: WirelessSecurity.wpaWpa2Personal,
+            scannedSecurity: WirelessSecurity.wpaWpa2Personal,
+          );
+          await pumpBody(
+            tester,
+            const WirelessState(
+              isWirelessOn: true,
+              myNetworks: [unchanged],
+              savedNetworks: [unchanged],
+            ),
+          );
+
+          await tester.tap(find.text('Home'));
+          await tester.pumpAndSettle();
+
+          expect(find.byType(WirelessPasswordBottomSheet), findsNothing);
+          verify(
+            () => mockWirelessBloc.add(const ConnectToNetworkEvent('Home', null)),
+          ).called(1);
+        },
+      );
+
       testWidgets('shows count [00] when there are no other saved networks', (
         WidgetTester tester,
       ) async {
@@ -449,10 +597,85 @@ void main() {
         await tester.tap(refresh);
         await tester.pump();
 
-        verify(
-          () => mockWirelessBloc.add(const ToggleWirelessPower(true)),
-        ).called(1);
+        verify(() => mockWirelessBloc.add(const ScanNetworks())).called(1);
+        verifyNever(
+          () => mockWirelessBloc.add(any(that: isA<ToggleWirelessPower>())),
+        );
       });
+
+      testWidgets(
+        'WEP network accepts a 5 character key in the password sheet',
+        (WidgetTester tester) async {
+          const wepNetwork = WifiNetwork(
+            name: 'OldRouter',
+            isSecured: true,
+            signalLevel: 2,
+            security: WirelessSecurity.wep,
+          );
+          await pumpBody(
+            tester,
+            const WirelessState(
+              isWirelessOn: true,
+              availableNetworks: [wepNetwork],
+            ),
+          );
+
+          await tester.tap(find.text('OldRouter'));
+          await tester.pumpAndSettle();
+
+          final sheet = find.byType(WirelessPasswordBottomSheet);
+          expect(
+            tester.widget<WirelessPasswordBottomSheet>(sheet).securityType,
+            WirelessSecurity.wep,
+          );
+
+          await tester.enterText(find.byType(MechanixTextField), 'abcde');
+          await tester.pump();
+
+          final check = find.descendant(of: sheet, matching: findCheckButton);
+          expect(tester.widget<MechanixIconButton>(check).onPressed, isNotNull);
+
+          await tester.tap(check);
+          await tester.pumpAndSettle();
+
+          verify(
+            () => mockWirelessBloc.add(
+              const ConnectToNetworkEvent('OldRouter', 'abcde'),
+            ),
+          ).called(1);
+        },
+      );
+
+      testWidgets(
+        'WPA network accepts a 64 digit hex key in the password sheet',
+        (WidgetTester tester) async {
+          await pumpBody(
+            tester,
+            const WirelessState(
+              isWirelessOn: true,
+              availableNetworks: [tSecuredAvailableNetwork],
+            ),
+          );
+
+          await tester.tap(find.text('OfficeWifi 3'));
+          await tester.pumpAndSettle();
+
+          final sheet = find.byType(WirelessPasswordBottomSheet);
+          expect(
+            tester.widget<WirelessPasswordBottomSheet>(sheet).securityType,
+            WirelessSecurity.wpaWpa2Personal,
+          );
+
+          await tester.enterText(
+            find.byType(MechanixTextField),
+            'a' * 64,
+          );
+          await tester.pump();
+
+          final check = find.descendant(of: sheet, matching: findCheckButton);
+          expect(tester.widget<MechanixIconButton>(check).onPressed, isNotNull);
+        },
+      );
 
       testWidgets(
         'secured network opens password sheet and connects with entered password',
@@ -561,6 +784,84 @@ void main() {
       });
     });
 
+    group('Password required from the repository', () {
+      testWidgets(
+        'opens the password sheet and reconnects with the entered password',
+        (WidgetTester tester) async {
+          const initial = WirelessState(isWirelessOn: true);
+          whenListen(
+            mockWirelessBloc,
+            Stream.fromIterable([
+              initial.copyWith(connectingNetworkName: 'Cafe'),
+              initial.copyWith(
+                error: const WirelessFailure(
+                  type: WirelessErrorType.passwordRequired,
+                  data: {
+                    'networkName': 'Cafe',
+                    'security': WirelessSecurity.wpa3Personal,
+                  },
+                ),
+              ),
+            ]),
+            initialState: initial,
+          );
+
+          await tester.pumpWidget(
+            createWirelessTestWidget(
+              wirelessBloc: mockWirelessBloc,
+              child: const Scaffold(body: WirelessBody()),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          final sheet = find.byType(WirelessPasswordBottomSheet);
+          expect(sheet, findsOneWidget);
+          final sheetWidget = tester.widget<WirelessPasswordBottomSheet>(sheet);
+          expect(sheetWidget.networkName, 'Cafe');
+          expect(sheetWidget.securityType, WirelessSecurity.wpa3Personal);
+
+          await tester.enterText(find.byType(MechanixTextField), 'newpass123');
+          await tester.pump();
+          await tester.tap(find.descendant(of: sheet, matching: findCheckButton));
+          await tester.pumpAndSettle();
+
+          verify(
+            () => mockWirelessBloc.add(
+              const ConnectToNetworkEvent('Cafe', 'newpass123'),
+            ),
+          ).called(1);
+        },
+      );
+
+      testWidgets('does not open the sheet for other errors', (
+        WidgetTester tester,
+      ) async {
+        const initial = WirelessState(isWirelessOn: true);
+        whenListen(
+          mockWirelessBloc,
+          Stream.fromIterable([
+            initial.copyWith(
+              error: const WirelessFailure(
+                type: WirelessErrorType.connectionFailed,
+                data: {'networkName': 'Cafe'},
+              ),
+            ),
+          ]),
+          initialState: initial,
+        );
+
+        await tester.pumpWidget(
+          createWirelessTestWidget(
+            wirelessBloc: mockWirelessBloc,
+            child: const Scaffold(body: WirelessBody()),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.byType(WirelessPasswordBottomSheet), findsNothing);
+      });
+    });
+
     group('Join and manage tiles', () {
       testWidgets('tapping Join Network opens AddNetworkPage', (
         WidgetTester tester,
@@ -657,7 +958,7 @@ void main() {
     });
 
     testWidgets(
-      'NetworkDetailScreen refresh menu dispatches LoadWireless(requestScan: true)',
+      'NetworkDetailScreen refresh menu dispatches RefreshNetworkDetails',
       (WidgetTester tester) async {
         await pumpBody(
           tester,
@@ -687,7 +988,9 @@ void main() {
         await tester.pump();
 
         verify(
-          () => mockWirelessBloc.add(const LoadWireless(requestScan: true)),
+          () => mockWirelessBloc.add(
+            RefreshNetworkDetails(tConnectedNetwork.name),
+          ),
         ).called(1);
       },
     );

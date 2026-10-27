@@ -4,6 +4,7 @@ import 'package:dbus/dbus.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
 import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
+import 'package:mechanix_settings/features/wireless/data/models/wireless_exceptions.dart';
 import 'package:mechanix_settings/features/wireless/data/repositories/wireless_repository_impl.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:nm/nm.dart';
@@ -83,17 +84,17 @@ void main() {
   group('WirelessRepositoryImpl initialization & basic checks', () {
     test('isWirelessEnabled returns client value', () async {
       when(() => mockClient.wirelessEnabled).thenReturn(true);
-      expect(await repository.isWirelessEnabled(), true);
+      expect(repository.isWirelessEnabled(), true);
 
       when(() => mockClient.wirelessEnabled).thenReturn(false);
-      expect(await repository.isWirelessEnabled(), false);
+      expect(repository.isWirelessEnabled(), false);
     });
 
     test(
       'isWirelessEnabled returns false when not connected/initialized',
       () async {
         final uninitializedRepo = WirelessRepositoryImpl();
-        expect(await uninitializedRepo.isWirelessEnabled(), false);
+        expect(uninitializedRepo.isWirelessEnabled(), false);
       },
     );
 
@@ -107,7 +108,7 @@ void main() {
     });
 
     test('getWifiDevice returns wifi device', () async {
-      final device = await repository.getWifiDevice();
+      final device = repository.getWifiDevice();
       expect(device, mockWifiDevice);
     });
 
@@ -118,7 +119,7 @@ void main() {
       ).thenReturn(NetworkManagerDeviceType.ethernet);
       when(() => mockClient.devices).thenReturn([mockEthernetDevice]);
 
-      final device = await repository.getWifiDevice();
+      final device = repository.getWifiDevice();
       expect(device, null);
     });
 
@@ -126,7 +127,7 @@ void main() {
       when(
         () => mockWifiDevice.state,
       ).thenReturn(NetworkManagerDeviceState.disconnected);
-      final state = await repository.getWifiDeviceState();
+      final state = repository.getWifiDeviceState();
       expect(state, NetworkManagerDeviceState.disconnected);
     });
   });
@@ -203,6 +204,149 @@ void main() {
       expect(networks.first.rawSignalStrength, 78);
       expect(networks.first.speedMbps, 130);
       expect(networks.first.frequency, 2412);
+    });
+  });
+
+  group('getNetworkDetails', () {
+    MockNetworkManagerSettingsConnection savedConnection(
+      String ssid, {
+      bool unsaved = false,
+    }) {
+      final connection = MockNetworkManagerSettingsConnection();
+      when(() => connection.unsaved).thenReturn(unsaved);
+      when(() => connection.getSettings()).thenAnswer(
+        (_) async => {
+          'connection': {'id': DBusString(ssid)},
+          '802-11-wireless': {
+            'ssid': DBusArray(
+              DBusSignature.byte,
+              utf8.encode(ssid).map((b) => DBusByte(b)).toList(),
+            ),
+          },
+        },
+      );
+      return connection;
+    }
+
+    MockNetworkManagerAccessPoint accessPoint(String ssid) {
+      final ap = MockNetworkManagerAccessPoint();
+      when(() => ap.ssid).thenReturn(utf8.encode(ssid));
+      when(() => ap.strength).thenReturn(70);
+      when(() => ap.frequency).thenReturn(5180);
+      when(
+        () => ap.wpaFlags,
+      ).thenReturn(<NetworkManagerWifiAccessPointSecurityFlag>[]);
+      when(
+        () => ap.rsnFlags,
+      ).thenReturn(<NetworkManagerWifiAccessPointSecurityFlag>[]);
+      return ap;
+    }
+
+    test('returns the saved profile with the requested SSID only', () async {
+      final other = savedConnection('Other_WiFi');
+      final target = savedConnection('Saved_WiFi');
+      when(() => mockSettings.connections).thenReturn([other, target]);
+
+      final network = await repository.getNetworkDetails('Saved_WiFi');
+
+      expect(network, isNotNull);
+      expect(network!.name, 'Saved_WiFi');
+    });
+
+    test('ignores unsaved (temporary) profiles', () async {
+      final temporary = savedConnection('Saved_WiFi', unsaved: true);
+      when(() => mockSettings.connections).thenReturn([temporary]);
+
+      expect(await repository.getNetworkDetails('Saved_WiFi'), isNull);
+      verifyNever(() => temporary.getSettings());
+    });
+
+    test('includes live signal info for a saved network in range', () async {
+      // Build mocks before stubbing: calling when() inside thenReturn()
+      // would interrupt the outer stub.
+      final connection = savedConnection('Saved_WiFi');
+      final ap = accessPoint('Saved_WiFi');
+      when(() => mockSettings.connections).thenReturn([connection]);
+      when(() => mockWireless.accessPoints).thenReturn([ap]);
+
+      final network = await repository.getNetworkDetails('Saved_WiFi');
+
+      expect(network!.rawSignalStrength, 70);
+      expect(network.frequency, 5180);
+    });
+
+    test('falls back to the scanned access point when not saved', () async {
+      when(() => mockSettings.connections).thenReturn([]);
+      final ap = accessPoint('Available_WiFi');
+      when(() => mockWireless.accessPoints).thenReturn([ap]);
+
+      final network = await repository.getNetworkDetails('Available_WiFi');
+
+      expect(network, isNotNull);
+      expect(network!.name, 'Available_WiFi');
+      expect(network.rawSignalStrength, 70);
+    });
+
+    test(
+      'reports changed security when a saved open network now uses WPA',
+      () async {
+        final connection = savedConnection('Cafe_WiFi');
+        when(
+          () => connection.getSecrets(any()),
+        ).thenAnswer((_) async => <String, Map<String, DBusValue>>{});
+        final ap = accessPoint('Cafe_WiFi');
+        when(() => ap.rsnFlags).thenReturn([
+          NetworkManagerWifiAccessPointSecurityFlag.keyManagementPsk,
+        ]);
+        when(() => mockSettings.connections).thenReturn([connection]);
+        when(() => mockWireless.accessPoints).thenReturn([ap]);
+
+        final network = await repository.getNetworkDetails('Cafe_WiFi');
+
+        expect(network!.savedSecurity, WirelessSecurity.none);
+        expect(network.scannedSecurity, WirelessSecurity.wpaWpa2Personal);
+        expect(network.hasSecurityChanged, isTrue);
+        expect(network.isSecured, isTrue);
+      },
+    );
+
+    test('reports unchanged security for a saved open network', () async {
+      final connection = savedConnection('Open_WiFi');
+      final ap = accessPoint('Open_WiFi');
+      when(() => mockSettings.connections).thenReturn([connection]);
+      when(() => mockWireless.accessPoints).thenReturn([ap]);
+
+      final network = await repository.getNetworkDetails('Open_WiFi');
+
+      expect(network!.savedSecurity, WirelessSecurity.none);
+      expect(network.scannedSecurity, WirelessSecurity.none);
+      expect(network.hasSecurityChanged, isFalse);
+    });
+
+    test('does not request a scan', () async {
+      when(() => mockWireless.requestScan()).thenAnswer((_) async {});
+
+      await repository.getNetworkDetails('Saved_WiFi');
+
+      verifyNever(() => mockWireless.requestScan());
+    });
+
+    test(
+      'returns null when the network is neither saved nor in range',
+      () async {
+        final other = savedConnection('Other_WiFi');
+        when(() => mockSettings.connections).thenReturn([other]);
+
+        expect(await repository.getNetworkDetails('Missing_WiFi'), isNull);
+      },
+    );
+
+    test('returns null for an empty name or when uninitialized', () async {
+      expect(await repository.getNetworkDetails(''), isNull);
+      expect(
+        await WirelessRepositoryImpl().getNetworkDetails('Saved_WiFi'),
+        isNull,
+      );
     });
   });
 
@@ -443,40 +587,359 @@ void main() {
     ).called(1);
   });
 
-  test('connectToNetwork creates new profile when none exists', () async {
-    final ap = MockNetworkManagerAccessPoint();
+  group('connectToNetwork', () {
+    MockNetworkManagerAccessPoint ap(
+      String ssid, {
+      List<NetworkManagerWifiAccessPointSecurityFlag> rsn = const [],
+    }) {
+      final mock = MockNetworkManagerAccessPoint();
+      when(() => mock.ssid).thenReturn(utf8.encode(ssid));
+      when(
+        () => mock.wpaFlags,
+      ).thenReturn(<NetworkManagerWifiAccessPointSecurityFlag>[]);
+      when(() => mock.rsnFlags).thenReturn(rsn);
+      return mock;
+    }
 
-    when(() => ap.ssid).thenReturn(utf8.encode('Cafe'));
+    MockNetworkManagerSettingsConnection profile(
+      String ssid, {
+      Map<String, DBusValue>? security,
+    }) {
+      final connection = MockNetworkManagerSettingsConnection();
+      when(() => connection.unsaved).thenReturn(false);
+      when(() => connection.getSettings()).thenAnswer(
+        (_) async => {
+          'connection': {'id': DBusString(ssid)},
+          '802-11-wireless': {
+            'ssid': DBusArray(
+              DBusSignature.byte,
+              utf8.encode(ssid).map(DBusByte.new).toList(),
+            ),
+            if (security != null)
+              'security': const DBusString('802-11-wireless-security'),
+          },
+          'ipv4': {'method': const DBusString('manual')},
+          '802-11-wireless-security': ?security,
+        },
+      );
+      when(() => connection.update(any())).thenAnswer((_) async {});
+      when(() => connection.delete()).thenAnswer((_) async {});
+      return connection;
+    }
 
-    when(
-      () => ap.wpaFlags,
-    ).thenReturn([NetworkManagerWifiAccessPointSecurityFlag.keyManagementPsk]);
+    // Concrete device/connection values avoid needing mocktail fallbacks.
+    void stubActivate(MockNetworkManagerSettingsConnection connection) {
+      when(
+        () => mockClient.activateConnection(
+          connection: connection,
+          device: mockWifiDevice,
+          accessPoint: any(named: 'accessPoint'),
+        ),
+      ).thenAnswer((_) async => MockNetworkManagerActiveConnection());
+    }
 
-    when(
-      () => ap.rsnFlags,
-    ).thenReturn(<NetworkManagerWifiAccessPointSecurityFlag>[]);
+    void stubAddAndActivate() {
+      when(
+        () => mockClient.addAndActivateConnection(
+          device: mockWifiDevice,
+          accessPoint: any(named: 'accessPoint'),
+          connection: any(named: 'connection'),
+        ),
+      ).thenAnswer((_) async => MockNetworkManagerActiveConnection());
+    }
 
-    when(() => mockWireless.accessPoints).thenReturn([ap]);
+    const pskFlag = NetworkManagerWifiAccessPointSecurityFlag.keyManagementPsk;
+    const wpaPsk = {'key-mgmt': DBusString('wpa-psk')};
 
-    when(() => mockSettings.connections).thenReturn([]);
+    test(
+      'saved open network that now uses WPA requires a password and is '
+      'left untouched',
+      () async {
+        final cafeAp = ap('Cafe', rsn: [pskFlag]);
+        final connection = profile('Cafe');
+        when(() => mockWireless.accessPoints).thenReturn([cafeAp]);
+        when(() => mockSettings.connections).thenReturn([connection]);
+        stubActivate(connection);
 
-    when(
-      () => mockClient.addAndActivateConnection(
-        device: mockWifiDevice,
-        accessPoint: ap,
-        connection: any(named: 'connection'),
-      ),
-    ).thenAnswer((_) async => MockNetworkManagerActiveConnection());
+        await expectLater(
+          repository.connectToNetwork('Cafe', null),
+          throwsA(
+            isA<WifiPasswordRequiredException>()
+                .having((e) => e.networkName, 'networkName', 'Cafe')
+                .having(
+                  (e) => e.security,
+                  'security',
+                  WirelessSecurity.wpaWpa2Personal,
+                ),
+          ),
+        );
 
-    await repository.connectToNetwork('Cafe', null);
+        verifyNever(() => connection.delete());
+        verifyNever(() => connection.update(any()));
+        verifyNever(
+          () => mockClient.activateConnection(
+            connection: connection,
+            device: mockWifiDevice,
+            accessPoint: any(named: 'accessPoint'),
+          ),
+        );
+      },
+    );
 
-    verify(
-      () => mockClient.addAndActivateConnection(
-        device: mockWifiDevice,
-        accessPoint: ap,
-        connection: any(named: 'connection'),
-      ),
-    ).called(1);
+    test(
+      'saved open network that now uses WPA is updated in place with the '
+      'new password',
+      () async {
+        final cafeAp = ap('Cafe', rsn: [pskFlag]);
+        final connection = profile('Cafe');
+        when(() => mockWireless.accessPoints).thenReturn([cafeAp]);
+        when(() => mockSettings.connections).thenReturn([connection]);
+        stubActivate(connection);
+
+        await repository.connectToNetwork('Cafe', 'newpass123');
+
+        final updated =
+            verify(() => connection.update(captureAny())).captured.single
+                as Map<String, Map<String, DBusValue>>;
+        final security = updated['802-11-wireless-security']!;
+        expect(security['key-mgmt'], const DBusString('wpa-psk'));
+        expect(security['psk'], const DBusString('newpass123'));
+        // IP configuration is preserved.
+        expect(updated['ipv4']!['method'], const DBusString('manual'));
+
+        verifyNever(() => connection.delete());
+        verify(
+          () => mockClient.activateConnection(
+            connection: connection,
+            device: mockWifiDevice,
+            accessPoint: any(named: 'accessPoint'),
+          ),
+        ).called(1);
+      },
+    );
+
+    test('saved WPA network that is now open drops its security', () async {
+      final openAp = ap('Cafe');
+      final connection = profile('Cafe', security: wpaPsk);
+      when(() => mockWireless.accessPoints).thenReturn([openAp]);
+      when(() => mockSettings.connections).thenReturn([connection]);
+      stubActivate(connection);
+
+      await repository.connectToNetwork('Cafe', null);
+
+      final updated =
+          verify(() => connection.update(captureAny())).captured.single
+              as Map<String, Map<String, DBusValue>>;
+      expect(updated.containsKey('802-11-wireless-security'), isFalse);
+      expect(updated['802-11-wireless']!.containsKey('security'), isFalse);
+      verify(
+        () => mockClient.activateConnection(
+          connection: connection,
+          device: mockWifiDevice,
+          accessPoint: any(named: 'accessPoint'),
+        ),
+      ).called(1);
+    });
+
+    test('saved WPA network without a stored password requires one', () async {
+      final homeAp = ap('Home', rsn: [pskFlag]);
+      final connection = profile('Home', security: wpaPsk);
+      when(
+        () => connection.getSecrets(any()),
+      ).thenAnswer((_) async => <String, Map<String, DBusValue>>{});
+      when(() => mockWireless.accessPoints).thenReturn([homeAp]);
+      when(() => mockSettings.connections).thenReturn([connection]);
+      stubActivate(connection);
+
+      await expectLater(
+        repository.connectToNetwork('Home', null),
+        throwsA(isA<WifiPasswordRequiredException>()),
+      );
+      verifyNever(() => connection.update(any()));
+    });
+
+    test('saved WPA network with a stored password activates directly', () async {
+      final homeAp = ap('Home', rsn: [pskFlag]);
+      final connection = profile('Home', security: wpaPsk);
+      when(() => connection.getSecrets(any())).thenAnswer(
+        (_) async => {
+          '802-11-wireless-security': {'psk': const DBusString('secret123')},
+        },
+      );
+      when(() => mockWireless.accessPoints).thenReturn([homeAp]);
+      when(() => mockSettings.connections).thenReturn([connection]);
+      stubActivate(connection);
+
+      await repository.connectToNetwork('Home', null);
+
+      verifyNever(() => connection.update(any()));
+      verify(
+        () => mockClient.activateConnection(
+          connection: connection,
+          device: mockWifiDevice,
+          accessPoint: any(named: 'accessPoint'),
+        ),
+      ).called(1);
+    });
+
+    test(
+      'agent-owned secret available in this session activates directly',
+      () async {
+        final homeAp = ap('Home', rsn: [pskFlag]);
+        final connection = profile(
+          'Home',
+          security: {
+            'key-mgmt': const DBusString('wpa-psk'),
+            'psk-flags': const DBusUint32(1),
+          },
+        );
+        when(() => connection.getSecrets(any())).thenAnswer(
+          (_) async => {
+            '802-11-wireless-security': {'psk': const DBusString('secret123')},
+          },
+        );
+        when(() => mockWireless.accessPoints).thenReturn([homeAp]);
+        when(() => mockSettings.connections).thenReturn([connection]);
+        stubActivate(connection);
+
+        await repository.connectToNetwork('Home', null);
+
+        verify(
+          () => mockClient.activateConnection(
+            connection: connection,
+            device: mockWifiDevice,
+            accessPoint: any(named: 'accessPoint'),
+          ),
+        ).called(1);
+      },
+    );
+
+    test(
+      'agent-owned secret that is not available asks the app for a password '
+      'instead of activating (which would open the GNOME dialog)',
+      () async {
+        final homeAp = ap('Home', rsn: [pskFlag]);
+        final connection = profile(
+          'Home',
+          security: {
+            'key-mgmt': const DBusString('wpa-psk'),
+            'psk-flags': const DBusUint32(1),
+          },
+        );
+        when(
+          () => connection.getSecrets(any()),
+        ).thenAnswer((_) async => <String, Map<String, DBusValue>>{});
+        when(() => mockWireless.accessPoints).thenReturn([homeAp]);
+        when(() => mockSettings.connections).thenReturn([connection]);
+        stubActivate(connection);
+
+        await expectLater(
+          repository.connectToNetwork('Home', null),
+          throwsA(isA<WifiPasswordRequiredException>()),
+        );
+        verifyNever(
+          () => mockClient.activateConnection(
+            connection: connection,
+            device: mockWifiDevice,
+            accessPoint: any(named: 'accessPoint'),
+          ),
+        );
+      },
+    );
+
+    test('entered password is stored by NetworkManager, not an agent', () async {
+      final homeAp = ap('Home', rsn: [pskFlag]);
+      final connection = profile(
+        'Home',
+        security: {
+          'key-mgmt': const DBusString('wpa-psk'),
+          'psk-flags': const DBusUint32(1),
+        },
+      );
+      when(() => mockWireless.accessPoints).thenReturn([homeAp]);
+      when(() => mockSettings.connections).thenReturn([connection]);
+      stubActivate(connection);
+
+      await repository.connectToNetwork('Home', 'newpass123');
+
+      final updated =
+          verify(() => connection.update(captureAny())).captured.single
+              as Map<String, Map<String, DBusValue>>;
+      expect(updated['802-11-wireless-security'], {
+        'key-mgmt': const DBusString('wpa-psk'),
+        'psk': const DBusString('newpass123'),
+        'psk-flags': const DBusUint32(0),
+      });
+    });
+
+    test('new secured network without a password requires one', () async {
+      // Build the mock first: calling when() inside thenReturn() is not
+      // allowed by mocktail.
+      final cafeAp = ap('Cafe', rsn: [pskFlag]);
+      when(() => mockWireless.accessPoints).thenReturn([cafeAp]);
+      stubAddAndActivate();
+
+      await expectLater(
+        repository.connectToNetwork('Cafe', null),
+        throwsA(isA<WifiPasswordRequiredException>()),
+      );
+      verifyNever(
+        () => mockClient.addAndActivateConnection(
+          device: mockWifiDevice,
+          accessPoint: any(named: 'accessPoint'),
+          connection: any(named: 'connection'),
+        ),
+      );
+    });
+
+    test('new WPA network is created with the password', () async {
+      final cafeAp = ap('Cafe', rsn: [pskFlag]);
+      when(() => mockWireless.accessPoints).thenReturn([cafeAp]);
+      stubAddAndActivate();
+
+      await repository.connectToNetwork('Cafe', 'password123');
+
+      final connection =
+          verify(
+                () => mockClient.addAndActivateConnection(
+                  device: mockWifiDevice,
+                  accessPoint: cafeAp,
+                  connection: captureAny(named: 'connection'),
+                ),
+              ).captured.single
+              as Map<String, Map<String, DBusValue>>;
+      expect(connection['802-11-wireless-security'], {
+        'key-mgmt': const DBusString('wpa-psk'),
+        'psk': const DBusString('password123'),
+        'psk-flags': const DBusUint32(0),
+      });
+    });
+
+    test('new WEP network stores the key in wep-key0', () async {
+      // Secured AP without PSK/SAE key management maps to WEP.
+      final wepAp = ap(
+        'OldRouter',
+        rsn: [NetworkManagerWifiAccessPointSecurityFlag.pairWep40],
+      );
+      when(() => mockWireless.accessPoints).thenReturn([wepAp]);
+      stubAddAndActivate();
+
+      await repository.connectToNetwork('OldRouter', 'abcde');
+
+      final connection =
+          verify(
+                () => mockClient.addAndActivateConnection(
+                  device: mockWifiDevice,
+                  accessPoint: wepAp,
+                  connection: captureAny(named: 'connection'),
+                ),
+              ).captured.single
+              as Map<String, Map<String, DBusValue>>;
+      final security = connection['802-11-wireless-security']!;
+      expect(security['key-mgmt'], const DBusString('none'));
+      expect(security['wep-key0'], const DBusString('abcde'));
+      expect(security.containsKey('psk'), isFalse);
+    });
   });
 
   test('updateIPSettings updates manual configuration', () async {

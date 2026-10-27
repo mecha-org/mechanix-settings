@@ -20,15 +20,37 @@ class WirelessBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<WirelessBloc, WirelessState>(
-      listenWhen: (previous, current) =>
-          !previous.isCaptivePortal &&
-          current.isCaptivePortal &&
-          current.connectedNetworkName != null,
-      listener: (context, state) {
-        // Open the captive portal once after successfully connecting to a network.
-        context.read<WirelessBloc>().add(const OpenCaptivePortal());
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<WirelessBloc, WirelessState>(
+          listenWhen: (previous, current) =>
+              !previous.isCaptivePortal &&
+              current.isCaptivePortal &&
+              current.connectedNetworkName != null,
+          listener: (context, state) {
+            // Open the captive portal once after successfully connecting to a
+            // network.
+            context.read<WirelessBloc>().add(const OpenCaptivePortal());
+          },
+        ),
+        BlocListener<WirelessBloc, WirelessState>(
+          listenWhen: (previous, current) =>
+              current.error?.type == WirelessErrorType.passwordRequired &&
+              previous.error != current.error,
+          listener: (context, state) {
+            // The repository found that the saved credentials cannot be used
+            // (e.g. the access point's security changed): ask for a password.
+            final data = state.error!.data ?? const {};
+            final name = data['networkName'] as String?;
+            if (name == null) return;
+
+            final security =
+                data['security'] as WirelessSecurity? ??
+                state.findNetwork(name).effectiveSecurity;
+            _askPasswordAndConnect(context, name, security);
+          },
+        ),
+      ],
       child: ScrollConfiguration(
         behavior: ScrollConfiguration.of(context).copyWith(
           dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.mouse},
@@ -52,36 +74,55 @@ void _connectToNetwork(BuildContext context, WifiNetwork network) async {
   }
 
   if (network.isSecured) {
-    // Already saved network → connect directly.
-    final isSaved = bloc.state.myNetworks.any((n) => n.name == network.name);
+    final saved = bloc.state.myNetworks
+        .where((n) => n.name == network.name)
+        .firstOrNull;
 
-    if (isSaved) {
+    // Saved network with unchanged security → reuse the saved credentials.
+    // If the access point's security changed (e.g. open → WPA), the saved
+    // profile cannot authenticate, so ask for a new password instead.
+    if (saved != null && !saved.hasSecurityChanged) {
       bloc.add(ConnectToNetworkEvent(network.name, null));
       return;
     }
 
-    // Personal/WEP networks → show password sheet.
-    final l10n = AppLocalizations.of(context)!;
-    final securityLabel = network.security.label(l10n);
-
-    final passwordResult = await showPasswordBottomSheet(
+    // New network, or saved network whose security changed → password sheet.
+    await _askPasswordAndConnect(
       context,
       network.name,
-      security: securityLabel,
+      (saved ?? network).effectiveSecurity,
     );
-
-    if (passwordResult != null && context.mounted) {
-      bloc.add(
-        ConnectToNetworkEvent(
-          network.name,
-          passwordResult.password,
-          autoConnect: passwordResult.connectAutomatically,
-        ),
-      );
-    }
   } else {
     // Open network → connect directly.
     bloc.add(ConnectToNetworkEvent(network.name, null));
+  }
+}
+
+/// Shows the password sheet for [networkName] and connects with the entered
+/// password. Does nothing if the sheet is dismissed.
+Future<void> _askPasswordAndConnect(
+  BuildContext context,
+  String networkName,
+  WirelessSecurity security,
+) async {
+  final bloc = context.read<WirelessBloc>();
+  final l10n = AppLocalizations.of(context)!;
+
+  final passwordResult = await showPasswordBottomSheet(
+    context,
+    networkName,
+    security: security.label(l10n),
+    securityType: security,
+  );
+
+  if (passwordResult != null && context.mounted) {
+    bloc.add(
+      ConnectToNetworkEvent(
+        networkName,
+        passwordResult.password,
+        autoConnect: passwordResult.connectAutomatically,
+      ),
+    );
   }
 }
 
@@ -449,9 +490,9 @@ class _AvailableNetworksList extends StatelessWidget {
                       size: 24,
                     ),
                     onPressed: () {
-                      context.read<WirelessBloc>().add(
-                        const ToggleWirelessPower(true),
-                      );
+                      // Rescan only; the list refreshes from the
+                      // AccessPoints change notifications.
+                      context.read<WirelessBloc>().add(const ScanNetworks());
                     },
                   ),
           ],

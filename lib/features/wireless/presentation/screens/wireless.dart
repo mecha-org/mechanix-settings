@@ -61,6 +61,9 @@ class WirelessScreen extends StatelessWidget {
                   message = l10n.addNetworkFailed;
                 }
                 break;
+              case WirelessErrorType.passwordRequired:
+                // Handled by WirelessBody, which opens the password sheet.
+                return;
               case WirelessErrorType.unknown:
                 message = l10n.unknownError;
                 break;

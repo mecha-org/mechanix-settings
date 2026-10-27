@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -403,7 +406,7 @@ void main() {
     });
 
     testWidgets(
-      'refresh menu item dispatches LoadWireless(requestScan: true)',
+      'refresh menu item reloads network details without scanning',
       (WidgetTester tester) async {
         await pumpDetail(tester, networkName: tConnectedNetwork.name);
         final l10n = l10nOf(tester, find.byType(NetworkDetailScreen));
@@ -416,8 +419,16 @@ void main() {
         await tester.pumpAndSettle();
 
         verify(
-          () => mockWirelessBloc.add(const LoadWireless(requestScan: true)),
+          () => mockWirelessBloc.add(
+            RefreshNetworkDetails(tConnectedNetwork.name),
+          ),
         ).called(1);
+        verifyNever(
+          () => mockWirelessBloc.add(any(that: isA<LoadWireless>())),
+        );
+        verifyNever(
+          () => mockWirelessBloc.add(any(that: isA<ScanNetworks>())),
+        );
       },
     );
 
@@ -487,15 +498,10 @@ void main() {
       final l10n = l10nOf(tester, find.byType(NetworkDetailScreen));
 
       expect(
-        tester
-            .widget<NetworkDetailsBody>(find.byType(NetworkDetailsBody))
-            .network,
-        tSecuredAvailableNetwork,
-      );
-      expect(
         find.text(WirelessSecurity.wpaWpa2Personal.label(l10n)),
         findsOneWidget,
       );
+      expect(find.text(l10n.advanceSettingsNotice), findsOneWidget);
     });
 
     testWidgets('falls back to an empty network when name is unknown', (
@@ -506,14 +512,113 @@ void main() {
         networkName: 'Ghost',
         state: const WirelessState(isWirelessOn: true),
       );
+      final l10n = l10nOf(tester, find.byType(NetworkDetailScreen));
 
       expect(
-        tester
-            .widget<NetworkDetailsBody>(find.byType(NetworkDetailsBody))
-            .network,
-        const WifiNetwork(name: 'Ghost'),
+        find.descendant(
+          of: find.byType(MechanixAppBar),
+          matching: find.text('Ghost'),
+        ),
+        findsOneWidget,
       );
+      expect(find.text(WirelessSecurity.none.label(l10n)), findsOneWidget);
+      expect(find.text(l10n.password), findsNothing);
+      expect(find.text(l10n.advanceSettingsNotice), findsOneWidget);
     });
+
+    testWidgets(
+      'state updates refresh changed rows and keep local row state',
+      (WidgetTester tester) async {
+        useTallSurface(tester);
+        final controller = StreamController<WirelessState>();
+        addTearDown(controller.close);
+
+        const initial = WirelessState(
+          isWirelessOn: true,
+          connectedNetworkName: 'OfficeWifi 1',
+          savedNetworks: [tConnectedNetwork],
+        );
+        whenListen(mockWirelessBloc, controller.stream, initialState: initial);
+
+        await tester.pumpWidget(
+          createWirelessLauncherWidget(
+            wirelessBloc: mockWirelessBloc,
+            screenBuilder: (_) =>
+                NetworkDetailScreen(networkName: tConnectedNetwork.name),
+          ),
+        );
+        await openScreenUnderTest(tester);
+        final l10n = l10nOf(tester, find.byType(NetworkDetailScreen));
+
+        // Reveal the password (local state of the password row).
+        await tester.tap(find.byIcon(Icons.visibility_off_outlined));
+        await tester.pump();
+        expect(find.text(tConnectedNetwork.password), findsOneWidget);
+        expect(find.text(l10n.signalStrengthExcellent), findsOneWidget);
+
+        // A scan reports a weaker signal and a new link speed.
+        controller.add(
+          initial.copyWith(
+            savedNetworks: [
+              tConnectedNetwork.copyWith(
+                rawSignalStrength: 45,
+                speedMbps: 144,
+              ),
+            ],
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        expect(find.text(l10n.signalStrengthFair), findsOneWidget);
+        expect(find.text(l10n.signalStrengthExcellent), findsNothing);
+        expect(
+          find.text('144Mb/s (${l10n.wifiFrequencyGHz('5.2')})'),
+          findsOneWidget,
+        );
+        // Unrelated row kept its state.
+        expect(find.text(tConnectedNetwork.password), findsOneWidget);
+      },
+    );
+
+    testWidgets('toggle uses the latest network from the bloc state', (
+      WidgetTester tester,
+    ) async {
+      useTallSurface(tester);
+      final controller = StreamController<WirelessState>();
+      addTearDown(controller.close);
+
+      const initial = WirelessState(
+        isWirelessOn: true,
+        connectedNetworkName: 'OfficeWifi 1',
+        savedNetworks: [tConnectedNetwork],
+      );
+      whenListen(mockWirelessBloc, controller.stream, initialState: initial);
+
+      await tester.pumpWidget(
+        createWirelessLauncherWidget(
+          wirelessBloc: mockWirelessBloc,
+          screenBuilder: (_) =>
+              NetworkDetailScreen(networkName: tConnectedNetwork.name),
+        ),
+      );
+      await openScreenUnderTest(tester);
+
+      final updated = tConnectedNetwork.copyWith(lowDataMode: true);
+      controller.add(initial.copyWith(savedNetworks: [updated]));
+      await tester.pump();
+      await tester.pump();
+
+      await tester.tap(find.byType(MechanixSwitch).first);
+      await tester.pump();
+
+      verify(
+        () => mockWirelessBloc.add(
+          UpdateNetworkSettingsEvent(updated.copyWith(autoJoin: false)),
+        ),
+      ).called(1);
+    });
+
     group('detail rows', () {
       WirelessState stateFor(WifiNetwork network) => WirelessState(
         isWirelessOn: true,

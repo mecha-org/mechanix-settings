@@ -7,6 +7,7 @@ import 'package:mechanix_settings/features/wireless/blocs/wireless_bloc.dart';
 import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
 import 'package:mechanix_settings/features/wireless/presentation/screens/wireless.dart';
 import 'package:mechanix_settings/features/wireless/presentation/widgets/wireless/wireless_body.dart';
+import 'package:mechanix_settings/features/wireless/presentation/widgets/wireless_password.dart';
 import '../helpers/wireless_test_helpers.dart';
 
 void main() {
@@ -168,6 +169,28 @@ void main() {
       final l10n = l10nOf(tester, find.byType(WirelessScreen));
       expect(find.text(l10n.unknownError), findsOneWidget);
     });
+
+    testWidgets(
+      'passwordRequired shows the password sheet instead of a snackbar',
+      (WidgetTester tester) async {
+        await pumpWithError(
+          tester,
+          const WirelessFailure(
+            type: WirelessErrorType.passwordRequired,
+            data: {
+              'networkName': 'Cafe',
+              'security': WirelessSecurity.wpaWpa2Personal,
+            },
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final l10n = l10nOf(tester, find.byType(WirelessScreen));
+        expect(find.text(l10n.connectionFailed), findsNothing);
+        expect(find.text(l10n.connectionFailedWithNetwork('Cafe')), findsNothing);
+        expect(find.byType(WirelessPasswordBottomSheet), findsOneWidget);
+      },
+    );
 
     testWidgets('does not show a snackbar when state has no error', (
       WidgetTester tester,

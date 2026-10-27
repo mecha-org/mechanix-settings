@@ -155,3 +155,15 @@ class ConnectivityStateChangedEvent extends WirelessEvent {
 class OpenCaptivePortal extends WirelessEvent {
   const OpenCaptivePortal();
 }
+
+/// Re-reads the details (profile, IP, DNS, link info) of the network with
+/// SSID [networkName] only, without requesting a Wi-Fi scan. Other networks
+/// in the state are left untouched.
+class RefreshNetworkDetails extends WirelessEvent {
+  final String networkName;
+
+  const RefreshNetworkDetails(this.networkName);
+
+  @override
+  List<Object?> get props => [networkName];
+}

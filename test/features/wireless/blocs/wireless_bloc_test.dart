@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mechanix_settings/features/wireless/blocs/wireless_bloc.dart';
 import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
 import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
+import 'package:mechanix_settings/features/wireless/data/models/wireless_exceptions.dart';
 import 'package:mechanix_settings/features/wireless/data/repositories/wireless_repository.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:nm/nm.dart';
@@ -415,6 +416,40 @@ void main() {
             data: {'networkName': 'Test_WiFi'},
           ),
         ),
+      ],
+    );
+
+    blocTest<WirelessBloc, WirelessState>(
+      'emits passwordRequired (not connectionFailed) when a password is needed',
+      build: () {
+        mockWirelessRepository = MockWirelessRepository();
+        setupDefaultMocks(mockWirelessRepository);
+        stubWirelessActiveDefaults(mockWirelessRepository);
+        when(
+          () => mockWirelessRepository.connectToNetwork(any(), any()),
+        ).thenThrow(
+          const WifiPasswordRequiredException(
+            networkName: 'Cafe',
+            security: WirelessSecurity.wpaWpa2Personal,
+          ),
+        );
+        return WirelessBloc(wirelessRepository: mockWirelessRepository);
+      },
+      seed: () => const WirelessState(isWirelessOn: true),
+      act: (bloc) => bloc.add(const ConnectToNetworkEvent('Cafe', null)),
+      expect: () => [
+        const WirelessState(isWirelessOn: true, connectingNetworkName: 'Cafe'),
+        isA<WirelessState>()
+            .having((s) => s.connectingNetworkName, 'connecting', isNull)
+            .having(
+              (s) => s.error?.type,
+              'error type',
+              WirelessErrorType.passwordRequired,
+            )
+            .having((s) => s.error?.data, 'error data', {
+              'networkName': 'Cafe',
+              'security': WirelessSecurity.wpaWpa2Personal,
+            }),
       ],
     );
 
@@ -868,6 +903,225 @@ void main() {
         verify(() => mockWirelessRepository.openCaptivePortal()).called(1);
       },
     );
+  });
+
+  group('RefreshNetworkDetails', () {
+    final refreshedNetwork = testConnectedWifiNetwork.copyWith(
+      ipConfigType: IPv4ConfigType.manual,
+      ipAddress: '192.168.1.50',
+    );
+    const otherSaved = WifiNetwork(
+      name: 'Other_Saved',
+      security: WirelessSecurity.wpaWpa2Personal,
+    );
+
+    blocTest<WirelessBloc, WirelessState>(
+      'replaces only the requested network, without scanning',
+      build: () {
+        setupDefaultMocks(mockWirelessRepository);
+        stubWirelessActiveDefaults(mockWirelessRepository);
+        when(
+          () => mockWirelessRepository.getNetworkDetails(any()),
+        ).thenAnswer((_) async => refreshedNetwork);
+        return WirelessBloc(wirelessRepository: mockWirelessRepository);
+      },
+      seed: () => WirelessState(
+        isWirelessOn: true,
+        connectedNetworkName: testConnectedWifiNetwork.name,
+        savedNetworks: [testConnectedWifiNetwork, otherSaved],
+        myNetworks: [testConnectedWifiNetwork, otherSaved],
+        availableNetworks: [testWifiNetwork],
+      ),
+      act: (bloc) =>
+          bloc.add(RefreshNetworkDetails(testConnectedWifiNetwork.name)),
+      expect: () => [
+        WirelessState(
+          isWirelessOn: true,
+          connectedNetworkName: testConnectedWifiNetwork.name,
+          savedNetworks: [refreshedNetwork, otherSaved],
+          myNetworks: [refreshedNetwork, otherSaved],
+          // Scan results are left untouched.
+          availableNetworks: [testWifiNetwork],
+        ),
+      ],
+      verify: (_) {
+        verify(
+          () => mockWirelessRepository.getNetworkDetails(
+            testConnectedWifiNetwork.name,
+          ),
+        ).called(1);
+        verifyNever(() => mockWirelessRepository.getSavedNetworks());
+        verifyNever(() => mockWirelessRepository.requestScan());
+        verifyNever(
+          () => mockWirelessRepository.getAvailableNetworks(
+            requestScan: any(named: 'requestScan'),
+            savedNetworks: any(named: 'savedNetworks'),
+          ),
+        );
+      },
+    );
+
+    blocTest<WirelessBloc, WirelessState>(
+      'updates a network that is only in available networks',
+      build: () {
+        setupDefaultMocks(mockWirelessRepository);
+        stubWirelessActiveDefaults(mockWirelessRepository);
+        when(
+          () => mockWirelessRepository.getNetworkDetails(any()),
+        ).thenAnswer((_) async => testWifiNetwork.copyWith(signalLevel: 1));
+        return WirelessBloc(wirelessRepository: mockWirelessRepository);
+      },
+      seed: () => WirelessState(
+        isWirelessOn: true,
+        savedNetworks: const [otherSaved],
+        availableNetworks: [testWifiNetwork],
+      ),
+      act: (bloc) => bloc.add(RefreshNetworkDetails(testWifiNetwork.name)),
+      expect: () => [
+        WirelessState(
+          isWirelessOn: true,
+          savedNetworks: const [otherSaved],
+          availableNetworks: [testWifiNetwork.copyWith(signalLevel: 1)],
+        ),
+      ],
+    );
+
+    blocTest<WirelessBloc, WirelessState>(
+      'refreshes for different networks are all processed',
+      build: () {
+        setupDefaultMocks(mockWirelessRepository);
+        stubWirelessActiveDefaults(mockWirelessRepository);
+        when(
+          () => mockWirelessRepository.getNetworkDetails(
+            testConnectedWifiNetwork.name,
+          ),
+        ).thenAnswer((_) async => refreshedNetwork);
+        when(
+          () => mockWirelessRepository.getNetworkDetails(otherSaved.name),
+        ).thenAnswer((_) async => otherSaved.copyWith(autoJoin: false));
+        return WirelessBloc(wirelessRepository: mockWirelessRepository);
+      },
+      seed: () => WirelessState(
+        isWirelessOn: true,
+        savedNetworks: [testConnectedWifiNetwork, otherSaved],
+      ),
+      act: (bloc) => bloc
+        ..add(RefreshNetworkDetails(testConnectedWifiNetwork.name))
+        ..add(RefreshNetworkDetails(otherSaved.name)),
+      expect: () => [
+        WirelessState(
+          isWirelessOn: true,
+          savedNetworks: [refreshedNetwork, otherSaved],
+        ),
+        WirelessState(
+          isWirelessOn: true,
+          savedNetworks: [
+            refreshedNetwork,
+            otherSaved.copyWith(autoJoin: false),
+          ],
+        ),
+      ],
+    );
+
+    blocTest<WirelessBloc, WirelessState>(
+      'keeps the state when the network can no longer be found',
+      build: () {
+        setupDefaultMocks(mockWirelessRepository);
+        stubWirelessActiveDefaults(mockWirelessRepository);
+        when(
+          () => mockWirelessRepository.getNetworkDetails(any()),
+        ).thenAnswer((_) async => null);
+        return WirelessBloc(wirelessRepository: mockWirelessRepository);
+      },
+      seed: () => WirelessState(
+        isWirelessOn: true,
+        savedNetworks: [testConnectedWifiNetwork],
+      ),
+      act: (bloc) =>
+          bloc.add(RefreshNetworkDetails(testConnectedWifiNetwork.name)),
+      expect: () => const <WirelessState>[],
+    );
+
+    blocTest<WirelessBloc, WirelessState>(
+      'does not emit when the refreshed details are unchanged',
+      build: () {
+        setupDefaultMocks(mockWirelessRepository);
+        stubWirelessActiveDefaults(mockWirelessRepository);
+        when(
+          () => mockWirelessRepository.getNetworkDetails(any()),
+        ).thenAnswer((_) async => testConnectedWifiNetwork);
+        return WirelessBloc(wirelessRepository: mockWirelessRepository);
+      },
+      seed: () => WirelessState(
+        isWirelessOn: true,
+        savedNetworks: [testConnectedWifiNetwork],
+      ),
+      act: (bloc) =>
+          bloc.add(RefreshNetworkDetails(testConnectedWifiNetwork.name)),
+      expect: () => const <WirelessState>[],
+    );
+
+    blocTest<WirelessBloc, WirelessState>(
+      'does nothing when Wi-Fi is disabled',
+      build: () {
+        setupDefaultMocks(mockWirelessRepository);
+        return WirelessBloc(wirelessRepository: mockWirelessRepository);
+      },
+      act: (bloc) =>
+          bloc.add(RefreshNetworkDetails(testConnectedWifiNetwork.name)),
+      expect: () => const <WirelessState>[],
+      verify: (_) {
+        verifyNever(() => mockWirelessRepository.getNetworkDetails(any()));
+      },
+    );
+
+    blocTest<WirelessBloc, WirelessState>(
+      'keeps the current state when the repository throws',
+      build: () {
+        setupDefaultMocks(mockWirelessRepository);
+        stubWirelessActiveDefaults(mockWirelessRepository);
+        when(
+          () => mockWirelessRepository.getNetworkDetails(any()),
+        ).thenThrow(Exception('D-Bus error'));
+        return WirelessBloc(wirelessRepository: mockWirelessRepository);
+      },
+      seed: () => WirelessState(
+        isWirelessOn: true,
+        savedNetworks: [testConnectedWifiNetwork],
+      ),
+      act: (bloc) =>
+          bloc.add(RefreshNetworkDetails(testConnectedWifiNetwork.name)),
+      expect: () => const <WirelessState>[],
+    );
+
+    test('events for different networks are not equal', () {
+      expect(
+        const RefreshNetworkDetails('A'),
+        isNot(const RefreshNetworkDetails('B')),
+      );
+      expect(const RefreshNetworkDetails('A'), const RefreshNetworkDetails('A'));
+    });
+  });
+
+  group('WirelessState.findNetwork', () {
+    test('prefers the saved profile', () {
+      final saved = testWifiNetwork.copyWith(autoJoin: false);
+      final state = WirelessState(
+        savedNetworks: [saved],
+        availableNetworks: [testWifiNetwork],
+      );
+      expect(state.findNetwork(testWifiNetwork.name), saved);
+    });
+
+    test('falls back to a scanned access point', () {
+      final state = WirelessState(availableNetworks: [testWifiNetwork]);
+      expect(state.findNetwork(testWifiNetwork.name), testWifiNetwork);
+    });
+
+    test('returns a placeholder for unknown networks', () {
+      const state = WirelessState();
+      expect(state.findNetwork('Ghost'), const WifiNetwork(name: 'Ghost'));
+    });
   });
 
   group('Lifecycle & Stream Subscription Safety', () {

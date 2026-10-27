@@ -19,6 +19,8 @@ abstract class WirelessRepository {
 
   Future<List<WifiNetwork>> getSavedNetworks();
 
+  Future<WifiNetwork?> getNetworkDetails(String name);
+
   Future<List<WifiNetwork>> getAvailableNetworks({
     bool requestScan = true,
     List<WifiNetwork>? savedNetworks,

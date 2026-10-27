@@ -9,6 +9,7 @@ import 'package:mechanix_settings/features/wireless/data/models/access_points.da
 import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
 import 'package:mechanix_settings/features/wireless/data/models/saved_networks.dart';
 import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
+import 'package:mechanix_settings/features/wireless/data/models/wireless_exceptions.dart';
 import 'package:mechanix_settings/features/wireless/data/utils/network_connection_builder.dart';
 import 'package:mechanix_settings/features/wireless/data/utils/network_manager_utils.dart';
 import 'package:mechanix_settings/features/wireless/data/utils/wifi_parser.dart';
@@ -174,6 +175,72 @@ class WirelessRepositoryImpl implements WirelessRepository {
     }
   }
 
+  /// Re-reads one network by SSID without scanning.
+  /// [WirelessRepository.getNetworkDetails].
+  @override
+  Future<WifiNetwork?> getNetworkDetails(String name) async {
+    if (!_connected || name.isEmpty) return null;
+
+    try {
+      final wifiDevice = getWifiDevice();
+      final scannedAps = wifiDevice?.wireless?.accessPoints ?? [];
+      final ap = scannedAps.firstWhereOrNull(
+        (a) => utf8.decode(a.ssid, allowMalformed: true) == name,
+      );
+
+      WifiNetwork? result;
+
+      for (final connection in _client.settings.connections) {
+        try {
+          if (connection.unsaved) continue;
+
+          final settings = await connection.getSettings();
+          if (_ssidFromSettings(settings) != name) continue;
+
+          final network = await _mapToWifiNetwork(
+            name: name,
+            ap: ap,
+            connection: connection,
+            connectionSettings: settings,
+          );
+
+          // Same rule as getSavedNetworks: the active profile wins when
+          // several profiles share the SSID.
+          if (result == null || network.isConnected) {
+            result = network;
+          }
+          if (network.isConnected) break;
+        } catch (e) {
+          AppLogger.e('Error reading connection for $name: $e');
+        }
+      }
+
+      if (result != null) return result;
+
+      // Not saved: fall back to the access point if it is in range.
+      if (ap != null) {
+        return await _mapToWifiNetwork(name: name, ap: ap);
+      }
+      return null;
+    } catch (e, stack) {
+      AppLogger.e('Error in getNetworkDetails: $e', stack: stack);
+      return null;
+    }
+  }
+
+  /// Decodes the SSID of a saved Wi-Fi profile, or `null` when [settings] is
+  /// not a Wi-Fi connection.
+  String? _ssidFromSettings(Map<String, Map<String, DBusValue>> settings) {
+    final ssidValue = settings['802-11-wireless']?['ssid'];
+    if (ssidValue is! DBusArray) return null;
+
+    final ssidBytes = ssidValue.children
+        .whereType<DBusByte>()
+        .map((e) => e.value)
+        .toList();
+    return utf8.decode(ssidBytes, allowMalformed: true);
+  }
+
   /// Scans for Wi-Fi access points in range and filters out those already saved.
   @override
   Future<List<WifiNetwork>> getAvailableNetworks({
@@ -253,9 +320,6 @@ class WirelessRepositoryImpl implements WirelessRepository {
   }
 
   /// Connects to a wireless network.
-  /// - If the connection is already saved, activates it.
-  /// - If new, builds the D-Bus connection settings map, enables autoconnect,
-  ///   delegates password acquisition to the agent, and triggers activation.
   @override
   Future<void> connectToNetwork(
     String name,
@@ -280,41 +344,72 @@ class WirelessRepositoryImpl implements WirelessRepository {
       ssid: name,
     );
 
-    // If a saved profile is found, activate it. This will prompt the system agent
-    // (e.g. GNOME agent) to request secrets if necessary or connect automatically using
-    // cached secrets, without manually re-creating/replacing the profile.
+    final hasPassword = password != null && password.isNotEmpty;
+    final apSecured =
+        ap != null && (ap.wpaFlags.isNotEmpty || ap.rsnFlags.isNotEmpty);
+    final currentKeyMgmt = apSecured
+        ? NetworkManagerUtils.keyMgmtFromAccessPoint(ap)
+        : null;
+
     if (existingConnection != null) {
       final settings = await existingConnection.getSettings();
 
       final savedKeyMgmt =
-          settings['802-11-wireless-security']?['key-mgmt']?.toNative() ??
-          settings['wireless-security']?['key-mgmt']?.toNative();
+          (settings['802-11-wireless-security']?['key-mgmt'] ??
+                  settings['wireless-security']?['key-mgmt'])
+              ?.toNative()
+              ?.toString();
 
-      final isSecured =
-          ap != null && (ap.wpaFlags.isNotEmpty || ap.rsnFlags.isNotEmpty);
-      final currentKeyMgmt = isSecured
-          ? NetworkManagerUtils.keyMgmtFromAccessPoint(ap)
-          : null;
+      // Out of range (or hidden): trust the saved profile's security.
+      final targetKeyMgmt = ap != null ? currentKeyMgmt : savedKeyMgmt;
+      final securityChanged = ap != null && savedKeyMgmt != currentKeyMgmt;
 
-      if (savedKeyMgmt != currentKeyMgmt) {
+      if (securityChanged && targetKeyMgmt != null && !hasPassword) {
+        // The saved credentials cannot work with the new security. Ask the
+        // user instead of replacing the profile with an empty password.
         AppLogger.i(
-          'Security changed ($savedKeyMgmt → $currentKeyMgmt). Recreating profile.',
+          'Security of "$name" changed ($savedKeyMgmt → $targetKeyMgmt). '
+          'Password required.',
         );
-
-        await existingConnection.delete();
-      } else {
-        await _client.activateConnection(
-          connection: existingConnection,
-          device: wifiDevice,
+        throw WifiPasswordRequiredException(
+          networkName: name,
+          security: _securityFromKeyMgmt(targetKeyMgmt),
         );
-        return;
       }
+
+      if (securityChanged || hasPassword) {
+        // Update the existing profile in place so IP/DNS customisations and
+        // the autoconnect choice are kept.
+        AppLogger.i(
+          'Updating security of "$name" ($savedKeyMgmt → $targetKeyMgmt).',
+        );
+        await existingConnection.update(
+          _withSecurity(settings, targetKeyMgmt, password),
+        );
+      } else if (targetKeyMgmt != null &&
+          await _isSecretMissing(existingConnection, settings)) {
+        throw WifiPasswordRequiredException(
+          networkName: name,
+          security: _securityFromKeyMgmt(targetKeyMgmt),
+        );
+      }
+
+      await _client.activateConnection(
+        connection: existingConnection,
+        device: wifiDevice,
+      );
+      return;
     }
 
     if (ap != null) {
-      final isSecured = ap.wpaFlags.isNotEmpty || ap.rsnFlags.isNotEmpty;
-      if (isSecured) {
-        final keyMgmt = NetworkManagerUtils.keyMgmtFromAccessPoint(ap);
+      if (currentKeyMgmt != null) {
+        if (!hasPassword) {
+          throw WifiPasswordRequiredException(
+            networkName: name,
+            security: _securityFromKeyMgmt(currentKeyMgmt),
+          );
+        }
+
         final connection = <String, Map<String, DBusValue>>{
           'connection': {
             'id': DBusString(name),
@@ -328,46 +423,119 @@ class WirelessRepositoryImpl implements WirelessRepository {
             ),
             'mode': const DBusString('infrastructure'),
           },
+          '802-11-wireless-security': _securitySettings(
+            currentKeyMgmt,
+            password,
+          ),
           'ipv4': {'method': const DBusString('auto')},
           'ipv6': {'method': const DBusString('auto')},
         };
-
-        if (keyMgmt == 'sae') {
-          connection['802-11-wireless-security'] = {
-            'key-mgmt': const DBusString('sae'),
-            'psk': DBusString(password ?? ''),
-            // 'psk-flags': const DBusUint32(1),
-          };
-        } else if (keyMgmt == 'none') {
-          connection['802-11-wireless-security'] = {
-            'key-mgmt': const DBusString('none'),
-            'psk': DBusString(password ?? ''),
-
-            //'wep-key-flags': const DBusUint32(1),
-          };
-        } else {
-          connection['802-11-wireless-security'] = {
-            'key-mgmt': const DBusString('wpa-psk'),
-            'psk': DBusString(password ?? ''),
-
-            // 'psk-flags': const DBusUint32(1),
-          };
-        }
 
         await _client.addAndActivateConnection(
           device: wifiDevice,
           accessPoint: ap,
           connection: connection,
         );
-
-        // Give NetworkManager secret-agent time to open the GNOME password dialog
-        await Future.delayed(const Duration(milliseconds: 500));
       } else {
         await _client.addAndActivateConnection(
           device: wifiDevice,
           accessPoint: ap,
         );
       }
+    }
+  }
+
+  /// `802-11-wireless-security` settings for [keyMgmt] with [password].
+  static Map<String, DBusValue> _securitySettings(
+    String keyMgmt,
+    String password,
+  ) {
+    if (keyMgmt == 'none') {
+      // WEP: the key goes in wep-key0, not psk.
+      return {
+        'key-mgmt': const DBusString('none'),
+        'wep-key0': DBusString(password),
+        'wep-key-type': const DBusUint32(1),
+        // 0 = stored by NetworkManager itself, so no secret agent (GNOME
+        // dialog) is asked for it on later connections.
+        'wep-key-flags': const DBusUint32(0),
+      };
+    }
+    return {
+      'key-mgmt': DBusString(keyMgmt),
+      'psk': DBusString(password),
+      'psk-flags': const DBusUint32(0),
+    };
+  }
+
+  /// Copy of [settings] with its security replaced for [keyMgmt]
+  /// (`null` = open network).
+  static Map<String, Map<String, DBusValue>> _withSecurity(
+    Map<String, Map<String, DBusValue>> settings,
+    String? keyMgmt,
+    String? password,
+  ) {
+    final updated = Map<String, Map<String, DBusValue>>.from(settings)
+      ..remove('802-11-wireless-security')
+      ..remove('wireless-security');
+
+    final wireless = Map<String, DBusValue>.from(
+      settings['802-11-wireless'] ?? {},
+    )..remove('security');
+
+    if (keyMgmt != null) {
+      updated['802-11-wireless-security'] = _securitySettings(
+        keyMgmt,
+        password ?? '',
+      );
+    }
+    updated['802-11-wireless'] = wireless;
+    return updated;
+  }
+
+  /// Whether a secured saved profile has no secret NetworkManager can use.
+  ///
+  /// When the secret is missing, activating the profile makes NetworkManager
+  /// ask a registered secret agent (e.g. the GNOME password dialog). Checking
+  /// first lets the app show its own password sheet instead.
+  ///
+  /// Agent-owned secrets are checked too: `GetSecrets` returns them when the
+  /// owning agent runs in this session and has them; otherwise the agent
+  /// would prompt, so they count as missing. A D-Bus error falls back to a
+  /// normal activation.
+  Future<bool> _isSecretMissing(
+    NetworkManagerSettingsConnection connection,
+    Map<String, Map<String, DBusValue>> settings,
+  ) async {
+    try {
+      final security = settings['802-11-wireless-security'];
+      final flagsValue = (security?['psk-flags'] ?? security?['wep-key-flags'])
+          ?.toNative();
+      final flags = flagsValue is int ? flagsValue : 0;
+
+      const notSaved = 0x2;
+      if (flags & notSaved != 0) return true;
+
+      final secrets = await connection.getSecrets('802-11-wireless-security');
+      final section = secrets['802-11-wireless-security'];
+      final secret = (section?['psk'] ?? section?['wep-key0'])?.toNative();
+      return secret == null || secret.toString().isEmpty;
+    } catch (e) {
+      AppLogger.e('Could not read stored secret: $e');
+      return false;
+    }
+  }
+
+  static WirelessSecurity _securityFromKeyMgmt(String keyMgmt) {
+    switch (keyMgmt) {
+      case 'sae':
+        return WirelessSecurity.wpa3Personal;
+      case 'wpa-psk':
+        return WirelessSecurity.wpaWpa2Personal;
+      case 'owe':
+        return WirelessSecurity.enhancedOpen;
+      default:
+        return WirelessSecurity.wep;
     }
   }
 
@@ -890,6 +1058,8 @@ class WirelessRepositoryImpl implements WirelessRepository {
       name: name,
       password: password,
       security: security,
+      savedSecurity: WifiParser.parseSavedSecurity(settings),
+      scannedSecurity: WifiParser.parseScannedSecurity(ap),
       signalLevel: signalLevel,
       rawSignalStrength: ap?.strength ?? 0,
       speedMbps: speedMbps,

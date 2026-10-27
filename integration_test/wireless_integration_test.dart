@@ -352,6 +352,9 @@ void main() {
           savedNetworks: any(named: 'savedNetworks'),
         ),
       ).thenAnswer((_) async => []);
+      when(
+        () => mockWirelessRepository.getNetworkDetails(any()),
+      ).thenAnswer((_) async => tConnectedNetwork);
 
       await tester.pumpWidget(createTestApp(mockWirelessRepository));
       await tester.pumpAndSettle();
@@ -390,10 +393,12 @@ void main() {
       await tester.tap(refreshItem);
       await tester.pump();
 
-      // Verify getSavedNetworks re-called to reload details
+      await tester.pumpAndSettle();
+
+      // Only the open network's details are re-read.
       verify(
-        () => mockWirelessRepository.getSavedNetworks(),
-      ).called(greaterThanOrEqualTo(1));
+        () => mockWirelessRepository.getNetworkDetails('OfficeWifi_Connected'),
+      ).called(1);
 
       // Tap back to return to WirelessScreen
       final backButton = findMechanixIconButtonByAsset(SettingIcons.back);
