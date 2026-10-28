@@ -170,3 +170,20 @@ String getDisplayErrorMessage(AppLocalizations l10n, DisplayError error) {
       return l10n.somethingWentWrong;
   }
 }
+
+String getScreenTimeoutLabel(AppLocalizations l10n, int seconds) {
+  switch (seconds) {
+    case 10:
+      return l10n.screenOffTenSeconds;
+    case 30:
+      return l10n.screenOffThirtySeconds;
+    case 60:
+      return l10n.screenOffOneMinute;
+    case 120:
+      return l10n.screenOffTwoMinutes;
+    case 300:
+      return l10n.screenOffFiveMinutes;
+    default:
+      return l10n.screenOffNever;
+  }
+}

@@ -92,7 +92,6 @@ class _DisplayScreenState extends State<DisplayScreen> {
                     vertical: 18,
                     horizontal: 24,
                   ),
-                  // height: 60,
                   leadingWidgets: [
                     ImageIcon(
                       const AssetImage(SettingIcons.sunIcon),
@@ -122,6 +121,7 @@ class _DisplayScreenState extends State<DisplayScreen> {
 
                 // Screen off time
                 MechanixListTile(
+                  key: const ValueKey('screen_off_time_tile'),
                   contentPadding: const EdgeInsets.only(
                     left: 24,
                     right: 8,
@@ -132,7 +132,11 @@ class _DisplayScreenState extends State<DisplayScreen> {
                   labelText: l10n.screenOffTime,
                   onTap: () => _navigateToScreenOffTime(context),
                   trailingWidgets: [
-                    const _ScreenTimeoutValue(),
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => _navigateToScreenOffTime(context),
+                      child: const _ScreenTimeoutValue(),
+                    ),
                     MechanixIconButton.standard(
                       type: IconButtonType.rounded,
                       icon: ImageIcon(
@@ -225,23 +229,6 @@ class _AutoBrightnessSwitch extends StatelessWidget {
 class _ScreenTimeoutValue extends StatelessWidget {
   const _ScreenTimeoutValue();
 
-  String _formatScreenTimeout(int seconds, AppLocalizations l10n) {
-    switch (seconds) {
-      case 10:
-        return l10n.screenOffTenSeconds;
-      case 30:
-        return l10n.screenOffThirtySeconds;
-      case 60:
-        return l10n.screenOffOneMinute;
-      case 120:
-        return l10n.screenOffTwoMinutes;
-      case 300:
-        return l10n.screenOffFiveMinutes;
-      default:
-        return l10n.screenOffNever;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -251,7 +238,7 @@ class _ScreenTimeoutValue extends StatelessWidget {
       selector: (state) => state.screenTimeout,
       builder: (context, screenTimeout) {
         return Text(
-          _formatScreenTimeout(screenTimeout, l10n),
+          getScreenTimeoutLabel(l10n, screenTimeout),
           style: theme.textTheme.titleLarge!.copyWith(
             color: theme.colorScheme.onPrimaryFixed,
           ),
