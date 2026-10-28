@@ -1873,49 +1873,49 @@ abstract class AppLocalizations {
   /// No description provided for @autoBrightness.
   ///
   /// In en, this message translates to:
-  /// **'Auto brightness'**
+  /// **'Auto Brightness'**
   String get autoBrightness;
 
   /// No description provided for @screenOffTime.
   ///
   /// In en, this message translates to:
-  /// **'Screen off time'**
+  /// **'Screen Off Time'**
   String get screenOffTime;
 
   /// No description provided for @displaySettings.
   ///
   /// In en, this message translates to:
-  /// **'Settings / Display'**
+  /// **'Display'**
   String get displaySettings;
 
   /// No description provided for @screenOffTenSeconds.
   ///
   /// In en, this message translates to:
-  /// **'10 s'**
+  /// **'10 seconds'**
   String get screenOffTenSeconds;
 
   /// No description provided for @screenOffThirtySeconds.
   ///
   /// In en, this message translates to:
-  /// **'30 s'**
+  /// **'30 seconds'**
   String get screenOffThirtySeconds;
 
   /// No description provided for @screenOffOneMinute.
   ///
   /// In en, this message translates to:
-  /// **'1 m'**
+  /// **'1 minute'**
   String get screenOffOneMinute;
 
   /// No description provided for @screenOffTwoMinutes.
   ///
   /// In en, this message translates to:
-  /// **'2 m'**
+  /// **'2 minutes'**
   String get screenOffTwoMinutes;
 
   /// No description provided for @screenOffFiveMinutes.
   ///
   /// In en, this message translates to:
-  /// **'5 m'**
+  /// **'5 minutes'**
   String get screenOffFiveMinutes;
 
   /// No description provided for @screenOffNever.

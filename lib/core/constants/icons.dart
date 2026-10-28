@@ -51,4 +51,5 @@ class SettingIcons {
   static const String television = 'assets/images/television.png';
   static const String mobile = 'assets/images/mobile.png';
   static const String edit = 'assets/images/edit.png';
+  static const String sunIcon = 'assets/images/sun.png';
 }

@@ -956,28 +956,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get brightness => 'Brightness';
 
   @override
-  String get autoBrightness => 'Auto brightness';
+  String get autoBrightness => 'Auto Brightness';
 
   @override
-  String get screenOffTime => 'Screen off time';
+  String get screenOffTime => 'Screen Off Time';
 
   @override
-  String get displaySettings => 'Settings / Display';
+  String get displaySettings => 'Display';
 
   @override
-  String get screenOffTenSeconds => '10 s';
+  String get screenOffTenSeconds => '10 seconds';
 
   @override
-  String get screenOffThirtySeconds => '30 s';
+  String get screenOffThirtySeconds => '30 seconds';
 
   @override
-  String get screenOffOneMinute => '1 m';
+  String get screenOffOneMinute => '1 minute';
 
   @override
-  String get screenOffTwoMinutes => '2 m';
+  String get screenOffTwoMinutes => '2 minutes';
 
   @override
-  String get screenOffFiveMinutes => '5 m';
+  String get screenOffFiveMinutes => '5 minutes';
 
   @override
   String get screenOffNever => 'Never';

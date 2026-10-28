@@ -1,6 +1,6 @@
 {
   "settings": "Settings",
-  "wireless": "Wireless", 
+  "wireless": "Wireless",
   "cellularData": "Cellular data (LTE)",
   "bluetooth": "Bluetooth",
   "display": "Display",
@@ -10,7 +10,6 @@
   "language": "Language",
   "battery": "Battery",
   "about": "About",
-
   "addWireless": "Add wireless",
   "manageWireless": "Manage wireless",
   "noInternetConnection": "No Internet Connection",
@@ -89,7 +88,6 @@
       }
     }
   },
-
   "wifiFrequencyMHz": "{frequency} MHz",
   "@wifiFrequencyMHz": {
     "description": "Wi-Fi frequency displayed in MHz",
@@ -105,7 +103,7 @@
   "lowDataMode": "Low Data mode",
   "ipv4Address": "IPv4 Address",
   "advanced": "Advanced",
-  "advancedMessage": "IP and DNS settings are available after you join {networkName}. These details are assigned by the network when you connect.",  
+  "advancedMessage": "IP and DNS settings are available after you join {networkName}. These details are assigned by the network when you connect.",
   "@advancedMessage": {
     "description": "Message shown when advanced network settings are read-only until the specified network is joined.",
     "placeholders": {
@@ -129,10 +127,10 @@
   "automaticDhcp": "Automatic (DHCP)",
   "manual": "Manual",
   "manualIp": "Manual IP",
-  "none" : "None",
+  "none": "None",
   "staticTitle": "Static",
   "staticOption": "Static",
-  "rotating" : "Rotating",
+  "rotating": "Rotating",
   "ipAddressLabel": "IP Address",
   "ipAddressSettingsLabel": "IP Settings",
   "subnetMaskLabel": "Subnet Mask",
@@ -142,25 +140,19 @@
   "serversLabel": "Servers",
   "off": "Off",
   "enterPassword": "Enter password",
-
   "eapMethod": "Authentication",
   "phase2Authentication": "Inner authentication",
   "identity": "Identity",
-
   "certificate": "Certificate",
   "caCertificate": "CA certificate",
   "caCertificatePassword": "CA certificate password",
   "noCaCertificate": "No CA certificate is required",
-
-
   "userCertificate": "User certificate",
-  "userCertificatePassword" : "User certificate password",
+  "userCertificatePassword": "User certificate password",
   "privateKey": "User private key",
   "privateKeyPassword": "User key password",
-
   "selectFromFile": "Select from file",
-  "networkName" : "Network name",
-
+  "networkName": "Network name",
   "security": "Security",
   "wep": "WEP",
   "wpaPersonal": "WPA Personal",
@@ -169,15 +161,12 @@
   "wpaEnterprise": "WPA & WPA2 Enterprise",
   "leap": "LEAP",
   "enhancedOpen": "Enhanced Open",
-  
   "peap": "PEAP",
   "tls": "TLS",
   "ttls": "TTLS",
   "pwd": "PWD",
-
   "version0": "Version 0",
   "version1": "Version 1",
-
   "pap": "PAP",
   "chap": "CHAP",
   "mschap": "MSCHAP",
@@ -185,16 +174,14 @@
   "mschapv2NoEap": "MSCHAPv2 (No EAP)",
   "md5": "MD5",
   "gtc": "GTC",
-
-  "peapVersion" : "PEAP Version",
-  "anonymousIdentity" : "Anonymous Identity",
-  "domain" : "Domain",
-
+  "peapVersion": "PEAP Version",
+  "anonymousIdentity": "Anonymous Identity",
+  "domain": "Domain",
   "fixed": "Fixed",
   "randomized": "Randomized",
-  "connect" : "Connect",
-  "forget" : "Forget",
-  "noSavedNetwork" : "No saved networks",
+  "connect": "Connect",
+  "forget": "Forget",
+  "noSavedNetwork": "No saved networks",
   "dnsServers": "DNS Servers",
   "searchDomains": "Search Domains",
   "addServer": "Add Server",
@@ -203,52 +190,41 @@
   "@invalidIpAddress": {
     "description": "Shown when the IP address format is invalid."
   },
-
   "unspecifiedIpAddress": "0.0.0.0 is not a valid host IP address.",
   "loopbackIpAddress": "Loopback addresses (127.x.x.x) cannot be used.",
   "multicastIpAddress": "Multicast addresses cannot be assigned to a host.",
-
   "invalidSubnetMask": "Enter a valid subnet mask.",
   "@invalidSubnetMask": {
     "description": "Shown when the subnet mask format is invalid."
   },
-
   "invalidSubnetPrefix": "Enter a valid subnet prefix.",
   "@invalidSubnetPrefix": {
     "description": "Shown when the subnet prefix cannot be parsed."
   },
-
   "invalidSubnetPrefixRange": "Subnet prefix must be between 1 and 30.",
   "@invalidSubnetPrefixRange": {
     "description": "Shown when the subnet prefix is outside the supported range."
   },
-
   "networkAddressNotAllowed": "The IP address cannot be the network address.",
   "@networkAddressNotAllowed": {
     "description": "Shown when the entered IP address is the network address."
   },
-
   "broadcastAddressNotAllowed": "The IP address cannot be the broadcast address.",
   "@broadcastAddressNotAllowed": {
     "description": "Shown when the entered IP address is the broadcast address."
   },
-
   "invalidGateway": "Enter a valid gateway address.",
   "@invalidGateway": {
     "description": "Shown when the gateway format is invalid."
   },
-
   "gatewayDifferentSubnet": "The gateway must be in the same subnet as the IP address.",
   "@gatewayDifferentSubnet": {
     "description": "Shown when the gateway is outside the subnet."
   },
-
   "gatewaySameAsIp": "The gateway cannot be the same as the IP address.",
   "@gatewaySameAsIp": {
     "description": "Shown when the gateway equals the IP address."
   },
-
-
   "myDevices": "My Devices",
   "otherDevices": "Other Devices",
   "deviceName": "Device name",
@@ -263,19 +239,17 @@
   "aboutDevice": "About Device",
   "refresh": "Refresh",
   "enterName": "Enter Name",
-
   "connectionCode": "Connection code",
   "mobileType": "Mobile",
   "cometType": "comet",
   "speakerType": "Speaker",
   "unknownType": "Unknown",
-  "car" : "Car",
-  "headphones" : "Headphones",
-  "computer":"Computer",
-  "tv":"TV",
+  "car": "Car",
+  "headphones": "Headphones",
+  "computer": "Computer",
+  "tv": "TV",
   "cancel": "Cancel",
   "pair": "Pair",
-
   "fieldRequired": "This field is required",
   "networkNameRequired": "Network name is required",
   "identityRequired": "Identity is required",
@@ -324,7 +298,6 @@
   },
   "deviceNameLimit": "Device name cannot exceed 30 characters",
   "unknownError": "An unknown error occurred",
-
   "autoTime": "Auto time",
   "timezone": "Timezone",
   "setTime": "Set time",
@@ -364,68 +337,57 @@
   "@pm": {
     "description": "Post meridiem time indicator"
   },
-    "failedToInitializeDateTime": "Failed to initialize date and time settings.",
+  "failedToInitializeDateTime": "Failed to initialize date and time settings.",
   "@failedToInitializeDateTime": {
     "description": "Shown when the date and time service could not be initialized."
   },
-
   "failedToUpdateTime": "Failed to update time.",
   "@failedToUpdateTime": {
     "description": "Shown when updating the system time fails."
   },
-
   "failedToGetTimezone": "Failed to get time zone.",
   "@failedToGetTimezone": {
     "description": "Shown when the current system time zone cannot be retrieved."
   },
-
   "failedToUpdateTimezone": "Failed to update time zone.",
   "@failedToUpdateTimezone": {
     "description": "Shown when updating the system time zone fails."
   },
-
   "failedToUpdateAutomaticTime": "Failed to update automatic time.",
   "@failedToUpdateAutomaticTime": {
     "description": "Shown when enabling or disabling automatic network time fails."
   },
-
   "failedToUpdateTimeFormat": "Failed to update time format.",
   "@failedToUpdateTimeFormat": {
     "description": "Shown when updating the clock format (12-hour/24-hour) fails."
   },
-
   "failedToGetAutomaticTime": "Failed to get automatic time status.",
   "@failedToGetAutomaticTime": {
     "description": "Shown when the automatic time (NTP) status could not be retrieved."
   },
-
   "failedToGetSystemTime": "Failed to get system time.",
   "@failedToGetSystemTime": {
     "description": "Shown when the current system time could not be retrieved."
   },
-
   "failedToGetTimeFormat": "Failed to get time format.",
   "@failedToGetTimeFormat": {
     "description": "Shown when the current time format could not be retrieved."
   },
-
   "somethingWentWrong": "Something went wrong.",
-
-
   "batterySaver": "Battery saver",
   "usage": "USAGE",
   "untilFull": "until full",
   "left": "left",
   "batteryStatus": "Status",
-  "charging" : "Charging",
-  "discharging" : "Discharging",
+  "charging": "Charging",
+  "discharging": "Discharging",
   "fullCharged": "Fully charged",
   "empty": "Empty",
   "unknown": "Unknown",
   "pendingCharge": "Pending charge",
   "pendingDischarge": "Pending discharge",
-  "high" : "High",
-  "normal" : "Normal",
+  "high": "High",
+  "normal": "Normal",
   "batteryPercentage": "{percentage}%",
   "@batteryPercentage": {
     "description": "Battery percentage display",
@@ -435,7 +397,6 @@
       }
     }
   },
-  
   "batteryHours": "{count}h",
   "@batteryHours": {
     "placeholders": {
@@ -468,37 +429,30 @@
       }
     }
   },
-
   "failedToInitializeBattery": "Failed to initialize battery service.",
   "@failedToInitializeBattery": {
     "description": "Error message shown when the battery service fails to initialize."
   },
-
   "failedToGetBatteryInfo": "Failed to get battery information.",
   "@failedToGetBatteryInfo": {
     "description": "Error message shown when battery information cannot be retrieved."
   },
-
   "failedToUpdateBatteryMode": "Failed to update battery mode.",
   "@failedToUpdateBatteryMode": {
     "description": "Error message shown when changing the battery power mode fails."
   },
-
   "failedToGetBatteryMode": "Failed to get battery mode.",
   "@failedToGetBatteryMode": {
     "description": "Error message shown when the current battery power mode cannot be retrieved."
   },
-
   "failedToGetAvailableBatteryModes": "Failed to get available battery modes.",
   "@failedToGetAvailableBatteryModes": {
     "description": "Error message shown when the list of supported battery power modes cannot be retrieved."
   },
-
   "failedToInitializeBatteryEvents": "Failed to initialize battery event listener.",
   "@failedToInitializeBatteryEvents": {
     "description": "Error message shown when listening for battery state changes cannot be initialized."
   },
-
   "id": "ID",
   "osVersion": "OS Version",
   "build": "Build",
@@ -561,93 +515,77 @@
   "@failedToInitializeSound": {
     "description": "Shown when the sound service could not be initialized."
   },
-
   "failedToGetOutputVolume": "Failed to get output volume.",
   "@failedToGetOutputVolume": {
     "description": "Shown when the current output volume cannot be retrieved."
   },
-
   "failedToUpdateOutputVolume": "Failed to update output volume.",
   "@failedToUpdateOutputVolume": {
     "description": "Shown when updating the output volume fails."
   },
-
   "failedToGetOutputDevices": "Failed to get output devices.",
   "@failedToGetOutputDevices": {
     "description": "Shown when the available output devices cannot be retrieved."
   },
-
   "failedToGetSelectedOutputDevice": "Failed to get selected output device.",
   "@failedToGetSelectedOutputDevice": {
     "description": "Shown when the currently selected output device cannot be retrieved."
   },
-
   "failedToUpdateOutputDevice": "Failed to update output device.",
   "@failedToUpdateOutputDevice": {
     "description": "Shown when changing the selected output device fails."
   },
-
   "failedToGetInputVolume": "Failed to get input volume.",
   "@failedToGetInputVolume": {
     "description": "Shown when the current input volume cannot be retrieved."
   },
-
   "failedToUpdateInputVolume": "Failed to update input volume.",
   "@failedToUpdateInputVolume": {
     "description": "Shown when updating the input volume fails."
   },
-
   "failedToGetInputDevices": "Failed to get input devices.",
   "@failedToGetInputDevices": {
     "description": "Shown when the available input devices cannot be retrieved."
   },
-
   "failedToGetSelectedInputDevice": "Failed to get selected input device.",
   "@failedToGetSelectedInputDevice": {
     "description": "Shown when the currently selected input device cannot be retrieved."
   },
-
   "failedToUpdateInputDevice": "Failed to update input device.",
   "@failedToUpdateInputDevice": {
     "description": "Shown when changing the selected input device fails."
   },
-
   "failedToGetSoundSettings": "Failed to get sound settings.",
   "@failedToGetSoundSettings": {
     "description": "Shown when the current sound settings cannot be retrieved."
   },
-
   "failedToUpdateSoundSettings": "Failed to update sound settings.",
   "@failedToUpdateSoundSettings": {
     "description": "Shown when updating the sound settings fails."
   },
-
   "languageEnglishUK": "English - UK",
   "languageEnglishUS": "English - US",
   "failedToInitializeLanguage": "Failed to initialize language settings.",
   "@failedToInitializeLanguage": {
     "description": "Shown when language settings initialization fails."
   },
-
   "failedToGetLanguage": "Failed to retrieve system language settings.",
   "@failedToGetLanguage": {
     "description": "Shown when the current system language cannot be retrieved."
   },
-
   "failedToUpdateLanguage": "Failed to update system language.",
   "@failedToUpdateLanguage": {
     "description": "Shown when updating the system language fails."
   },
-  "failedToUpdateHostname": "Failed to update hostname.",
   "brightness": "Brightness",
-  "autoBrightness": "Auto brightness",
-  "screenOffTime": "Screen off time",
-  "displaySettings": "Settings / Display",
-  "screenOffTenSeconds": "10 s",
-  "screenOffThirtySeconds": "30 s",
-  "screenOffOneMinute": "1 m",
-  "screenOffTwoMinutes": "2 m",
-  "screenOffFiveMinutes": "5 m",
+  "autoBrightness": "Auto Brightness",
+  "screenOffTime": "Screen Off Time",
+  "displaySettings": "Display",
+  "screenOffTenSeconds": "10 seconds",
+  "screenOffThirtySeconds": "30 seconds",
+  "screenOffOneMinute": "1 minute",
+  "screenOffTwoMinutes": "2 minutes",
+  "screenOffFiveMinutes": "5 minutes",
   "screenOffNever": "Never",
   "failedToGetDisplaySettings": "Failed to retrieve display settings.",
   "failedToUpdateBrightness": "Failed to update brightness.",
