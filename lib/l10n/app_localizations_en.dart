@@ -15,6 +15,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wireless => 'Wireless';
 
   @override
+  String get wifi => 'WiFi';
+
+  @override
   String get cellularData => 'Cellular data (LTE)';
 
   @override
@@ -48,6 +51,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get manageWireless => 'Manage wireless';
 
   @override
+  String get manageNetworks => 'Manage Networks';
+
+  @override
   String get noInternetConnection => 'No Internet Connection';
 
   @override
@@ -61,6 +67,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get avaialableNetworks => 'Available networks';
+
+  @override
+  String get joinNetworkTitle => 'Join Network';
 
   @override
   String joinNetwork(String networkName) {
@@ -81,6 +90,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signalStrength => 'Signal strength';
+
+  @override
+  String get signalStrengthExcellent => 'EXCELLENT';
+
+  @override
+  String get signalStrengthGood => 'GOOD';
+
+  @override
+  String get signalStrengthFair => 'FAIR';
+
+  @override
+  String get signalStrengthWeak => 'WEAK';
+
+  @override
+  String get signalStrengthNone => 'NONE';
 
   @override
   String wifiSignalStrength(int strength) {
@@ -166,6 +190,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dns => 'DNS';
 
   @override
+  String get pleaseEnterAtLeastOneDnsServer =>
+      'Please add at least one DNS server';
+
+  @override
+  String get invalidDnsServers => 'Enter valid DNS server addresses.';
+
+  @override
+  String get duplicateDnsServers =>
+      'Duplicate DNS server addresses are not allowed.';
+
+  @override
   String get configureDns => 'Configure DNS';
 
   @override
@@ -220,42 +255,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enterPassword => 'Enter password';
 
   @override
-  String get eapMethod => 'Authentication';
-
-  @override
-  String get phase2Authentication => 'Inner authentication';
-
-  @override
-  String get identity => 'Identity';
-
-  @override
-  String get certificate => 'Certificate';
-
-  @override
-  String get caCertificate => 'CA certificate';
-
-  @override
-  String get caCertificatePassword => 'CA certificate password';
-
-  @override
-  String get noCaCertificate => 'No CA certificate is required';
-
-  @override
-  String get userCertificate => 'User certificate';
-
-  @override
-  String get userCertificatePassword => 'User certificate password';
-
-  @override
-  String get privateKey => 'User private key';
-
-  @override
-  String get privateKeyPassword => 'User key password';
-
-  @override
-  String get selectFromFile => 'Select from file';
-
-  @override
   String get networkName => 'Network name';
 
   @override
@@ -274,61 +273,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get wpa3Personal => 'WPA3 Personal';
 
   @override
-  String get wpaEnterprise => 'WPA & WPA2 Enterprise';
-
-  @override
-  String get leap => 'LEAP';
-
-  @override
   String get enhancedOpen => 'Enhanced Open';
-
-  @override
-  String get peap => 'PEAP';
-
-  @override
-  String get tls => 'TLS';
-
-  @override
-  String get ttls => 'TTLS';
-
-  @override
-  String get pwd => 'PWD';
-
-  @override
-  String get version0 => 'Version 0';
-
-  @override
-  String get version1 => 'Version 1';
-
-  @override
-  String get pap => 'PAP';
-
-  @override
-  String get chap => 'CHAP';
-
-  @override
-  String get mschap => 'MSCHAP';
-
-  @override
-  String get mschapv2 => 'MSCHAPv2';
-
-  @override
-  String get mschapv2NoEap => 'MSCHAPv2 (No EAP)';
-
-  @override
-  String get md5 => 'MD5';
-
-  @override
-  String get gtc => 'GTC';
-
-  @override
-  String get peapVersion => 'PEAP Version';
-
-  @override
-  String get anonymousIdentity => 'Anonymous Identity';
-
-  @override
-  String get domain => 'Domain';
 
   @override
   String get fixed => 'Fixed';
@@ -352,7 +297,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchDomains => 'Search Domains';
 
   @override
-  String get addServer => 'Add Server';
+  String get addServer => 'Add server';
 
   @override
   String get addDomainsHintText => 'domain.com';
@@ -443,7 +388,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get refresh => 'Refresh';
 
   @override
+  String get forgetNetwork => 'Forget network';
+
+  @override
+  String get connectAutomatically => 'Connect automatically';
+
+  @override
+  String get linkSpeed => 'Link speed';
+
+  @override
   String get enterName => 'Enter Name';
+
+  @override
+  String get close => 'Close';
+
+  @override
+  String forgetWifiPrompt(String name) {
+    return 'Forget Wifi Network “$name” ?';
+  }
+
+  @override
+  String serverNumber(int number) {
+    return 'Server $number';
+  }
+
+  @override
+  String get advanceSettingsNotice =>
+      'Advance settings available to view upon connecting device to the network';
 
   @override
   String get connectionCode => 'Connection code';
@@ -485,25 +456,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get networkNameRequired => 'Network name is required';
 
   @override
-  String get identityRequired => 'Identity is required';
-
-  @override
   String get passwordRequired => 'Password is required';
 
   @override
-  String get domainRequired => 'Domain is required';
+  String get invalidWpaPassword =>
+      'Password must be between 8 and 63 characters';
 
   @override
-  String get caCertificateRequired => 'CA certificate is required';
-
-  @override
-  String get userCertificateRequired => 'User certificate is required';
-
-  @override
-  String get privateKeyRequired => 'Private key is required';
-
-  @override
-  String get invalidDomain => 'Enter a valid domain name';
+  String get invalidWepPassword =>
+      'WEP key must be 5 or 13 characters (or 10/26 hex digits)';
 
   @override
   String get connectionFailed => 'Failed to connect to network';

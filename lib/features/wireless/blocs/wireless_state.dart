@@ -41,6 +41,18 @@ class WirelessState extends Equatable {
     this.error,
   });
 
+  /// Resolves the network shown on the details screen for [name]: the saved
+  /// profile first, then a scanned access point, otherwise a placeholder.
+  WifiNetwork findNetwork(String name) {
+    for (final network in savedNetworks) {
+      if (network.name == name) return network;
+    }
+    for (final network in availableNetworks) {
+      if (network.name == name) return network;
+    }
+    return WifiNetwork(name: name);
+  }
+
   bool get hasNoInternet =>
       connectingNetworkName == null &&
       connectedNetworkName != null &&

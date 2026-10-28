@@ -1,32 +1,55 @@
 import 'package:flutter/material.dart';
 import 'package:mechanix_settings/core/constants/icons.dart';
-import 'package:mechanix_settings/core/widgets/bottom_bar/bottom_bar.dart';
-import 'package:mechanix_settings/core/widgets/custom_icon_button.dart';
-import 'package:mechanix_settings/features/wireless/presentation/widgets/add_network/add_network_appbar.dart';
 import 'package:mechanix_settings/features/wireless/presentation/widgets/add_network/add_network_body.dart';
+import 'package:mechanix_settings/l10n/app_localizations.dart';
+import 'package:widgets/widgets.dart';
 
-class AddNetworkPage extends StatelessWidget {
-  AddNetworkPage({super.key});
+class AddNetworkPage extends StatefulWidget {
+  const AddNetworkPage({super.key});
 
+  @override
+  State<AddNetworkPage> createState() => _AddNetworkPageState();
+}
+
+class _AddNetworkPageState extends State<AddNetworkPage> {
   final _formKey = GlobalKey<AddNetworkBodyState>();
-  final _breadcrumbController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
-      appBar: AddNetworkAppBar(breadcrumbController: _breadcrumbController),
-      body: AddNetworkBody(key: _formKey),
-      bottomNavigationBar: BottomBar(
-        leading: CustomIconButton.asset(
-          assetPath: SettingIcons.back,
+      backgroundColor: theme.colorScheme.surfaceContainerLowest,
+      appBar: MechanixAppBar.small(
+        primary: false,
+        backgroundColor: Colors.transparent,
+        leading: MechanixIconButton.standard(
+          icon: ImageIcon(
+            const AssetImage(SettingIcons.back),
+            color: theme.colorScheme.onSurface,
+          ),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
-
-        trailing: [
-          CustomIconButton.asset(
-            assetPath: SettingIcons.check,
+        title: Text(
+          l10n.joinNetworkTitle,
+          style: theme.textTheme.headlineSmall?.copyWith(
+            color: theme.colorScheme.onSurface,
+            fontWeight: FontWeight.w300,
+          ),
+        ),
+        actions: [
+          MechanixIconButton.filled(
+            backgroundColor: theme.colorScheme.secondaryContainer,
+            size: IconButtonSize.small,
+            type: IconButtonType.rounded,
+            icon: ImageIcon(
+              const AssetImage(SettingIcons.check),
+              color: theme.colorScheme.onSurface,
+              size: 20,
+            ),
             onPressed: () async {
               final success = await _formKey.currentState?.connect();
 
@@ -35,8 +58,10 @@ class AddNetworkPage extends StatelessWidget {
               }
             },
           ),
+          const SizedBox(width: 8),
         ],
       ),
+      body: AddNetworkBody(key: _formKey),
     );
   }
 }

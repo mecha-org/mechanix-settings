@@ -11,12 +11,6 @@ enum WirelessSecurity {
   /// WPA3-Personal (SAE)
   wpa3Personal,
 
-  /// WPA/WPA2 Enterprise (802.1X)
-  wpawpa2Enterprise,
-
-  /// LEAP
-  leap,
-
   /// OWE
   enhancedOpen,
 }
@@ -35,12 +29,6 @@ extension WirelessSecurityX on WirelessSecurity {
 
       case WirelessSecurity.wpa3Personal:
         return l10n.wpa3Personal;
-
-      case WirelessSecurity.wpawpa2Enterprise:
-        return l10n.wpaEnterprise;
-
-      case WirelessSecurity.leap:
-        return l10n.leap;
 
       case WirelessSecurity.enhancedOpen:
         return l10n.enhancedOpen;
@@ -210,169 +198,15 @@ extension WifiSignalTypeIcon on WifiSignalType {
   }
 }
 
-/// Enterprise wireless security
-enum EnterpriseEapMethod { peap, tls, ttls, pwd, leap }
+enum WirelessErrorType {
+  connectionFailed,
+  addNetworkFailed,
 
-extension EnterpriseEapMethodX on EnterpriseEapMethod {
-  String label(AppLocalizations l10n) {
-    switch (this) {
-      case EnterpriseEapMethod.peap:
-        return l10n.peap;
-      case EnterpriseEapMethod.tls:
-        return l10n.tls;
-      case EnterpriseEapMethod.ttls:
-        return l10n.ttls;
-      case EnterpriseEapMethod.pwd:
-        return l10n.pwd;
-      case EnterpriseEapMethod.leap:
-        return l10n.leap;
-    }
-  }
-
-  String get nmValue {
-    switch (this) {
-      case EnterpriseEapMethod.peap:
-        return "peap";
-      case EnterpriseEapMethod.tls:
-        return "tls";
-      case EnterpriseEapMethod.ttls:
-        return "ttls";
-      case EnterpriseEapMethod.pwd:
-        return "pwd";
-      case EnterpriseEapMethod.leap:
-        return "leap";
-    }
-  }
-
-  List<EnterprisePhase2Auth> get supportedPhase2 {
-    switch (this) {
-      case EnterpriseEapMethod.peap:
-        return const [
-          EnterprisePhase2Auth.mschapv2,
-          EnterprisePhase2Auth.md5,
-          EnterprisePhase2Auth.gtc,
-        ];
-
-      case EnterpriseEapMethod.ttls:
-        return const [
-          EnterprisePhase2Auth.pap,
-          EnterprisePhase2Auth.chap,
-          EnterprisePhase2Auth.mschap,
-          EnterprisePhase2Auth.mschapv2,
-          EnterprisePhase2Auth.mschapv2NoEap,
-          EnterprisePhase2Auth.md5,
-          EnterprisePhase2Auth.gtc,
-        ];
-
-      case EnterpriseEapMethod.tls:
-      case EnterpriseEapMethod.pwd:
-      case EnterpriseEapMethod.leap:
-        return const [];
-    }
-  }
+  /// The network needs a (new) password from the user before it can be
+  /// joined. The UI shows the password sheet instead of an error message.
+  passwordRequired,
+  unknown,
 }
-
-enum PeapVersion { automatic, version0, version1 }
-
-extension PeapVersionX on PeapVersion {
-  /// Value expected by NetworkManager
-  String? get nmValue {
-    switch (this) {
-      case PeapVersion.automatic:
-        return null;
-      case PeapVersion.version0:
-        return '0';
-      case PeapVersion.version1:
-        return '1';
-    }
-  }
-
-  /// UI only
-  String Function(AppLocalizations) get label {
-    switch (this) {
-      case PeapVersion.automatic:
-        return (l10n) => l10n.automatic;
-
-      case PeapVersion.version0:
-        return (l10n) => l10n.version0;
-
-      case PeapVersion.version1:
-        return (l10n) => l10n.version1;
-    }
-  }
-}
-
-enum EnterprisePhase2Auth {
-  pap,
-  chap,
-
-  mschap,
-  mschapv2,
-  mschapv2NoEap,
-
-  md5,
-  gtc,
-}
-
-extension EnterprisePhase2AuthX on EnterprisePhase2Auth {
-  /// Display text
-  String label(AppLocalizations l10n) {
-    switch (this) {
-      case EnterprisePhase2Auth.pap:
-        return l10n.pap;
-
-      case EnterprisePhase2Auth.chap:
-        return l10n.chap;
-
-      case EnterprisePhase2Auth.mschap:
-        return l10n.mschap;
-
-      case EnterprisePhase2Auth.mschapv2:
-        return l10n.mschapv2;
-
-      case EnterprisePhase2Auth.mschapv2NoEap:
-        return l10n.mschapv2NoEap;
-
-      case EnterprisePhase2Auth.md5:
-        return l10n.md5;
-
-      case EnterprisePhase2Auth.gtc:
-        return l10n.gtc;
-    }
-  }
-
-  /// Value expected by NetworkManager
-  String get nmValue {
-    switch (this) {
-      case EnterprisePhase2Auth.pap:
-        return 'pap';
-
-      case EnterprisePhase2Auth.chap:
-        return 'chap';
-
-      case EnterprisePhase2Auth.mschap:
-        return 'mschap';
-
-      case EnterprisePhase2Auth.mschapv2:
-      case EnterprisePhase2Auth.mschapv2NoEap:
-        return 'mschapv2';
-
-      case EnterprisePhase2Auth.md5:
-        return 'md5';
-
-      case EnterprisePhase2Auth.gtc:
-        return 'gtc';
-    }
-  }
-
-  /// Whether this authentication method should use
-  /// `phase2-autheap` instead of `phase2-auth`.
-  bool get usesAutoHeap => this == EnterprisePhase2Auth.mschapv2NoEap;
-}
-
-enum CertificateType { none, file }
-
-enum WirelessErrorType { connectionFailed, addNetworkFailed, unknown }
 
 enum WifiConnectionStatus {
   disconnected,

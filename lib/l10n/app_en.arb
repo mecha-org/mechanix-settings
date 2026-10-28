@@ -1,6 +1,7 @@
 {
   "settings": "Settings",
   "wireless": "Wireless", 
+  "wifi" : "WiFi",
   "cellularData": "Cellular data (LTE)",
   "bluetooth": "Bluetooth",
   "display": "Display",
@@ -13,11 +14,13 @@
 
   "addWireless": "Add wireless",
   "manageWireless": "Manage wireless",
+  "manageNetworks": "Manage Networks",
   "noInternetConnection": "No Internet Connection",
   "onToggle": "ON",
   "offToggle": "OFF",
   "myNetworks": "My networks",
   "avaialableNetworks": "Available networks",
+  "joinNetworkTitle": "Join Network",
   "joinNetwork": "Join {networkName}",
   "@joinNetwork": {
     "placeholders": {
@@ -31,6 +34,11 @@
   "privateWirelessAddress": "Private Wireless address",
   "wirelessAddress": "Wireless address",
   "signalStrength": "Signal strength",
+  "signalStrengthExcellent": "EXCELLENT",
+  "signalStrengthGood": "GOOD",
+  "signalStrengthFair": "FAIR",
+  "signalStrengthWeak": "WEAK",
+  "signalStrengthNone": "NONE",
   "wifiSignalStrength": "{strength}%",
   "@wifiSignalStrength": {
     "description": "Wi-Fi signal strength as a percentage",
@@ -124,6 +132,9 @@
   "invalidIpv6Address": "Enter a valid IPv6 address.",
   "invalidIpv6Gateway": "Enter a valid IPv6 gateway address.",
   "dns": "DNS",
+  "pleaseEnterAtLeastOneDnsServer": "Please add at least one DNS server",
+  "invalidDnsServers": "Enter valid DNS server addresses.",
+  "duplicateDnsServers": "Duplicate DNS server addresses are not allowed.",
   "configureDns": "Configure DNS",
   "automatic": "Automatic",
   "automaticDhcp": "Automatic (DHCP)",
@@ -143,22 +154,6 @@
   "off": "Off",
   "enterPassword": "Enter password",
 
-  "eapMethod": "Authentication",
-  "phase2Authentication": "Inner authentication",
-  "identity": "Identity",
-
-  "certificate": "Certificate",
-  "caCertificate": "CA certificate",
-  "caCertificatePassword": "CA certificate password",
-  "noCaCertificate": "No CA certificate is required",
-
-
-  "userCertificate": "User certificate",
-  "userCertificatePassword" : "User certificate password",
-  "privateKey": "User private key",
-  "privateKeyPassword": "User key password",
-
-  "selectFromFile": "Select from file",
   "networkName" : "Network name",
 
   "security": "Security",
@@ -166,29 +161,7 @@
   "wpaPersonal": "WPA Personal",
   "wpa2Personal": "WPA & WPA2 Personal",
   "wpa3Personal": "WPA3 Personal",
-  "wpaEnterprise": "WPA & WPA2 Enterprise",
-  "leap": "LEAP",
   "enhancedOpen": "Enhanced Open",
-  
-  "peap": "PEAP",
-  "tls": "TLS",
-  "ttls": "TTLS",
-  "pwd": "PWD",
-
-  "version0": "Version 0",
-  "version1": "Version 1",
-
-  "pap": "PAP",
-  "chap": "CHAP",
-  "mschap": "MSCHAP",
-  "mschapv2": "MSCHAPv2",
-  "mschapv2NoEap": "MSCHAPv2 (No EAP)",
-  "md5": "MD5",
-  "gtc": "GTC",
-
-  "peapVersion" : "PEAP Version",
-  "anonymousIdentity" : "Anonymous Identity",
-  "domain" : "Domain",
 
   "fixed": "Fixed",
   "randomized": "Randomized",
@@ -197,7 +170,7 @@
   "noSavedNetwork" : "No saved networks",
   "dnsServers": "DNS Servers",
   "searchDomains": "Search Domains",
-  "addServer": "Add Server",
+  "addServer": "Add server",
   "addDomainsHintText": "domain.com",
   "invalidIpAddress": "Enter a valid IPv4 address.",
   "@invalidIpAddress": {
@@ -248,7 +221,6 @@
     "description": "Shown when the gateway equals the IP address."
   },
 
-
   "myDevices": "My Devices",
   "otherDevices": "Other Devices",
   "deviceName": "Device name",
@@ -263,7 +235,28 @@
   "enterCodeToConnect": "Enter code to connect to",
   "aboutDevice": "About Device",
   "refresh": "Refresh",
+  "forgetNetwork": "Forget network",
+  "connectAutomatically": "Connect automatically",
+  "linkSpeed": "Link speed",
   "enterName": "Enter Name",
+  "close": "Close",
+  "forgetWifiPrompt": "Forget Wifi Network “{name}” ?",
+  "@forgetWifiPrompt": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "serverNumber": "Server {number}",
+  "@serverNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "advanceSettingsNotice": "Advance settings available to view upon connecting device to the network",
 
   "connectionCode": "Connection code",
   "mobileType": "Mobile",
@@ -279,13 +272,9 @@
 
   "fieldRequired": "This field is required",
   "networkNameRequired": "Network name is required",
-  "identityRequired": "Identity is required",
   "passwordRequired": "Password is required",
-  "domainRequired": "Domain is required",
-  "caCertificateRequired": "CA certificate is required",
-  "userCertificateRequired": "User certificate is required",
-  "privateKeyRequired": "Private key is required",
-  "invalidDomain": "Enter a valid domain name",
+  "invalidWpaPassword": "Password must be between 8 and 63 characters",
+  "invalidWepPassword": "WEP key must be 5 or 13 characters (or 10/26 hex digits)",
   "connectionFailed": "Failed to connect to network",
   "connectionFailedWithNetwork": "Failed to connect to {networkName}",
   "@connectionFailedWithNetwork": {
@@ -411,7 +400,6 @@
   },
 
   "somethingWentWrong": "Something went wrong.",
-
 
   "batterySaver": "Battery saver",
   "usage": "USAGE",

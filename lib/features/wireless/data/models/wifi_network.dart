@@ -12,7 +12,14 @@ class WifiNetwork extends Equatable {
   final int frequency;
   final bool isSecured;
   final WirelessSecurity security;
-  final EnterpriseEapMethod? eapMethod;
+
+  /// Security stored in the saved profile; `null` when the network is not
+  /// saved (or uses an unsupported key management).
+  final WirelessSecurity? savedSecurity;
+
+  /// Security the access point currently advertises; `null` when the network
+  /// is not in range.
+  final WirelessSecurity? scannedSecurity;
   final bool isConnected;
   final bool isConnecting;
   final bool hasNoInternet;
@@ -47,7 +54,8 @@ class WifiNetwork extends Equatable {
     this.frequency = 0,
     this.isSecured = true,
     this.security = WirelessSecurity.none,
-    this.eapMethod,
+    this.savedSecurity,
+    this.scannedSecurity,
     this.isConnected = false,
     this.isConnecting = false,
     this.hasNoInternet = false,
@@ -69,6 +77,18 @@ class WifiNetwork extends Equatable {
     this.ipv6Gateway = "",
   });
 
+  /// True when the network is saved and the access point now advertises a
+  /// different security than the saved profile (e.g. it was open and is now
+  /// WPA). The saved credentials cannot be used, so a new password is needed.
+  bool get hasSecurityChanged =>
+      savedSecurity != null &&
+      scannedSecurity != null &&
+      savedSecurity != scannedSecurity;
+
+  /// Security to present when asking for a password: what the access point
+  /// advertises now, falling back to [security].
+  WirelessSecurity get effectiveSecurity => scannedSecurity ?? security;
+
   // Computed signal type
   WifiSignalType get signalType =>
       WifiSignalType.from(level: signalLevel, secured: isSecured);
@@ -86,7 +106,8 @@ class WifiNetwork extends Equatable {
     int? frequency,
     bool? isSecured,
     WirelessSecurity? security,
-    EnterpriseEapMethod? eapMethod,
+    WirelessSecurity? savedSecurity,
+    WirelessSecurity? scannedSecurity,
     bool? isConnected,
     bool? isConnecting,
     bool? hasNoInternet,
@@ -118,7 +139,8 @@ class WifiNetwork extends Equatable {
       frequency: frequency ?? this.frequency,
       isSecured: isSecured ?? this.isSecured,
       security: security ?? this.security,
-      eapMethod: eapMethod ?? this.eapMethod,
+      savedSecurity: savedSecurity ?? this.savedSecurity,
+      scannedSecurity: scannedSecurity ?? this.scannedSecurity,
       isConnected: isConnected ?? this.isConnected,
       isConnecting: isConnecting ?? this.isConnecting,
       hasNoInternet: hasNoInternet ?? this.hasNoInternet,
@@ -152,7 +174,8 @@ class WifiNetwork extends Equatable {
     frequency,
     isSecured,
     security,
-    eapMethod,
+    savedSecurity,
+    scannedSecurity,
     isConnected,
     isConnecting,
     hasNoInternet,
