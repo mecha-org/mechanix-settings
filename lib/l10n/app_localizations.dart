@@ -1621,7 +1621,7 @@ abstract class AppLocalizations {
   /// No description provided for @hapticFeedback.
   ///
   /// In en, this message translates to:
-  /// **'Haptic feedback'**
+  /// **'Haptic Feedback'**
   String get hapticFeedback;
 
   /// No description provided for @notification.
@@ -1633,13 +1633,13 @@ abstract class AppLocalizations {
   /// No description provided for @outputDevice.
   ///
   /// In en, this message translates to:
-  /// **'Output device'**
+  /// **'Output Device'**
   String get outputDevice;
 
   /// No description provided for @inputDevice.
   ///
   /// In en, this message translates to:
-  /// **'Input device'**
+  /// **'Input Device'**
   String get inputDevice;
 
   /// No description provided for @noInputDevices.
