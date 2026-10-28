@@ -341,6 +341,85 @@ void main() {
       },
     );
 
+    test(
+      'reads only the matching profile once saved profiles are indexed',
+      () async {
+        final other = savedConnection('Other_WiFi');
+        final target = savedConnection('Saved_WiFi');
+        when(() => mockSettings.connections).thenReturn([other, target]);
+
+        // Reading all saved networks builds the SSID → profile index.
+        await repository.getSavedNetworks();
+        clearInteractions(other);
+        clearInteractions(target);
+
+        final network = await repository.getNetworkDetails('Saved_WiFi');
+
+        expect(network!.name, 'Saved_WiFi');
+        verifyNever(() => other.getSettings());
+        verify(() => target.getSettings()).called(1);
+      },
+    );
+
+    test('reuses the index across repeated lookups', () async {
+      final other = savedConnection('Other_WiFi');
+      final target = savedConnection('Saved_WiFi');
+      when(() => mockSettings.connections).thenReturn([other, target]);
+
+      // The first lookup has no index yet and reads every profile once.
+      await repository.getNetworkDetails('Saved_WiFi');
+      clearInteractions(other);
+      clearInteractions(target);
+
+      await repository.getNetworkDetails('Saved_WiFi');
+      await repository.getNetworkDetails('Saved_WiFi');
+
+      verifyNever(() => other.getSettings());
+      verify(() => target.getSettings()).called(2);
+    });
+
+    test('rebuilds the index when saved profiles are added', () async {
+      final first = savedConnection('Saved_WiFi');
+      when(() => mockSettings.connections).thenReturn([first]);
+      await repository.getNetworkDetails('Saved_WiFi');
+
+      final added = savedConnection('New_WiFi');
+      when(() => mockSettings.connections).thenReturn([first, added]);
+
+      final network = await repository.getNetworkDetails('New_WiFi');
+
+      expect(network!.name, 'New_WiFi');
+      verify(() => added.getSettings()).called(1);
+    });
+
+    test(
+      'secured access points that are not saved skip the password lookup',
+      () async {
+        final saved = savedConnection('Saved_WiFi');
+        final ap = accessPoint('Cafe_WiFi');
+        when(() => ap.rsnFlags).thenReturn([
+          NetworkManagerWifiAccessPointSecurityFlag.keyManagementPsk,
+        ]);
+        when(() => mockSettings.connections).thenReturn([saved]);
+        when(() => mockWireless.accessPoints).thenReturn([ap]);
+
+        final savedNetworks = await repository.getSavedNetworks();
+        clearInteractions(saved);
+
+        final available = await repository.getAvailableNetworks(
+          requestScan: false,
+          savedNetworks: savedNetworks,
+        );
+
+        expect(available.single.name, 'Cafe_WiFi');
+        expect(available.single.isSecured, isTrue);
+        expect(available.single.password, isEmpty);
+        // No GetSettings/GetSecrets round trips for a network with no profile.
+        verifyNever(() => saved.getSettings());
+        verifyNever(() => saved.getSecrets(any()));
+      },
+    );
+
     test('returns null for an empty name or when uninitialized', () async {
       expect(await repository.getNetworkDetails(''), isNull);
       expect(

@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -239,6 +242,55 @@ void main() {
       verifyNever(
         () => mockWirelessBloc.add(any(that: isA<ForgetNetworkEvent>())),
       );
+    });
+
+    testWidgets('tiles are not rebuilt when only live signal data changes', (
+      WidgetTester tester,
+    ) async {
+      const initial = WirelessState(
+        isWirelessOn: true,
+        connectedNetworkName: 'OfficeWifi 1',
+        savedNetworks: [tConnectedNetwork, tSavedNetwork],
+      );
+      final controller = StreamController<WirelessState>();
+      addTearDown(controller.close);
+      whenListen(mockWirelessBloc, controller.stream, initialState: initial);
+
+      await tester.pumpWidget(
+        createWirelessLauncherWidget(
+          wirelessBloc: mockWirelessBloc,
+          screenBuilder: (_) => const ManageNetworksScreen(),
+        ),
+      );
+      await openScreenUnderTest(tester);
+
+      SavedNetworkTile tile() =>
+          tester.widget<SavedNetworkTile>(tileFor(tSavedNetwork.name));
+      final before = tile();
+
+      // A reload produces a new list with different live data only.
+      controller.add(
+        initial.copyWith(
+          savedNetworks: [
+            tConnectedNetwork.copyWith(speedMbps: 433),
+            tSavedNetwork.copyWith(rawSignalStrength: 55, frequency: 2412),
+          ],
+        ),
+      );
+      await tester.pump();
+      expect(identical(tile(), before), isTrue);
+
+      // The signal icon changes, so the tile is rebuilt.
+      controller.add(
+        initial.copyWith(
+          savedNetworks: [
+            tConnectedNetwork,
+            tSavedNetwork.copyWith(signalLevel: 1),
+          ],
+        ),
+      );
+      await tester.pump();
+      expect(identical(tile(), before), isFalse);
     });
   });
 }

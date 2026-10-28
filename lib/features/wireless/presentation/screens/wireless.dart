@@ -7,8 +7,29 @@ import 'package:mechanix_settings/features/wireless/presentation/widgets/wireles
 import 'package:mechanix_settings/l10n/app_localizations.dart';
 import 'package:widgets/widgets.dart';
 
-class WirelessScreen extends StatelessWidget {
+class WirelessScreen extends StatefulWidget {
   const WirelessScreen({super.key});
+
+  @override
+  State<WirelessScreen> createState() => _WirelessScreenState();
+}
+
+class _WirelessScreenState extends State<WirelessScreen> {
+  late final WirelessBloc _bloc;
+
+  @override
+  void initState() {
+    super.initState();
+    // Scan periodically only while this screen is mounted (it stays mounted
+    // under the network detail / manage screens pushed from it).
+    _bloc = context.read<WirelessBloc>()..add(const StartPeriodicScan());
+  }
+
+  @override
+  void dispose() {
+    _bloc.add(const StopPeriodicScan());
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

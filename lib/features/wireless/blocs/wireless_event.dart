@@ -167,3 +167,14 @@ class RefreshNetworkDetails extends WirelessEvent {
   @override
   List<Object?> get props => [networkName];
 }
+
+/// Starts periodic Wi-Fi scanning on behalf of a visible screen that shows
+/// the network list.
+class StartPeriodicScan extends WirelessEvent {
+  const StartPeriodicScan();
+}
+
+/// Balances a previous [StartPeriodicScan].
+class StopPeriodicScan extends WirelessEvent {
+  const StopPeriodicScan();
+}

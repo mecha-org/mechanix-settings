@@ -17,9 +17,28 @@ import 'package:nm/nm.dart';
 
 import 'wireless_repository.dart';
 
+/// A saved connection profile together with its settings.
+typedef _SavedProfile = (
+  NetworkManagerSettingsConnection connection,
+  Map<String, Map<String, DBusValue>> settings,
+);
+
 class WirelessRepositoryImpl implements WirelessRepository {
   bool _connected = false;
   late NetworkManagerClient _client;
+
+  /// SSID → saved profiles using that SSID.
+  ///
+  /// Built as a side effect of reading every profile (in [getSavedNetworks]
+  /// or a full pass of [_readProfilesFor]) so single-network lookups only
+  /// call `GetSettings` on the matching profile(s) instead of on every saved
+  /// connection.
+  Map<String, List<NetworkManagerSettingsConnection>> _profilesBySsid = {};
+
+  /// The saved connections [_profilesBySsid] was built from, or `null` when
+  /// no index has been built yet. The index is only trusted while
+  /// NetworkManager reports exactly this set of saved connections.
+  Set<NetworkManagerSettingsConnection>? _indexedConnections;
 
   /// Creates a wireless repository instance.
   ///
@@ -100,6 +119,9 @@ class WirelessRepositoryImpl implements WirelessRepository {
       final scannedAps = wifiDevice?.wireless?.accessPoints ?? [];
 
       final Map<String, WifiNetwork> networks = {};
+      final profilesBySsid = <String, List<NetworkManagerSettingsConnection>>{};
+      final indexed = <NetworkManagerSettingsConnection>{};
+      var indexComplete = true;
 
       for (final connection in connections) {
         try {
@@ -108,7 +130,14 @@ class WirelessRepositoryImpl implements WirelessRepository {
             continue;
           }
 
-          final settings = await connection.getSettings();
+          Map<String, Map<String, DBusValue>> settings;
+          try {
+            settings = await connection.getSettings();
+          } catch (_) {
+            indexComplete = false;
+            rethrow;
+          }
+          indexed.add(connection);
 
           final wireless = settings['802-11-wireless'];
           if (wireless == null) {
@@ -128,6 +157,7 @@ class WirelessRepositoryImpl implements WirelessRepository {
           if (ssid.isEmpty) {
             continue;
           }
+          profilesBySsid.putIfAbsent(ssid, () => []).add(connection);
 
           final ap = scannedAps.firstWhereOrNull(
             (a) => utf8.decode(a.ssid, allowMalformed: true) == ssid,
@@ -152,6 +182,11 @@ class WirelessRepositoryImpl implements WirelessRepository {
           AppLogger.e("Error reading connection: $e");
         }
       }
+
+      _setProfileIndex(
+        profilesBySsid,
+        indexComplete ? indexed : null,
+      );
 
       final saved = networks.values.toList();
 
@@ -190,13 +225,8 @@ class WirelessRepositoryImpl implements WirelessRepository {
 
       WifiNetwork? result;
 
-      for (final connection in _client.settings.connections) {
+      for (final (connection, settings) in await _readProfilesFor(name)) {
         try {
-          if (connection.unsaved) continue;
-
-          final settings = await connection.getSettings();
-          if (_ssidFromSettings(settings) != name) continue;
-
           final network = await _mapToWifiNetwork(
             name: name,
             ap: ap,
@@ -239,6 +269,89 @@ class WirelessRepositoryImpl implements WirelessRepository {
         .map((e) => e.value)
         .toList();
     return utf8.decode(ssidBytes, allowMalformed: true);
+  }
+
+  /// Saved (non-temporary) connection profiles currently known to
+  /// NetworkManager.
+  List<NetworkManagerSettingsConnection> _savedConnections() =>
+      _client.settings.connections.where((c) => !c.unsaved).toList();
+
+  void _setProfileIndex(
+    Map<String, List<NetworkManagerSettingsConnection>> profilesBySsid,
+    Set<NetworkManagerSettingsConnection>? indexed,
+  ) {
+    _profilesBySsid = profilesBySsid;
+    // A partial read (a GetSettings call failed) is not trusted as an index.
+    _indexedConnections = indexed;
+  }
+
+  /// Whether [_profilesBySsid] still describes the saved connections.
+  bool _isProfileIndexValid(List<NetworkManagerSettingsConnection> current) {
+    final indexed = _indexedConnections;
+    return indexed != null && setEquals(current.toSet(), indexed);
+  }
+
+  /// Reads the settings of the saved profiles whose SSID is [name].
+  ///
+  /// Uses [_profilesBySsid] when it is still valid, so only the matching
+  /// profile(s) are read over D-Bus. Otherwise (no index yet, profiles were
+  /// added/removed, or an indexed profile no longer has this SSID) it reads
+  /// every saved profile once and rebuilds the index.
+  Future<List<_SavedProfile>> _readProfilesFor(String name) async {
+    final current = _savedConnections();
+
+    if (_isProfileIndexValid(current)) {
+      final matches = <_SavedProfile>[];
+      var stale = false;
+      for (final connection in _profilesBySsid[name] ?? const []) {
+        try {
+          final settings = await connection.getSettings();
+          if (_ssidFromSettings(settings) == name) {
+            matches.add((connection, settings));
+          } else {
+            // The profile's SSID was edited since the index was built.
+            stale = true;
+          }
+        } catch (e) {
+          AppLogger.e('Error reading connection for $name: $e');
+          stale = true;
+        }
+      }
+      if (!stale) return matches;
+    }
+
+    // Full pass: read every saved profile once and rebuild the index.
+    final profilesBySsid = <String, List<NetworkManagerSettingsConnection>>{};
+    final indexed = <NetworkManagerSettingsConnection>{};
+    var indexComplete = true;
+    final matches = <_SavedProfile>[];
+
+    for (final connection in current) {
+      try {
+        final settings = await connection.getSettings();
+        indexed.add(connection);
+
+        final ssid = _ssidFromSettings(settings);
+        if (ssid == null || ssid.isEmpty) continue;
+
+        profilesBySsid.putIfAbsent(ssid, () => []).add(connection);
+        if (ssid == name) matches.add((connection, settings));
+      } catch (e) {
+        indexComplete = false;
+        AppLogger.e('Error reading connection for $name: $e');
+      }
+    }
+
+    _setProfileIndex(profilesBySsid, indexComplete ? indexed : null);
+    return matches;
+  }
+
+  /// True when the profile index is valid and has no saved profile for
+  /// [ssid], i.e. the network is known not to be saved without any D-Bus
+  /// call.
+  bool _isKnownUnsaved(String ssid) {
+    if (!_isProfileIndexValid(_savedConnections())) return false;
+    return (_profilesBySsid[ssid] ?? const []).isEmpty;
   }
 
   /// Scans for Wi-Fi access points in range and filters out those already saved.
@@ -1420,6 +1533,14 @@ class WirelessRepositoryImpl implements WirelessRepository {
     NetworkManagerDevice? wifiDevice,
   }) async {
     if (!isSecured) {
+      return "";
+    }
+
+    // Networks that are not saved have no stored secret. Without this check
+    // every secured access point in range would trigger a GetSettings call on
+    // every saved profile (_findExistingConnection) plus another pass over the
+    // device's available connections (getSavedWifiPsk) on each reload.
+    if (connection == null && _isKnownUnsaved(name)) {
       return "";
     }
 

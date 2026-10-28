@@ -24,11 +24,20 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
   StreamSubscription? _deviceEventsSub;
   StreamSubscription? _wirelessEventsSub;
 
+  /// Interval between background scans while a network list is visible.
+  static const periodicScanInterval = Duration(seconds: 10);
+
   bool _reloadScheduled = false;
   bool _isLoading = false;
   Timer? _refreshTimer;
   Timer? _scanTimer;
   bool _connectionInProgress = false;
+
+  /// Number of visible screens that requested periodic scanning.
+  int _periodicScanClients = 0;
+
+  /// Networks whose details are currently being refreshed.
+  final Set<String> _refreshesInFlight = {};
 
   WirelessBloc({required this.wirelessRepository})
     : super(
@@ -50,10 +59,15 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
     on<ForgetNetworkEvent>(_onForgetNetwork);
     on<ConnectivityStateChangedEvent>(_onConnectivityStateChanged);
     on<OpenCaptivePortal>(_onOpenCaptivePortal);
+    // Concurrent so refreshes of different networks are not queued behind
+    // each other; repeated refreshes of the same network are dropped while
+    // one is in flight (see _onRefreshNetworkDetails).
     on<RefreshNetworkDetails>(
       _onRefreshNetworkDetails,
-      transformer: sequential(),
+      transformer: concurrent(),
     );
+    on<StartPeriodicScan>(_onStartPeriodicScan);
+    on<StopPeriodicScan>(_onStopPeriodicScan);
   }
 
   /// Initial setup: listens to D-Bus events and triggers an initial loading of networks.
@@ -66,9 +80,13 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
         state.copyWith(isWirelessOn: enabled, connectivityState: connectivity),
       );
       await _subscribeToStreams();
-      add(const LoadWireless());
-      await wirelessRepository.requestScan();
-      _startPeriodicScan();
+      // Load what NetworkManager already knows; no scan at app start. The
+      // Wi-Fi screen requests scans while it is visible (StartPeriodicScan).
+      add(const LoadWireless(requestScan: false));
+      if (_periodicScanClients > 0) {
+        add(const ScanNetworks());
+        _startPeriodicScan();
+      }
     } catch (e, stack) {
       AppLogger.e('Failed to initialize Wi-Fi: $e', stack: stack);
     }
@@ -333,9 +351,10 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
         await wirelessRepository.setWifiEnabled(true);
 
         await _subscribeToStreams();
-        // add(const LoadWireless(requestScan: true));
         add(const ScanNetworks());
-        _startPeriodicScan();
+        if (_periodicScanClients > 0) {
+          _startPeriodicScan();
+        }
       } else {
         _stopPeriodicScan();
         await wirelessRepository.setWifiEnabled(false);
@@ -366,6 +385,13 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
     try {
       if (!state.isWirelessOn) return;
 
+      // A scan takes the radio off-channel; never start one while a
+      // connection is being established.
+      if (_connectionInProgress) {
+        if (state.isScanning) emit(state.copyWith(isScanning: false));
+        return;
+      }
+
       emit(state.copyWith(isScanning: true));
       await wirelessRepository.requestScan();
 
@@ -389,6 +415,10 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
     RefreshNetworkDetails event,
     Emitter<WirelessState> emit,
   ) async {
+    // Drop repeated taps for a network that is already being refreshed: the
+    // in-flight refresh returns fresh data anyway.
+    if (!_refreshesInFlight.add(event.networkName)) return;
+
     try {
       if (!wirelessRepository.isWirelessEnabled()) return;
 
@@ -413,6 +443,8 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
         'Failed to refresh details of ${event.networkName}: $e',
         stack: stackTrace,
       );
+    } finally {
+      _refreshesInFlight.remove(event.networkName);
     }
   }
 
@@ -678,12 +710,49 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
     }
   }
 
-  /// Starts periodic Wi-Fi scanning every 10 seconds.
+  void _onStartPeriodicScan(
+    StartPeriodicScan event,
+    Emitter<WirelessState> emit,
+  ) {
+    _periodicScanClients++;
+    if (_periodicScanClients == 1) {
+      // Refresh the list right away when it becomes visible.
+      add(const ScanNetworks());
+      _startPeriodicScan();
+    }
+  }
+
+  void _onStopPeriodicScan(
+    StopPeriodicScan event,
+    Emitter<WirelessState> emit,
+  ) {
+    if (_periodicScanClients == 0) return;
+    _periodicScanClients--;
+    if (_periodicScanClients == 0) {
+      _stopPeriodicScan();
+    }
+  }
+
+  /// Starts periodic Wi-Fi scanning every [periodicScanInterval]. Only runs
+  /// while a screen requested it via [StartPeriodicScan].
   void _startPeriodicScan() {
     _scanTimer?.cancel();
-    _scanTimer = Timer.periodic(const Duration(seconds: 10), (_) async {
+    _scanTimer = Timer.periodic(periodicScanInterval, (_) {
       if (isClosed) return;
       if (!wirelessRepository.isWirelessEnabled()) return;
+      if (_connectionInProgress) return;
+
+      // Do not scan while the device is (re)establishing a link.
+      const busyStates = {
+        NetworkManagerDeviceState.prepare,
+        NetworkManagerDeviceState.config,
+        NetworkManagerDeviceState.needAuth,
+        NetworkManagerDeviceState.ipConfig,
+        NetworkManagerDeviceState.ipCheck,
+        NetworkManagerDeviceState.secondaries,
+        NetworkManagerDeviceState.deactivating,
+      };
+      if (busyStates.contains(wirelessRepository.getWifiDeviceState())) return;
 
       add(const ScanNetworks());
     });

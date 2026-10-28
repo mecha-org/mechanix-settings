@@ -1094,12 +1094,49 @@ void main() {
       expect: () => const <WirelessState>[],
     );
 
+    blocTest<WirelessBloc, WirelessState>(
+      'drops repeated refreshes of a network while one is in flight',
+      build: () {
+        setupDefaultMocks(mockWirelessRepository);
+        stubWirelessActiveDefaults(mockWirelessRepository);
+        when(() => mockWirelessRepository.getNetworkDetails(any())).thenAnswer((
+          _,
+        ) async {
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+          return refreshedNetwork;
+        });
+        return WirelessBloc(wirelessRepository: mockWirelessRepository);
+      },
+      seed: () => WirelessState(
+        isWirelessOn: true,
+        savedNetworks: [testConnectedWifiNetwork],
+      ),
+      act: (bloc) => bloc
+        ..add(RefreshNetworkDetails(testConnectedWifiNetwork.name))
+        ..add(RefreshNetworkDetails(testConnectedWifiNetwork.name))
+        ..add(RefreshNetworkDetails(testConnectedWifiNetwork.name)),
+      wait: const Duration(milliseconds: 100),
+      expect: () => [
+        WirelessState(isWirelessOn: true, savedNetworks: [refreshedNetwork]),
+      ],
+      verify: (_) {
+        verify(
+          () => mockWirelessRepository.getNetworkDetails(
+            testConnectedWifiNetwork.name,
+          ),
+        ).called(1);
+      },
+    );
+
     test('events for different networks are not equal', () {
       expect(
         const RefreshNetworkDetails('A'),
         isNot(const RefreshNetworkDetails('B')),
       );
-      expect(const RefreshNetworkDetails('A'), const RefreshNetworkDetails('A'));
+      expect(
+        const RefreshNetworkDetails('A'),
+        const RefreshNetworkDetails('A'),
+      );
     });
   });
 
@@ -1122,6 +1159,65 @@ void main() {
       const state = WirelessState();
       expect(state.findNetwork('Ghost'), const WifiNetwork(name: 'Ghost'));
     });
+  });
+
+  group('Periodic scanning', () {
+    blocTest<WirelessBloc, WirelessState>(
+      'InitWifi does not request a scan when no screen asked for scanning',
+      build: () {
+        setupDefaultMocks(mockWirelessRepository);
+        stubWirelessActiveDefaults(mockWirelessRepository);
+        when(() => mockWirelessRepository.isWirelessEnabled()).thenReturn(true);
+        return WirelessBloc(wirelessRepository: mockWirelessRepository);
+      },
+      act: (bloc) => bloc.add(InitWifi()),
+      wait: const Duration(milliseconds: 50),
+      verify: (_) {
+        verifyNever(() => mockWirelessRepository.requestScan());
+        verifyNever(
+          () => mockWirelessRepository.getAvailableNetworks(
+            requestScan: true,
+            savedNetworks: any(named: 'savedNetworks'),
+          ),
+        );
+      },
+    );
+
+    blocTest<WirelessBloc, WirelessState>(
+      'StartPeriodicScan scans immediately, once per first subscriber',
+      build: () {
+        setupDefaultMocks(mockWirelessRepository);
+        stubWirelessActiveDefaults(mockWirelessRepository);
+        when(() => mockWirelessRepository.isWirelessEnabled()).thenReturn(true);
+        return WirelessBloc(wirelessRepository: mockWirelessRepository);
+      },
+      seed: () => const WirelessState(isWirelessOn: true),
+      act: (bloc) => bloc
+        ..add(const StartPeriodicScan())
+        // A second visible screen must not trigger another immediate scan.
+        ..add(const StartPeriodicScan()),
+      wait: const Duration(milliseconds: 2100),
+      expect: () => const [
+        WirelessState(isWirelessOn: true, isScanning: true),
+        WirelessState(isWirelessOn: true, isScanning: false),
+      ],
+      verify: (_) {
+        verify(() => mockWirelessRepository.requestScan()).called(1);
+      },
+    );
+
+    blocTest<WirelessBloc, WirelessState>(
+      'unbalanced StopPeriodicScan is ignored',
+      build: () {
+        setupDefaultMocks(mockWirelessRepository);
+        return WirelessBloc(wirelessRepository: mockWirelessRepository);
+      },
+      act: (bloc) => bloc.add(const StopPeriodicScan()),
+      expect: () => const <WirelessState>[],
+      verify: (_) {
+        verifyNever(() => mockWirelessRepository.requestScan());
+      },
+    );
   });
 
   group('Lifecycle & Stream Subscription Safety', () {

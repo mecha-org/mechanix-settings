@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,6 +14,7 @@ import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
 import 'package:mechanix_settings/features/wireless/presentation/screens/add_network.dart';
 import 'package:mechanix_settings/features/wireless/presentation/screens/manage_network.dart';
 import 'package:mechanix_settings/features/wireless/presentation/screens/network_detail.dart';
+import 'package:mechanix_settings/features/wireless/presentation/widgets/network_list_item.dart';
 import 'package:mechanix_settings/features/wireless/presentation/widgets/wireless/wireless_body.dart';
 import 'package:mechanix_settings/features/wireless/presentation/widgets/wireless_password.dart';
 import '../helpers/wireless_test_helpers.dart';
@@ -354,7 +357,8 @@ void main() {
 
           // No silent reconnect with the stale (open) profile.
           verifyNever(
-            () => mockWirelessBloc.add(const ConnectToNetworkEvent('Cafe', null)),
+            () =>
+                mockWirelessBloc.add(const ConnectToNetworkEvent('Cafe', null)),
           );
 
           final sheet = find.byType(WirelessPasswordBottomSheet);
@@ -366,7 +370,9 @@ void main() {
 
           await tester.enterText(find.byType(MechanixTextField), 'newpass123');
           await tester.pump();
-          await tester.tap(find.descendant(of: sheet, matching: findCheckButton));
+          await tester.tap(
+            find.descendant(of: sheet, matching: findCheckButton),
+          );
           await tester.pumpAndSettle();
 
           verify(
@@ -470,7 +476,8 @@ void main() {
 
           expect(find.byType(WirelessPasswordBottomSheet), findsNothing);
           verify(
-            () => mockWirelessBloc.add(const ConnectToNetworkEvent('Home', null)),
+            () =>
+                mockWirelessBloc.add(const ConnectToNetworkEvent('Home', null)),
           ).called(1);
         },
       );
@@ -666,10 +673,7 @@ void main() {
             WirelessSecurity.wpaWpa2Personal,
           );
 
-          await tester.enterText(
-            find.byType(MechanixTextField),
-            'a' * 64,
-          );
+          await tester.enterText(find.byType(MechanixTextField), 'a' * 64);
           await tester.pump();
 
           final check = find.descendant(of: sheet, matching: findCheckButton);
@@ -822,7 +826,9 @@ void main() {
 
           await tester.enterText(find.byType(MechanixTextField), 'newpass123');
           await tester.pump();
-          await tester.tap(find.descendant(of: sheet, matching: findCheckButton));
+          await tester.tap(
+            find.descendant(of: sheet, matching: findCheckButton),
+          );
           await tester.pumpAndSettle();
 
           verify(
@@ -994,5 +1000,74 @@ void main() {
         ).called(1);
       },
     );
+
+    group('Rebuilds', () {
+      testWidgets('rows are not rebuilt when only live signal data changes', (
+        WidgetTester tester,
+      ) async {
+        const initial = WirelessState(
+          isWirelessOn: true,
+          connectedNetworkName: 'OfficeWifi 1',
+          savedNetworks: [tConnectedNetwork, tSavedNetwork],
+          myNetworks: [tConnectedNetwork, tSavedNetwork],
+          availableNetworks: [tSecuredAvailableNetwork],
+        );
+        final controller = StreamController<WirelessState>();
+        addTearDown(controller.close);
+        whenListen(mockWirelessBloc, controller.stream, initialState: initial);
+
+        await tester.pumpWidget(
+          createWirelessTestWidget(
+            wirelessBloc: mockWirelessBloc,
+            child: const Scaffold(body: WirelessBody()),
+          ),
+        );
+        await tester.pump();
+
+        NetworkListItem row(String name) =>
+            tester.widget<NetworkListItem>(find.byKey(ValueKey(name)));
+        final savedBefore = row(tSavedNetwork.name);
+        final availableBefore = row(tSecuredAvailableNetwork.name);
+
+        // Same signal bucket, different raw strength / speed / frequency.
+        controller.add(
+          initial.copyWith(
+            savedNetworks: [
+              tConnectedNetwork.copyWith(speedMbps: 433),
+              tSavedNetwork.copyWith(rawSignalStrength: 55, frequency: 2412),
+            ],
+            myNetworks: [
+              tConnectedNetwork.copyWith(speedMbps: 433),
+              tSavedNetwork.copyWith(rawSignalStrength: 55, frequency: 2412),
+            ],
+            availableNetworks: [
+              tSecuredAvailableNetwork.copyWith(rawSignalStrength: 61),
+            ],
+          ),
+        );
+        await tester.pump();
+
+        expect(identical(row(tSavedNetwork.name), savedBefore), isTrue);
+        expect(
+          identical(row(tSecuredAvailableNetwork.name), availableBefore),
+          isTrue,
+        );
+
+        // Crossing a signal bucket changes the icon, so the row rebuilds.
+        controller.add(
+          initial.copyWith(
+            availableNetworks: [
+              tSecuredAvailableNetwork.copyWith(signalLevel: 3),
+            ],
+          ),
+        );
+        await tester.pump();
+
+        expect(
+          row(tSecuredAvailableNetwork.name).signalType,
+          WifiSignalType.highLocked,
+        );
+      });
+    });
   });
 }

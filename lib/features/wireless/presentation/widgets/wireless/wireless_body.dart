@@ -66,18 +66,28 @@ class WirelessBody extends StatelessWidget {
   }
 }
 
-void _connectToNetwork(BuildContext context, WifiNetwork network) async {
+/// Connects to the listed network named [name].
+///
+/// Rows only keep the name and signal icon (see [_NetworkRow]), so the full
+/// network is looked up in the current state at tap time. This also means the
+/// latest security information is used, not the one from the last rebuild.
+void _connectToNetwork(BuildContext context, String name) async {
   final bloc = context.read<WirelessBloc>();
+  final state = bloc.state;
 
-  if (bloc.state.connectedNetworkName == network.name) {
+  if (state.connectedNetworkName == name) {
+    return;
+  }
+
+  final saved = state.myNetworks.where((n) => n.name == name).firstOrNull;
+  final network =
+      saved ?? state.availableNetworks.where((n) => n.name == name).firstOrNull;
+  if (network == null) {
+    // The network disappeared from the lists since the row was built.
     return;
   }
 
   if (network.isSecured) {
-    final saved = bloc.state.myNetworks
-        .where((n) => n.name == network.name)
-        .firstOrNull;
-
     // Saved network with unchanged security → reuse the saved credentials.
     // If the access point's security changed (e.g. open → WPA), the saved
     // profile cannot authenticate, so ask for a new password instead.
@@ -210,7 +220,7 @@ class _ConnectedNetworkTile extends StatelessWidget {
     return BlocSelector<
       WirelessBloc,
       WirelessState,
-      ({WifiNetwork? connected, bool hasNoInternet})
+      ({_NetworkRow? connected, bool hasNoInternet})
     >(
       selector: (state) {
         if (state.connectedNetworkName == null) {
@@ -226,12 +236,13 @@ class _ConnectedNetworkTile extends StatelessWidget {
             state.availableNetworks
                 .where((n) => n.name == state.connectedNetworkName)
                 .firstOrNull;
-        return (connected: net, hasNoInternet: state.hasNoInternet);
+        return (
+          connected: net == null ? null : _NetworkRow.of(net),
+          hasNoInternet: state.hasNoInternet,
+        );
       },
       builder: (context, data) {
-        final connected = data.connected?.copyWith(
-          hasNoInternet: data.hasNoInternet,
-        );
+        final connected = data.connected;
         if (connected == null) {
           return const SizedBox.shrink();
         }
@@ -269,7 +280,7 @@ class _ConnectingNetworkTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocSelector<WirelessBloc, WirelessState, WifiNetwork?>(
+    return BlocSelector<WirelessBloc, WirelessState, _NetworkRow?>(
       selector: (state) {
         final name = state.connectingNetworkName;
 
@@ -287,14 +298,16 @@ class _ConnectingNetworkTile extends StatelessWidget {
         }
 
         // Hidden network: show connection progress separately.
-        return state.savedNetworks.firstWhere(
-          (network) => network.name == name,
-          orElse: () => WifiNetwork(
-            name: name,
-            isSecured: true,
-            signalLevel: 0,
-            isConnected: false,
-            isConnecting: true,
+        return _NetworkRow.of(
+          state.savedNetworks.firstWhere(
+            (network) => network.name == name,
+            orElse: () => WifiNetwork(
+              name: name,
+              isSecured: true,
+              signalLevel: 0,
+              isConnected: false,
+              isConnecting: true,
+            ),
           ),
         );
       },
@@ -332,13 +345,11 @@ class _MyNetworksList extends StatelessWidget {
     return BlocSelector<
       WirelessBloc,
       WirelessState,
-      ({_Networks networks, String? connected, String? connecting})
+      ({_NetworkRows networks, String? connected, String? connecting})
     >(
       selector: (state) => (
-        networks: _Networks(
-          state.myNetworks
-              .where((e) => e.name != state.connectedNetworkName)
-              .toList(),
+        networks: _NetworkRows.of(
+          state.myNetworks.where((e) => e.name != state.connectedNetworkName),
         ),
         connected: state.connectedNetworkName,
         connecting: state.connectingNetworkName,
@@ -393,7 +404,7 @@ class _MyNetworksList extends StatelessWidget {
               isConnected: network.name == state.connected,
               isConnecting: network.name == state.connecting,
               isSelected: network.name == state.connecting,
-              onTap: () => _connectToNetwork(context, network),
+              onTap: () => _connectToNetwork(context, network.name),
               onSettingsTap: () {
                 Navigator.push(
                   context,
@@ -422,10 +433,10 @@ class _AvailableNetworksList extends StatelessWidget {
     return BlocSelector<
       WirelessBloc,
       WirelessState,
-      ({_Networks networks, String? connecting, bool isScanning})
+      ({_NetworkRows networks, String? connecting, bool isScanning})
     >(
       selector: (state) => (
-        networks: _Networks(state.availableNetworks),
+        networks: _NetworkRows.of(state.availableNetworks),
         connecting: state.connectingNetworkName,
         isScanning: state.isScanning,
       ),
@@ -507,7 +518,7 @@ class _AvailableNetworksList extends StatelessWidget {
               isConnected: false,
               isConnecting: network.name == state.connecting,
               isSelected: network.name == state.connecting,
-              onTap: () => _connectToNetwork(context, network),
+              onTap: () => _connectToNetwork(context, network.name),
             );
           }).toList(),
         );
@@ -538,7 +549,7 @@ class _JoinNetworkTile extends StatelessWidget {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => AddNetworkPage()),
+          MaterialPageRoute(builder: (_) => const AddNetworkPage()),
         );
       },
     );
@@ -574,10 +585,26 @@ class _ManageNetworksTile extends StatelessWidget {
   }
 }
 
-/// Wraps network lists with value equality to prevent unnecessary rebuilds.
-class _Networks extends Equatable {
-  const _Networks(this.items);
-  final List<WifiNetwork> items;
+/// What a network row displays: its name and signal icon.
+/// Selectors return rows instead of whole [WifiNetwork]s.
+class _NetworkRow extends Equatable {
+  _NetworkRow.of(WifiNetwork network)
+    : name = network.name,
+      signalType = network.signalType;
+
+  final String name;
+  final WifiSignalType signalType;
+
+  @override
+  List<Object?> get props => [name, signalType];
+}
+
+/// A list of [_NetworkRow]s with value equality.
+class _NetworkRows extends Equatable {
+  _NetworkRows.of(Iterable<WifiNetwork> networks)
+    : items = networks.map(_NetworkRow.of).toList(growable: false);
+
+  final List<_NetworkRow> items;
 
   @override
   List<Object?> get props => [items];
