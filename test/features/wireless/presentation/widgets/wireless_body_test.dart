@@ -964,7 +964,8 @@ void main() {
     });
 
     testWidgets(
-      'NetworkDetailScreen refresh menu dispatches RefreshNetworkDetails',
+      'connected network settings opens NetworkDetailScreen with a forget '
+      'button and no overflow menu',
       (WidgetTester tester) async {
         await pumpBody(
           tester,
@@ -985,19 +986,11 @@ void main() {
         await tester.pumpAndSettle();
         expect(find.byType(NetworkDetailScreen), findsOneWidget);
 
-        final l10n = l10nOf(tester, find.byType(NetworkDetailScreen));
-
-        await tester.tap(findIconButtonWithAsset(SettingIcons.moreVert));
-        await tester.pumpAndSettle();
-
-        await tester.tap(find.text(l10n.refresh));
-        await tester.pump();
-
-        verify(
-          () => mockWirelessBloc.add(
-            RefreshNetworkDetails(tConnectedNetwork.name),
-          ),
-        ).called(1);
+        expect(
+          find.byKey(const Key('network_detail_forget_button')),
+          findsOneWidget,
+        );
+        expect(findIconButtonWithAsset(SettingIcons.moreVert), findsNothing);
       },
     );
 

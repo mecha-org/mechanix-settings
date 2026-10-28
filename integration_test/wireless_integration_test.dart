@@ -334,7 +334,7 @@ void main() {
       await tester.pump();
     });
 
-    testWidgets('Navigating to NetworkDetailScreen and tapping refresh', (
+    testWidgets('Navigating to NetworkDetailScreen and forgetting the network', (
       WidgetTester tester,
     ) async {
       when(() => mockWirelessRepository.isWirelessEnabled()).thenReturn(true);
@@ -352,9 +352,6 @@ void main() {
           savedNetworks: any(named: 'savedNetworks'),
         ),
       ).thenAnswer((_) async => []);
-      when(
-        () => mockWirelessRepository.getNetworkDetails(any()),
-      ).thenAnswer((_) async => tConnectedNetwork);
 
       await tester.pumpWidget(createTestApp(mockWirelessRepository));
       await tester.pumpAndSettle();
@@ -381,31 +378,42 @@ void main() {
       expect(find.byType(NetworkDetailScreen), findsOneWidget);
       expect(find.text('OfficeWifi_Connected'), findsWidgets);
 
-      // Tap moreVert menu button
-      final moreBtn = findMechanixIconButtonByAsset(SettingIcons.moreVert);
-      expect(moreBtn, findsOneWidget);
-      await tester.tap(moreBtn);
+      // The app bar has a forget (delete) button instead of an overflow menu.
+      expect(findMechanixIconButtonByAsset(SettingIcons.moreVert), findsNothing);
+      final forgetBtn = find.byKey(const Key('network_detail_forget_button'));
+      expect(forgetBtn, findsOneWidget);
+
+      // Cancelling the confirmation keeps the detail screen open.
+      await tester.tap(forgetBtn);
+      await tester.pumpAndSettle();
+      expect(
+        find.text(l10n.forgetWifiPrompt('OfficeWifi_Connected')),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(const Key('delete_network_cancel_button')));
       await tester.pumpAndSettle();
 
-      // Tap refresh menu item
-      final refreshItem = find.text(l10n.refresh);
-      expect(refreshItem, findsOneWidget);
-      await tester.tap(refreshItem);
-      await tester.pump();
+      verifyNever(() => mockWirelessRepository.forgetNetwork(any()));
+      expect(find.byType(NetworkDetailScreen), findsOneWidget);
 
+      // Confirming forgets the network and returns to the Wi-Fi screen.
+      await tester.tap(forgetBtn);
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('delete_network_delete_button')));
       await tester.pumpAndSettle();
 
-      // Only the open network's details are re-read.
       verify(
-        () => mockWirelessRepository.getNetworkDetails('OfficeWifi_Connected'),
+        () => mockWirelessRepository.forgetNetwork(
+          any(
+            that: isA<WifiNetwork>().having(
+              (n) => n.name,
+              'name',
+              'OfficeWifi_Connected',
+            ),
+          ),
+        ),
       ).called(1);
-
-      // Tap back to return to WirelessScreen
-      final backButton = findMechanixIconButtonByAsset(SettingIcons.back);
-      expect(backButton, findsOneWidget);
-      await tester.tap(backButton);
-      await tester.pumpAndSettle();
-
+      expect(find.byType(NetworkDetailScreen), findsNothing);
       expect(find.byType(WirelessScreen), findsOneWidget);
     });
 

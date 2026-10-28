@@ -6,7 +6,6 @@ import 'package:mechanix_settings/core/utils/app_logger.dart';
 import 'package:mechanix_settings/features/wireless/blocs/wireless_event.dart';
 import 'package:mechanix_settings/features/wireless/blocs/wireless_state.dart';
 import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
-import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
 import 'package:mechanix_settings/features/wireless/data/models/wireless_exceptions.dart';
 import 'package:mechanix_settings/features/wireless/data/repositories/wireless_repository.dart';
 import 'package:nm/nm.dart';
@@ -36,9 +35,6 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
   /// Number of visible screens that requested periodic scanning.
   int _periodicScanClients = 0;
 
-  /// Networks whose details are currently being refreshed.
-  final Set<String> _refreshesInFlight = {};
-
   WirelessBloc({required this.wirelessRepository})
     : super(
         WirelessState(
@@ -59,13 +55,6 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
     on<ForgetNetworkEvent>(_onForgetNetwork);
     on<ConnectivityStateChangedEvent>(_onConnectivityStateChanged);
     on<OpenCaptivePortal>(_onOpenCaptivePortal);
-    // Concurrent so refreshes of different networks are not queued behind
-    // each other; repeated refreshes of the same network are dropped while
-    // one is in flight (see _onRefreshNetworkDetails).
-    on<RefreshNetworkDetails>(
-      _onRefreshNetworkDetails,
-      transformer: concurrent(),
-    );
     on<StartPeriodicScan>(_onStartPeriodicScan);
     on<StopPeriodicScan>(_onStopPeriodicScan);
   }
@@ -406,57 +395,6 @@ class WirelessBloc extends Bloc<WirelessEvent, WirelessState> {
         emit(state.copyWith(isScanning: false));
       }
     }
-  }
-
-  /// Re-reads only the network named in [event] (no scan) and replaces it in
-  /// every list it appears in. Other networks are left untouched. If the
-  /// network can no longer be found, the current state is kept.
-  Future<void> _onRefreshNetworkDetails(
-    RefreshNetworkDetails event,
-    Emitter<WirelessState> emit,
-  ) async {
-    // Drop repeated taps for a network that is already being refreshed: the
-    // in-flight refresh returns fresh data anyway.
-    if (!_refreshesInFlight.add(event.networkName)) return;
-
-    try {
-      if (!wirelessRepository.isWirelessEnabled()) return;
-
-      final updated = await wirelessRepository.getNetworkDetails(
-        event.networkName,
-      );
-      if (updated == null || isClosed) return;
-
-      // Re-read the state after the await so concurrent updates are kept.
-      final current = state;
-      final newState = current.copyWith(
-        savedNetworks: _replaceNetwork(current.savedNetworks, updated),
-        myNetworks: _replaceNetwork(current.myNetworks, updated),
-        availableNetworks: _replaceNetwork(current.availableNetworks, updated),
-      );
-
-      if (newState != current) {
-        emit(newState);
-      }
-    } catch (e, stackTrace) {
-      AppLogger.e(
-        'Failed to refresh details of ${event.networkName}: $e',
-        stack: stackTrace,
-      );
-    } finally {
-      _refreshesInFlight.remove(event.networkName);
-    }
-  }
-
-  /// Returns [networks] with the entry named like [updated] replaced, or the
-  /// same list instance when it does not contain that network.
-  static List<WifiNetwork> _replaceNetwork(
-    List<WifiNetwork> networks,
-    WifiNetwork updated,
-  ) {
-    final index = networks.indexWhere((n) => n.name == updated.name);
-    if (index == -1) return networks;
-    return [...networks]..[index] = updated;
   }
 
   /// Initiates a connection request to the designated Wi-Fi network.

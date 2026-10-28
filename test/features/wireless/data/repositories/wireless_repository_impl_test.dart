@@ -207,13 +207,10 @@ void main() {
     });
   });
 
-  group('getNetworkDetails', () {
-    MockNetworkManagerSettingsConnection savedConnection(
-      String ssid, {
-      bool unsaved = false,
-    }) {
+  group('saved profile index', () {
+    MockNetworkManagerSettingsConnection savedConnection(String ssid) {
       final connection = MockNetworkManagerSettingsConnection();
-      when(() => connection.unsaved).thenReturn(unsaved);
+      when(() => connection.unsaved).thenReturn(false);
       when(() => connection.getSettings()).thenAnswer(
         (_) async => {
           'connection': {'id': DBusString(ssid)},
@@ -228,181 +225,24 @@ void main() {
       return connection;
     }
 
-    MockNetworkManagerAccessPoint accessPoint(String ssid) {
-      final ap = MockNetworkManagerAccessPoint();
-      when(() => ap.ssid).thenReturn(utf8.encode(ssid));
-      when(() => ap.strength).thenReturn(70);
-      when(() => ap.frequency).thenReturn(5180);
-      when(
-        () => ap.wpaFlags,
-      ).thenReturn(<NetworkManagerWifiAccessPointSecurityFlag>[]);
-      when(
-        () => ap.rsnFlags,
-      ).thenReturn(<NetworkManagerWifiAccessPointSecurityFlag>[]);
-      return ap;
-    }
-
-    test('returns the saved profile with the requested SSID only', () async {
-      final other = savedConnection('Other_WiFi');
-      final target = savedConnection('Saved_WiFi');
-      when(() => mockSettings.connections).thenReturn([other, target]);
-
-      final network = await repository.getNetworkDetails('Saved_WiFi');
-
-      expect(network, isNotNull);
-      expect(network!.name, 'Saved_WiFi');
-    });
-
-    test('ignores unsaved (temporary) profiles', () async {
-      final temporary = savedConnection('Saved_WiFi', unsaved: true);
-      when(() => mockSettings.connections).thenReturn([temporary]);
-
-      expect(await repository.getNetworkDetails('Saved_WiFi'), isNull);
-      verifyNever(() => temporary.getSettings());
-    });
-
-    test('includes live signal info for a saved network in range', () async {
-      // Build mocks before stubbing: calling when() inside thenReturn()
-      // would interrupt the outer stub.
-      final connection = savedConnection('Saved_WiFi');
-      final ap = accessPoint('Saved_WiFi');
-      when(() => mockSettings.connections).thenReturn([connection]);
-      when(() => mockWireless.accessPoints).thenReturn([ap]);
-
-      final network = await repository.getNetworkDetails('Saved_WiFi');
-
-      expect(network!.rawSignalStrength, 70);
-      expect(network.frequency, 5180);
-    });
-
-    test('falls back to the scanned access point when not saved', () async {
-      when(() => mockSettings.connections).thenReturn([]);
-      final ap = accessPoint('Available_WiFi');
-      when(() => mockWireless.accessPoints).thenReturn([ap]);
-
-      final network = await repository.getNetworkDetails('Available_WiFi');
-
-      expect(network, isNotNull);
-      expect(network!.name, 'Available_WiFi');
-      expect(network.rawSignalStrength, 70);
-    });
-
-    test(
-      'reports changed security when a saved open network now uses WPA',
-      () async {
-        final connection = savedConnection('Cafe_WiFi');
-        when(
-          () => connection.getSecrets(any()),
-        ).thenAnswer((_) async => <String, Map<String, DBusValue>>{});
-        final ap = accessPoint('Cafe_WiFi');
-        when(() => ap.rsnFlags).thenReturn([
-          NetworkManagerWifiAccessPointSecurityFlag.keyManagementPsk,
-        ]);
-        when(() => mockSettings.connections).thenReturn([connection]);
-        when(() => mockWireless.accessPoints).thenReturn([ap]);
-
-        final network = await repository.getNetworkDetails('Cafe_WiFi');
-
-        expect(network!.savedSecurity, WirelessSecurity.none);
-        expect(network.scannedSecurity, WirelessSecurity.wpaWpa2Personal);
-        expect(network.hasSecurityChanged, isTrue);
-        expect(network.isSecured, isTrue);
-      },
-    );
-
-    test('reports unchanged security for a saved open network', () async {
-      final connection = savedConnection('Open_WiFi');
-      final ap = accessPoint('Open_WiFi');
-      when(() => mockSettings.connections).thenReturn([connection]);
-      when(() => mockWireless.accessPoints).thenReturn([ap]);
-
-      final network = await repository.getNetworkDetails('Open_WiFi');
-
-      expect(network!.savedSecurity, WirelessSecurity.none);
-      expect(network.scannedSecurity, WirelessSecurity.none);
-      expect(network.hasSecurityChanged, isFalse);
-    });
-
-    test('does not request a scan', () async {
-      when(() => mockWireless.requestScan()).thenAnswer((_) async {});
-
-      await repository.getNetworkDetails('Saved_WiFi');
-
-      verifyNever(() => mockWireless.requestScan());
-    });
-
-    test(
-      'returns null when the network is neither saved nor in range',
-      () async {
-        final other = savedConnection('Other_WiFi');
-        when(() => mockSettings.connections).thenReturn([other]);
-
-        expect(await repository.getNetworkDetails('Missing_WiFi'), isNull);
-      },
-    );
-
-    test(
-      'reads only the matching profile once saved profiles are indexed',
-      () async {
-        final other = savedConnection('Other_WiFi');
-        final target = savedConnection('Saved_WiFi');
-        when(() => mockSettings.connections).thenReturn([other, target]);
-
-        // Reading all saved networks builds the SSID → profile index.
-        await repository.getSavedNetworks();
-        clearInteractions(other);
-        clearInteractions(target);
-
-        final network = await repository.getNetworkDetails('Saved_WiFi');
-
-        expect(network!.name, 'Saved_WiFi');
-        verifyNever(() => other.getSettings());
-        verify(() => target.getSettings()).called(1);
-      },
-    );
-
-    test('reuses the index across repeated lookups', () async {
-      final other = savedConnection('Other_WiFi');
-      final target = savedConnection('Saved_WiFi');
-      when(() => mockSettings.connections).thenReturn([other, target]);
-
-      // The first lookup has no index yet and reads every profile once.
-      await repository.getNetworkDetails('Saved_WiFi');
-      clearInteractions(other);
-      clearInteractions(target);
-
-      await repository.getNetworkDetails('Saved_WiFi');
-      await repository.getNetworkDetails('Saved_WiFi');
-
-      verifyNever(() => other.getSettings());
-      verify(() => target.getSettings()).called(2);
-    });
-
-    test('rebuilds the index when saved profiles are added', () async {
-      final first = savedConnection('Saved_WiFi');
-      when(() => mockSettings.connections).thenReturn([first]);
-      await repository.getNetworkDetails('Saved_WiFi');
-
-      final added = savedConnection('New_WiFi');
-      when(() => mockSettings.connections).thenReturn([first, added]);
-
-      final network = await repository.getNetworkDetails('New_WiFi');
-
-      expect(network!.name, 'New_WiFi');
-      verify(() => added.getSettings()).called(1);
-    });
-
     test(
       'secured access points that are not saved skip the password lookup',
       () async {
         final saved = savedConnection('Saved_WiFi');
-        final ap = accessPoint('Cafe_WiFi');
+        final ap = MockNetworkManagerAccessPoint();
+        when(() => ap.ssid).thenReturn(utf8.encode('Cafe_WiFi'));
+        when(() => ap.strength).thenReturn(70);
+        when(() => ap.frequency).thenReturn(5180);
+        when(
+          () => ap.wpaFlags,
+        ).thenReturn(<NetworkManagerWifiAccessPointSecurityFlag>[]);
         when(() => ap.rsnFlags).thenReturn([
           NetworkManagerWifiAccessPointSecurityFlag.keyManagementPsk,
         ]);
         when(() => mockSettings.connections).thenReturn([saved]);
         when(() => mockWireless.accessPoints).thenReturn([ap]);
 
+        // Reading all saved networks builds the SSID → profile index.
         final savedNetworks = await repository.getSavedNetworks();
         clearInteractions(saved);
 
@@ -419,14 +259,6 @@ void main() {
         verifyNever(() => saved.getSecrets(any()));
       },
     );
-
-    test('returns null for an empty name or when uninitialized', () async {
-      expect(await repository.getNetworkDetails(''), isNull);
-      expect(
-        await WirelessRepositoryImpl().getNetworkDetails('Saved_WiFi'),
-        isNull,
-      );
-    });
   });
 
   group('getAvailableNetworks', () {

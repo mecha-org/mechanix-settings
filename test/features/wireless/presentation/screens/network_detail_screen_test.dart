@@ -55,8 +55,10 @@ void main() {
     expect(find.byType(NetworkDetailScreen), findsOneWidget);
   }
 
-  Future<void> openMenu(WidgetTester tester) async {
-    await tester.tap(findIconButtonWithAsset(SettingIcons.moreVert));
+  final findForgetButton = find.byKey(const Key('network_detail_forget_button'));
+
+  Future<void> tapForget(WidgetTester tester) async {
+    await tester.tap(findForgetButton);
     await tester.pumpAndSettle();
   }
 
@@ -71,7 +73,7 @@ void main() {
   }
 
   group('NetworkDetailScreen Widget Tests', () {
-    testWidgets('renders network name as title, back and more buttons', (
+    testWidgets('renders network name as title, back and forget buttons', (
       WidgetTester tester,
     ) async {
       await pumpDetail(tester, networkName: tConnectedNetwork.name);
@@ -84,7 +86,21 @@ void main() {
         findsOneWidget,
       );
       expect(findBackButton, findsOneWidget);
-      expect(findIconButtonWithAsset(SettingIcons.moreVert), findsOneWidget);
+      expect(findForgetButton, findsOneWidget);
+      expect(
+        find.descendant(
+          of: findForgetButton,
+          matching: find.byWidgetPredicate(
+            (w) =>
+                w is ImageIcon &&
+                w.image is AssetImage &&
+                (w.image as AssetImage).assetName == SettingIcons.delete,
+          ),
+        ),
+        findsOneWidget,
+      );
+      // The overflow menu (refresh / forget) was removed.
+      expect(findIconButtonWithAsset(SettingIcons.moreVert), findsNothing);
       expect(find.byType(NetworkDetailsBody), findsOneWidget);
     });
 
@@ -425,41 +441,12 @@ void main() {
     });
 
     testWidgets(
-      'refresh menu item reloads network details without scanning',
+      'forget button confirms, dispatches ForgetNetworkEvent and pops',
       (WidgetTester tester) async {
         await pumpDetail(tester, networkName: tConnectedNetwork.name);
         final l10n = l10nOf(tester, find.byType(NetworkDetailScreen));
 
-        await openMenu(tester);
-        expect(find.text(l10n.refresh), findsOneWidget);
-        expect(find.text(l10n.forgetNetwork), findsOneWidget);
-
-        await tester.tap(find.text(l10n.refresh));
-        await tester.pumpAndSettle();
-
-        verify(
-          () => mockWirelessBloc.add(
-            RefreshNetworkDetails(tConnectedNetwork.name),
-          ),
-        ).called(1);
-        verifyNever(
-          () => mockWirelessBloc.add(any(that: isA<LoadWireless>())),
-        );
-        verifyNever(
-          () => mockWirelessBloc.add(any(that: isA<ScanNetworks>())),
-        );
-      },
-    );
-
-    testWidgets(
-      'forget menu item confirms, dispatches ForgetNetworkEvent and pops',
-      (WidgetTester tester) async {
-        await pumpDetail(tester, networkName: tConnectedNetwork.name);
-        final l10n = l10nOf(tester, find.byType(NetworkDetailScreen));
-
-        await openMenu(tester);
-        await tester.tap(find.text(l10n.forgetNetwork));
-        await tester.pumpAndSettle();
+        await tapForget(tester);
 
         expect(
           find.text(l10n.forgetWifiPrompt(tConnectedNetwork.name)),
@@ -488,11 +475,8 @@ void main() {
       WidgetTester tester,
     ) async {
       await pumpDetail(tester, networkName: tConnectedNetwork.name);
-      final l10n = l10nOf(tester, find.byType(NetworkDetailScreen));
 
-      await openMenu(tester);
-      await tester.tap(find.text(l10n.forgetNetwork));
-      await tester.pumpAndSettle();
+      await tapForget(tester);
 
       await tester.tap(find.byKey(const Key('delete_network_cancel_button')));
       await tester.pumpAndSettle();
