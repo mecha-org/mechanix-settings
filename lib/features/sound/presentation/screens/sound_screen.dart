@@ -331,7 +331,7 @@ class _NavigationTile extends StatelessWidget {
     return MechanixListTile(
       contentPadding: const EdgeInsets.only(
         left: 24,
-        right: 8,
+        right: 24,
         top: 4,
         bottom: 4,
       ),
@@ -363,14 +363,10 @@ class _NavigationTile extends StatelessWidget {
             ),
           ),
         ),
-        MechanixIconButton.standard(
-          type: IconButtonType.rounded,
-          icon: ImageIcon(
-            const AssetImage(SettingIcons.caretRight),
-            color: theme.colorScheme.onSurface,
-            size: 20,
-          ),
-          onPressed: onTap,
+        ImageIcon(
+          const AssetImage(SettingIcons.caretRight),
+          color: theme.colorScheme.onSurface,
+          size: 20,
         ),
       ],
     );
