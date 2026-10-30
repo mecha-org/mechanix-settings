@@ -1627,7 +1627,7 @@ abstract class AppLocalizations {
   /// No description provided for @notification.
   ///
   /// In en, this message translates to:
-  /// **'Notification'**
+  /// **'Notification Sound'**
   String get notification;
 
   /// No description provided for @outputDevice.

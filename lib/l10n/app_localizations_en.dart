@@ -834,7 +834,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hapticFeedback => 'Haptic Feedback';
 
   @override
-  String get notification => 'Notification';
+  String get notification => 'Notification Sound';
 
   @override
   String get outputDevice => 'Output Device';
