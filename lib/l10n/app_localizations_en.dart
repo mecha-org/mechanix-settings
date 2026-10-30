@@ -831,16 +831,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get launcher => 'Launcher';
 
   @override
-  String get hapticFeedback => 'Haptic feedback';
+  String get hapticFeedback => 'Haptic Feedback';
 
   @override
-  String get notification => 'Notification';
+  String get notification => 'Notification Sound';
 
   @override
-  String get outputDevice => 'Output device';
+  String get outputDevice => 'Output Device';
 
   @override
-  String get inputDevice => 'Input device';
+  String get inputDevice => 'Input Device';
 
   @override
   String get noInputDevices => 'No Input Devices';

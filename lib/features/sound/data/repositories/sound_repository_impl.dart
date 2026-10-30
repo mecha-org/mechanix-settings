@@ -27,14 +27,7 @@ class SoundRepositoryImpl implements SoundRepository {
   List<PulseAudioSource> _sources = []; // Input devices
 
   /// List of notification sounds
-  final List<String> _notificationSounds = [
-    "Wakeup",
-    "Siren",
-    "Cosmic",
-    "Space",
-    "Supernova",
-    "Crash",
-  ];
+  final List<String> _notificationSounds = ["Siren", "Cosmic", "Rain", "Crash"];
 
   // TODO: Add MxConf integration for persistent settings later.
   bool _launcherSoundsEnabled = true;
