@@ -21,14 +21,13 @@ class OutputDeviceSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _SoundSelectionSheet<String>(
+    return _SoundSelectionSheet(
       title: AppLocalizations.of(context)!.outputDevice,
       selector: (state) => (
         state.outputDevices,
         state.selectedOutputDevice,
         state.outputDeviceLoading,
       ),
-      valueOf: (device) => device,
       onSelect: (context, device) =>
           context.read<SoundBloc>().add(SetOutputDevice(device)),
     );
@@ -48,14 +47,13 @@ class InputDeviceSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _SoundSelectionSheet<String>(
+    return _SoundSelectionSheet(
       title: AppLocalizations.of(context)!.inputDevice,
       selector: (state) => (
         state.inputDevices,
         state.selectedInputDevice,
         state.inputDeviceLoading,
       ),
-      valueOf: (device) => device,
       onSelect: (context, device) =>
           context.read<SoundBloc>().add(SetInputDevice(device)),
     );
@@ -77,11 +75,10 @@ class NotificationSoundSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return _SoundSelectionSheet<String>(
+    return _SoundSelectionSheet(
       title: l10n.notification,
       selector: (state) =>
           (state.notificationSounds, state.selectedNotificationSound, false),
-      valueOf: (sound) => sound,
       labelFor: l10n.notificationSoundName,
       onSelect: (context, sound) =>
           context.read<SoundBloc>().add(SetNotificationSound(sound)),
@@ -89,28 +86,22 @@ class NotificationSoundSheet extends StatelessWidget {
   }
 }
 
-/// (options, selected option value, loading)
-typedef _SheetData<T> = (List<T>, String, bool);
+/// (options, selected option, loading)
+typedef _SheetData = (List<String>, String, bool);
 
 /// Header (back + title) followed by a radio list. Selecting an option applies
 /// it immediately; the sheet stays open until dismissed.
-class _SoundSelectionSheet<T> extends StatelessWidget {
+class _SoundSelectionSheet extends StatelessWidget {
   final String title;
-  final _SheetData<T> Function(SoundState state) selector;
-
-  /// The string that identifies an option and is passed to [onSelect].
-  final String Function(T option) valueOf;
-  final String Function(String value)? labelFor;
-  final String Function(T option)? iconFor;
-  final void Function(BuildContext context, String value) onSelect;
+  final _SheetData Function(SoundState state) selector;
+  final String Function(String option)? labelFor;
+  final void Function(BuildContext context, String option) onSelect;
 
   const _SoundSelectionSheet({
     required this.title,
     required this.selector,
-    required this.valueOf,
     required this.onSelect,
     this.labelFor,
-    this.iconFor,
   });
 
   @override
@@ -147,7 +138,7 @@ class _SoundSelectionSheet<T> extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Flexible(
-            child: BlocSelector<SoundBloc, SoundState, _SheetData<T>>(
+            child: BlocSelector<SoundBloc, SoundState, _SheetData>(
               selector: selector,
               builder: (context, data) {
                 final (options, selected, loading) = data;
@@ -165,14 +156,12 @@ class _SoundSelectionSheet<T> extends StatelessWidget {
                   itemCount: options.length,
                   itemBuilder: (context, index) {
                     final option = options[index];
-                    final value = valueOf(option);
                     return _OptionTile(
-                      key: ValueKey(value),
-                      label: labelFor?.call(value) ?? value,
-                      icon: iconFor?.call(option),
-                      isSelected: value == selected,
+                      key: ValueKey(option),
+                      label: labelFor?.call(option) ?? option,
+                      isSelected: option == selected,
                       onSelect: () {
-                        if (value != selected) onSelect(context, value);
+                        if (option != selected) onSelect(context, option);
                       },
                     );
                   },
@@ -188,14 +177,12 @@ class _SoundSelectionSheet<T> extends StatelessWidget {
 
 class _OptionTile extends StatelessWidget {
   final String label;
-  final String? icon;
   final bool isSelected;
   final VoidCallback onSelect;
 
   const _OptionTile({
     super.key,
     required this.label,
-    required this.icon,
     required this.isSelected,
     required this.onSelect,
   });
@@ -225,9 +212,6 @@ class _OptionTile extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
         style: theme.textTheme.titleLarge!.copyWith(color: color),
       ),
-      trailingWidgets: [
-        if (icon != null) ImageIcon(AssetImage(icon!), color: color, size: 20),
-      ],
     );
   }
 }

@@ -178,7 +178,7 @@ class _VolumeControl extends StatefulWidget {
 class _VolumeControlState extends State<_VolumeControl> {
   // Local value for smooth UI rendering; volume updates are throttled to 400ms
   // during continuous sliding and applied immediately upon release or mute toggle.
-  late double _value;
+  late final ValueNotifier<double> _value;
   late double _lastNonZeroValue;
 
   Timer? _throttleTimer;
@@ -188,9 +188,9 @@ class _VolumeControlState extends State<_VolumeControl> {
   @override
   void initState() {
     super.initState();
-    _value = widget.volume.clamp(0.0, 1.0);
-    _lastNonZeroValue = _value > 0.0 ? _value : 0.5;
-    _lastCommittedValue = _value;
+    _value = ValueNotifier(widget.volume.clamp(0.0, 1.0));
+    _lastNonZeroValue = _value.value > 0.0 ? _value.value : 0.5;
+    _lastCommittedValue = _value.value;
   }
 
   @override
@@ -198,36 +198,36 @@ class _VolumeControlState extends State<_VolumeControl> {
     super.didUpdateWidget(oldWidget);
     // Sync external changes only when not actively dragging to prevent jitter.
     if (!_isDragging && oldWidget.volume != widget.volume) {
-      _value = widget.volume.clamp(0.0, 1.0);
-      if (_value > 0.0) _lastNonZeroValue = _value;
-      _lastCommittedValue = _value;
+      _syncToWidgetVolume();
     }
+  }
+
+  void _syncToWidgetVolume() {
+    final volume = widget.volume.clamp(0.0, 1.0);
+    _value.value = volume;
+    if (volume > 0.0) _lastNonZeroValue = volume;
+    _lastCommittedValue = volume;
   }
 
   /// Snaps the slider back to the bloc's volume after a failed update. The
   /// bloc's value doesn't change on failure, so didUpdateWidget won't do it.
   void _onCommitFailed() {
     if (_isDragging) return;
-    setState(() {
-      _value = widget.volume.clamp(0.0, 1.0);
-      if (_value > 0.0) _lastNonZeroValue = _value;
-      _lastCommittedValue = _value;
-    });
+    _syncToWidgetVolume();
   }
 
   void _onSliderChanged(double val) {
     _isDragging = true;
-    setState(() {
-      _value = val;
-      if (val > 0.0) _lastNonZeroValue = val;
-    });
+    _value.value = val;
+    if (val > 0.0) _lastNonZeroValue = val;
 
     // Start 400ms throttle timer if not already running
     _throttleTimer ??= Timer(const Duration(milliseconds: 400), () {
       _throttleTimer = null;
-      if (_value != _lastCommittedValue) {
-        _lastCommittedValue = _value;
-        widget.onCommit(_value);
+      final value = _value.value;
+      if (value != _lastCommittedValue) {
+        _lastCommittedValue = value;
+        widget.onCommit(value);
       }
     });
   }
@@ -251,11 +251,10 @@ class _VolumeControlState extends State<_VolumeControl> {
     _throttleTimer = null;
     _isDragging = false;
 
-    final next = _value > 0.0 ? 0.0 : _lastNonZeroValue;
-    setState(() {
-      if (_value > 0.0) _lastNonZeroValue = _value;
-      _value = next;
-    });
+    final current = _value.value;
+    final next = current > 0.0 ? 0.0 : _lastNonZeroValue;
+    if (current > 0.0) _lastNonZeroValue = current;
+    _value.value = next;
     _lastCommittedValue = next;
     widget.onCommit(next);
   }
@@ -263,6 +262,7 @@ class _VolumeControlState extends State<_VolumeControl> {
   @override
   void dispose() {
     _throttleTimer?.cancel();
+    _value.dispose();
     super.dispose();
   }
 
@@ -307,26 +307,32 @@ class _VolumeControlState extends State<_VolumeControl> {
             ),
             trailingWidgets: [
               if (widget.enabled)
-                Text(
-                  l10n.volumePercentage((_value * 100).round()),
-                  style: theme.textTheme.titleMedium!.copyWith(
-                    color: theme.colorScheme.onSurface,
-                    fontFamily: MechanixFontFamily.geistMono,
+                ValueListenableBuilder<double>(
+                  valueListenable: _value,
+                  builder: (context, value, _) => Text(
+                    l10n.volumePercentage((value * 100).round()),
+                    style: theme.textTheme.titleMedium!.copyWith(
+                      color: theme.colorScheme.onSurface,
+                      fontFamily: MechanixFontFamily.geistMono,
+                    ),
                   ),
                 ),
             ],
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: MechanixSlider(
-              value: _value,
-              min: 0,
-              max: 1,
-              size: MechanixSliderSize.medium,
-              showValueLabel: false,
-              // A null onChanged disables the slider when no device is detected.
-              onChanged: widget.enabled ? _onSliderChanged : null,
-              onChangeEnd: widget.enabled ? _onSliderChangeEnd : null,
+            child: ValueListenableBuilder<double>(
+              valueListenable: _value,
+              builder: (context, value, _) => MechanixSlider(
+                value: value,
+                min: 0,
+                max: 1,
+                size: MechanixSliderSize.medium,
+                showValueLabel: false,
+                // A null onChanged disables the slider when no device is detected.
+                onChanged: widget.enabled ? _onSliderChanged : null,
+                onChangeEnd: widget.enabled ? _onSliderChangeEnd : null,
+              ),
             ),
           ),
         ],
