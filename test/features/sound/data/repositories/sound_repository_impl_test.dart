@@ -315,17 +315,23 @@ void main() {
 
     test('get notification sounds list', () async {
       final sounds = await repository.getNotificationSounds();
-      expect(sounds, contains('Space'));
+      expect(sounds, contains('Siren'));
       expect(sounds.length, greaterThan(1));
     });
 
     test('get and set selected notification sound', () async {
       var sound = await repository.getSelectedNotificationSound();
-      expect(sound, 'Space');
+      expect(sound, 'Siren');
 
       await repository.setSelectedNotificationSound('Cosmic');
       sound = await repository.getSelectedNotificationSound();
       expect(sound, 'Cosmic');
+    });
+
+    test('falls back to first sound when stored value is unknown', () async {
+      await repository.setSelectedNotificationSound('Space');
+      final sound = await repository.getSelectedNotificationSound();
+      expect(sound, 'Siren');
     });
   });
 

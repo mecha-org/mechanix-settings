@@ -8,6 +8,7 @@ import 'package:mechanix_settings/core/utils/helper.dart';
 import 'package:mechanix_settings/features/sound/blocs/sound_bloc.dart';
 import 'package:mechanix_settings/features/sound/blocs/sound_event.dart';
 import 'package:mechanix_settings/features/sound/blocs/sound_state.dart';
+import 'package:mechanix_settings/features/sound/data/models/enums.dart';
 import 'package:mechanix_settings/features/sound/presentation/widgets/sound_selection_sheets.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
 import 'package:widgets/widgets.dart';
@@ -26,9 +27,10 @@ class SoundScreen extends StatelessWidget {
       listener: (context, state) {
         if (state.error == null) return;
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(getSoundErrorMessage(l10n, state.error!))),
-        );
+        MechanixSnackbar.text(
+          position: MechanixSnackbarPosition.top,
+          text: getSoundErrorMessage(l10n, state.error!),
+        ).show(context);
       },
       child: Scaffold(
         backgroundColor: theme.colorScheme.surfaceContainerLowest,
@@ -140,6 +142,9 @@ class _VolumeSection extends StatelessWidget {
           volume: volume,
           enabled: hasDevice,
           icon: isInput ? SettingIcons.micIcon : SettingIcons.speaker,
+          failureError: isInput
+              ? SoundError.setInputVolumeFailed
+              : SoundError.setOutputVolumeFailed,
           onCommit: (value) => context.read<SoundBloc>().add(
             isInput ? SetInputVolume(value) : SetOutputVolume(value),
           ),
@@ -154,6 +159,7 @@ class _VolumeControl extends StatefulWidget {
   final double volume;
   final bool enabled;
   final String icon;
+  final SoundError failureError;
   final ValueChanged<double> onCommit;
 
   const _VolumeControl({
@@ -161,6 +167,7 @@ class _VolumeControl extends StatefulWidget {
     required this.volume,
     required this.enabled,
     required this.icon,
+    required this.failureError,
     required this.onCommit,
   });
 
@@ -195,6 +202,17 @@ class _VolumeControlState extends State<_VolumeControl> {
       if (_value > 0.0) _lastNonZeroValue = _value;
       _lastCommittedValue = _value;
     }
+  }
+
+  /// Snaps the slider back to the bloc's volume after a failed update. The
+  /// bloc's value doesn't change on failure, so didUpdateWidget won't do it.
+  void _onCommitFailed() {
+    if (_isDragging) return;
+    setState(() {
+      _value = widget.volume.clamp(0.0, 1.0);
+      if (_value > 0.0) _lastNonZeroValue = _value;
+      _lastCommittedValue = _value;
+    });
   }
 
   void _onSliderChanged(double val) {
@@ -253,60 +271,66 @@ class _VolumeControlState extends State<_VolumeControl> {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
 
-    return Column(
-      spacing: 8,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        MechanixListTile(
-          contentPadding: const EdgeInsets.symmetric(
-            // vertical: 18,
-            horizontal: 24,
-          ),
-          leadingWidgets: [
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: widget.enabled ? _toggleMute : null,
-              child: ImageIcon(
-                AssetImage(widget.icon),
-                color: theme.colorScheme.onSurface,
-                size: 19,
-              ),
+    return BlocListener<SoundBloc, SoundState>(
+      listenWhen: (previous, current) =>
+          previous.error != current.error &&
+          current.error == widget.failureError,
+      listener: (context, state) => _onCommitFailed(),
+      child: Column(
+        spacing: 8,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          MechanixListTile(
+            contentPadding: const EdgeInsets.symmetric(
+              // vertical: 18,
+              horizontal: 24,
             ),
-          ],
-          gap: 12,
-          height: 56,
-          // labelText: widget.label,
-          label: Text(
-            widget.label,
-            style: theme.textTheme.titleLarge!.copyWith(
-              color: theme.colorScheme.onSurface,
-            ),
-          ),
-          trailingWidgets: [
-            if (widget.enabled)
-              Text(
-                l10n.volumePercentage((_value * 100).round()),
-                style: theme.textTheme.titleMedium!.copyWith(
+            leadingWidgets: [
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: widget.enabled ? _toggleMute : null,
+                child: ImageIcon(
+                  AssetImage(widget.icon),
                   color: theme.colorScheme.onSurface,
-                  fontFamily: MechanixFontFamily.geistMono,
+                  size: 19,
                 ),
               ),
-          ],
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: MechanixSlider(
-            value: _value,
-            min: 0,
-            max: 1,
-            size: MechanixSliderSize.medium,
-            showValueLabel: false,
-            // A null onChanged disables the slider when no device is detected.
-            onChanged: widget.enabled ? _onSliderChanged : null,
-            onChangeEnd: widget.enabled ? _onSliderChangeEnd : null,
+            ],
+            gap: 12,
+            height: 56,
+            // labelText: widget.label,
+            label: Text(
+              widget.label,
+              style: theme.textTheme.titleLarge!.copyWith(
+                color: theme.colorScheme.onSurface,
+              ),
+            ),
+            trailingWidgets: [
+              if (widget.enabled)
+                Text(
+                  l10n.volumePercentage((_value * 100).round()),
+                  style: theme.textTheme.titleMedium!.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    fontFamily: MechanixFontFamily.geistMono,
+                  ),
+                ),
+            ],
           ),
-        ),
-      ],
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: MechanixSlider(
+              value: _value,
+              min: 0,
+              max: 1,
+              size: MechanixSliderSize.medium,
+              showValueLabel: false,
+              // A null onChanged disables the slider when no device is detected.
+              onChanged: widget.enabled ? _onSliderChanged : null,
+              onChangeEnd: widget.enabled ? _onSliderChangeEnd : null,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

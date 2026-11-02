@@ -298,6 +298,8 @@ class SoundBloc extends Bloc<SoundEvent, SoundState> {
           error: SoundError.setOutputVolumeFailed,
         ),
       );
+
+      add(const RefreshOutputVolume());
     } catch (e, stack) {
       AppLogger.e(
         "SoundBloc: Unexpected error setting output volume",
@@ -364,6 +366,8 @@ class SoundBloc extends Bloc<SoundEvent, SoundState> {
           error: SoundError.setInputVolumeFailed,
         ),
       );
+
+      add(const RefreshInputVolume());
     } catch (e, stack) {
       AppLogger.e(
         "SoundBloc: Unexpected error setting input volume",

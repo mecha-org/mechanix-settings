@@ -32,7 +32,7 @@ class SoundRepositoryImpl implements SoundRepository {
   // TODO: Add MxConf integration for persistent settings later.
   bool _launcherSoundsEnabled = true;
   bool _hapticFeedbackEnabled = true;
-  String _selectedNotificationSound = "Space";
+  String _selectedNotificationSound = "Siren";
 
   SoundRepositoryImpl({PulseAudioClient? client})
     : _client = client ?? PulseAudioClient();
@@ -423,6 +423,9 @@ class SoundRepositoryImpl implements SoundRepository {
   @override
   Future<String> getSelectedNotificationSound() async {
     try {
+      if (!_notificationSounds.contains(_selectedNotificationSound)) {
+        return _notificationSounds.first;
+      }
       return _selectedNotificationSound;
     } catch (e, stack) {
       AppLogger.e(
