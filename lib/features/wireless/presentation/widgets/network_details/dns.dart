@@ -7,6 +7,27 @@ import 'package:mechanix_settings/features/wireless/data/utils/ip_validation_uti
 import 'package:mechanix_settings/l10n/app_localizations.dart';
 import 'package:widgets/widgets.dart';
 
+/// [servers] without the network's router addresses (gateways and the
+/// routers NetworkManager reports). Routers often hand themselves out as the
+/// DNS server; manual DNS lists only show real DNS servers.
+List<String> dnsServersWithoutRouters(
+  WifiNetwork network,
+  Iterable<String> servers,
+) {
+  final routers = {
+    for (final address in [
+      ...network.routerAddresses,
+      network.router,
+      network.ipv6Gateway,
+    ])
+      address.trim().toLowerCase(),
+  }..remove('');
+  return [
+    for (final server in servers)
+      if (!routers.contains(server.trim().toLowerCase())) server,
+  ];
+}
+
 class _DnsItem {
   final TextEditingController controller;
 
@@ -61,7 +82,13 @@ class _DNSBottomSheetState extends State<DNSBottomSheet> {
     super.initState();
     _configType = widget.currentConfig;
 
-    for (final s in widget.servers) {
+    // Use active DNS servers as the initial list when no manual servers are configured.
+    final configured = widget.servers.where((s) => s.trim().isNotEmpty);
+    final initial = configured.isNotEmpty
+        ? configured
+        : widget.network.activeDnsServers;
+    // Manual never lists the router.
+    for (final s in dnsServersWithoutRouters(widget.network, initial)) {
       if (s.trim().isNotEmpty) {
         _items.add(_DnsItem(s.trim()));
       }

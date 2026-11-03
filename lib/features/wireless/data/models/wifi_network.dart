@@ -38,6 +38,15 @@ class WifiNetwork extends Equatable {
   final List<String> dnsServers;
   final List<String> dnsSearchDomains;
 
+  /// DNS servers the connection is using right now .
+  /// the ones handed out by DHCP when [dnsConfigType] is automatic.
+  final List<String> activeDnsServers;
+
+  /// Addresses the device knows as routers (gateways, route next hops,
+  /// DHCP `routers` option). Used by [WirelessBloc] to keep routers out of
+  /// [activeDnsServers]. Empty while disconnected.
+  final List<String> routerAddresses;
+
   final String wirelessAddress;
 
   final IPv6ConfigType ipv6ConfigType;
@@ -70,6 +79,8 @@ class WifiNetwork extends Equatable {
     this.dnsConfigType = DNSConfigType.automatic,
     this.dnsServers = const [],
     this.dnsSearchDomains = const [],
+    this.activeDnsServers = const [],
+    this.routerAddresses = const [],
     this.wirelessAddress = "",
     this.ipv6ConfigType = IPv6ConfigType.automatic,
     this.ipv6Address = "",
@@ -123,6 +134,8 @@ class WifiNetwork extends Equatable {
     DNSConfigType? dnsConfigType,
     List<String>? dnsServers,
     List<String>? dnsSearchDomains,
+    List<String>? activeDnsServers,
+    List<String>? routerAddresses,
     String? wirelessAddress,
     IPv6ConfigType? ipv6ConfigType,
     String? ipv6Address,
@@ -156,6 +169,8 @@ class WifiNetwork extends Equatable {
       dnsConfigType: dnsConfigType ?? this.dnsConfigType,
       dnsServers: dnsServers ?? this.dnsServers,
       dnsSearchDomains: dnsSearchDomains ?? this.dnsSearchDomains,
+      activeDnsServers: activeDnsServers ?? this.activeDnsServers,
+      routerAddresses: routerAddresses ?? this.routerAddresses,
       wirelessAddress: wirelessAddress ?? this.wirelessAddress,
       ipv6ConfigType: ipv6ConfigType ?? this.ipv6ConfigType,
       ipv6Address: ipv6Address ?? this.ipv6Address,
@@ -190,6 +205,8 @@ class WifiNetwork extends Equatable {
     dnsConfigType,
     dnsServers,
     dnsSearchDomains,
+    activeDnsServers,
+    routerAddresses,
     wirelessAddress,
     ipv6ConfigType,
     ipv6Address,
