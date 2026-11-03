@@ -176,14 +176,20 @@ class _ConfigureRow extends StatelessWidget {
     final styles = _DetailStyles.of(context);
 
     return MechanixListTile(
-      contentPadding: _childRowPadding,
+      contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 24),
       label: Text(label, style: styles.title),
+      gap: 0,
       trailingWidgets: [
         Text(value.toUpperCase(), style: styles.value),
-        ImageIcon(
-          const AssetImage(SettingIcons.caretRight),
-          size: 24,
-          color: theme.colorScheme.onSurface,
+        MechanixIconButton.standard(
+          type: IconButtonType.rounded,
+          size: IconButtonSize.small,
+          onPressed: onTap,
+          icon: ImageIcon(
+            const AssetImage(SettingIcons.caretRight),
+            size: 24,
+            color: theme.colorScheme.onSurface,
+          ),
         ),
       ],
       onTap: onTap,
@@ -709,19 +715,18 @@ class _IPv4Section extends StatelessWidget {
                 );
               },
             ),
-            // Sections are only populated while connected, so every manual
-            // row is shown, with '-' for missing values.
-            if (data.configType == IPv4ConfigType.manual) ...[
-              _ValueRow(
-                label: l10n.ipAddressLabel,
-                value: orDash(data.ipAddress),
-              ),
-              _ValueRow(
-                label: l10n.subnetMaskLabel,
-                value: orDash(data.subnetMask),
-              ),
-              _ValueRow(label: l10n.routerLabel, value: orDash(data.router)),
-            ],
+            // Shown for both manual and automatic (DHCP-assigned values).
+            // Sections are only populated while connected, so every row is
+            // shown, with '-' for missing values.
+            _ValueRow(
+              label: l10n.ipAddressLabel,
+              value: orDash(data.ipAddress),
+            ),
+            _ValueRow(
+              label: l10n.subnetMaskLabel,
+              value: orDash(data.subnetMask),
+            ),
+            _ValueRow(label: l10n.routerLabel, value: orDash(data.router)),
           ],
         );
       },
@@ -789,23 +794,24 @@ class _IPv6Section extends StatelessWidget {
                 );
               },
             ),
-            if (data.configType == IPv6ConfigType.manual) ...[
-              if (data.address.isNotEmpty)
-                _ScrollableValueRow(
-                  label: l10n.ipv6AddressLabel,
-                  value: data.address,
-                ),
+            // Shown for both manual and automatic (SLAAC/DHCPv6-assigned
+            // values); rows without a value are hidden.
+            if (data.address.isNotEmpty) ...[
+              _ScrollableValueRow(
+                label: l10n.ipv6AddressLabel,
+                value: data.address,
+              ),
               if (data.prefix != 0)
                 _ValueRow(
                   label: l10n.ipv6PrefixLabel,
                   value: data.prefix.toString(),
                 ),
-              if (data.gateway.isNotEmpty)
-                _ScrollableValueRow(
-                  label: l10n.ipv6GatewayLabel,
-                  value: data.gateway,
-                ),
             ],
+            if (data.gateway.isNotEmpty)
+              _ScrollableValueRow(
+                label: l10n.ipv6GatewayLabel,
+                value: data.gateway,
+              ),
           ],
         );
       },
@@ -820,14 +826,21 @@ class _DnsData extends Equatable {
   final DNSConfigType configType;
   final List<String> servers;
 
+  /// Servers in use right now (DHCP-assigned when automatic).
+  final List<String> activeServers;
+
   const _DnsData({
     required this.isConnected,
     required this.configType,
     required this.servers,
+    required this.activeServers,
   });
 
+  List<String> get shownServers =>
+      configType == DNSConfigType.manual ? servers : activeServers;
+
   @override
-  List<Object?> get props => [isConnected, configType, servers];
+  List<Object?> get props => [isConnected, configType, servers, activeServers];
 }
 
 class _DnsSection extends StatelessWidget {
@@ -845,6 +858,7 @@ class _DnsSection extends StatelessWidget {
         isConnected: network.isConnected,
         configType: network.dnsConfigType,
         servers: network.dnsServers,
+        activeServers: network.activeDnsServers,
       ),
       builder: (context, data) {
         return _ExpandableSection(
@@ -877,12 +891,11 @@ class _DnsSection extends StatelessWidget {
                 );
               },
             ),
-            if (data.configType == DNSConfigType.manual)
-              for (var i = 0; i < data.servers.length; i++)
-                _ValueRow(
-                  label: l10n.serverNumber(i + 1),
-                  value: data.servers[i],
-                ),
+            for (var i = 0; i < data.shownServers.length; i++)
+              _ValueRow(
+                label: l10n.serverNumber(i + 1),
+                value: data.shownServers[i],
+              ),
           ],
         );
       },

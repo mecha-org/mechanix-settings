@@ -176,10 +176,7 @@ class WirelessRepositoryImpl implements WirelessRepository {
         }
       }
 
-      _setProfileIndex(
-        profilesBySsid,
-        indexComplete ? indexed : null,
-      );
+      _setProfileIndex(profilesBySsid, indexComplete ? indexed : null);
 
       final saved = networks.values.toList();
 
@@ -1039,6 +1036,13 @@ class WirelessRepositoryImpl implements WirelessRepository {
       }
     }
 
+    var activeDnsServers = const <String>[];
+    var routerAddresses = const <String>[];
+    if (isConnected && wifiDevice != null) {
+      activeDnsServers = _activeDnsServers(wifiDevice);
+      routerAddresses = _routerAddresses(wifiDevice).toList();
+    }
+
     final autoJoin = WifiParser.parseAutoConnect(settings);
     final lowDataMode = WifiParser.parseLowDataMode(settings);
 
@@ -1066,12 +1070,74 @@ class WirelessRepositoryImpl implements WirelessRepository {
       dnsConfigType: dnsConfigType,
       dnsServers: dnsServers,
       dnsSearchDomains: dnsSearchDomains,
+      activeDnsServers: activeDnsServers,
+      routerAddresses: routerAddresses,
       wirelessAddress: wifiDevice?.hwAddress ?? "",
       ipv6ConfigType: ipv6ConfigType,
       ipv6Address: ipv6Address,
       ipv6Prefix: ipv6Prefix,
       ipv6Gateway: ipv6Gateway,
     );
+  }
+
+  /// Collects all known router addresses from gateway, route, and DHCP configurations.
+  Set<String> _routerAddresses(NetworkManagerDevice device) {
+    final routers = <String>{};
+    void add(Object? value) {
+      for (final part in (value?.toString() ?? '').split(RegExp(r'[\s,]+'))) {
+        final address = part.trim().toLowerCase();
+        if (address.isNotEmpty && address != '0.0.0.0' && address != '::') {
+          routers.add(address);
+        }
+      }
+    }
+
+    try {
+      add(device.ip4Config?.gateway);
+      add(device.ip6Config?.gateway);
+      for (final route in [
+        ...?device.ip4Config?.routeData,
+        ...?device.ip6Config?.routeData,
+      ]) {
+        add(route['next-hop']);
+      }
+      add(device.dhcp4Config?.options['routers']);
+    } catch (e) {
+      AppLogger.e('Failed to read router addresses: $e');
+    }
+    return routers;
+  }
+
+  /// DNS servers the [device] is using right now,
+  /// whether they were configured manually or received via DHCP/RA.
+  List<String> _activeDnsServers(NetworkManagerDevice device) {
+    final servers = <String>[];
+    void add(Object? value) {
+      final address = value?.toString().trim() ?? '';
+      if (address.isNotEmpty && !servers.contains(address)) {
+        servers.add(address);
+      }
+    }
+
+    try {
+      for (final config in [
+        ...?device.ip4Config?.nameserverData,
+        ...?device.ip6Config?.nameserverData,
+      ]) {
+        add(config['address']);
+      }
+
+      for (final entry in _client.dnsManager.configuration) {
+        if (entry['interface'] != device.interface) continue;
+        final nameservers = entry['nameservers'];
+        if (nameservers is List) {
+          nameservers.forEach(add);
+        }
+      }
+    } catch (e) {
+      AppLogger.e('Failed to read active DNS servers: $e');
+    }
+    return servers;
   }
 
   /// Searches for an existing NetworkManager connection settings profile with matching SSID.
