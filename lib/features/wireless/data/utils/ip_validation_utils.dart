@@ -136,10 +136,21 @@ class IpValidationUtils {
     return null;
   }
 
+  static bool isValidDnsAddress(String ip) {
+    if (isValidIPv4(ip)) {
+      return !ip.startsWith('127.') && ip != '0.0.0.0';
+    }
+    return isValidIPv6(ip);
+  }
+
+  static bool areDnsAddressesValid(List<String> dns) =>
+      dns.every(isValidDnsAddress);
+
+  static bool hasDuplicateDnsAddresses(List<String> dns) =>
+      dns.toSet().length != dns.length;
+
   static bool isValidDnsList(List<String> dns) =>
-      dns.every(IpValidationUtils.isValidIPv4) &&
-      dns.every((ip) => !ip.startsWith('127.') && ip != '0.0.0.0') &&
-      dns.toSet().length == dns.length;
+      dns.every(isValidDnsAddress) && dns.toSet().length == dns.length;
 
   static bool isValidIPv6(String ip) {
     final addr = InternetAddress.tryParse(ip);

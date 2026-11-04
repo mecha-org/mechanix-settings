@@ -12,7 +12,14 @@ class WifiNetwork extends Equatable {
   final int frequency;
   final bool isSecured;
   final WirelessSecurity security;
-  final EnterpriseEapMethod? eapMethod;
+
+  /// Security stored in the saved profile; `null` when the network is not
+  /// saved (or uses an unsupported key management).
+  final WirelessSecurity? savedSecurity;
+
+  /// Security the access point currently advertises; `null` when the network
+  /// is not in range.
+  final WirelessSecurity? scannedSecurity;
   final bool isConnected;
   final bool isConnecting;
   final bool hasNoInternet;
@@ -31,6 +38,15 @@ class WifiNetwork extends Equatable {
   final List<String> dnsServers;
   final List<String> dnsSearchDomains;
 
+  /// DNS servers the connection is using right now .
+  /// the ones handed out by DHCP when [dnsConfigType] is automatic.
+  final List<String> activeDnsServers;
+
+  /// Addresses the device knows as routers (gateways, route next hops,
+  /// DHCP `routers` option). Used by [WirelessBloc] to keep routers out of
+  /// [activeDnsServers]. Empty while disconnected.
+  final List<String> routerAddresses;
+
   final String wirelessAddress;
 
   final IPv6ConfigType ipv6ConfigType;
@@ -47,7 +63,8 @@ class WifiNetwork extends Equatable {
     this.frequency = 0,
     this.isSecured = true,
     this.security = WirelessSecurity.none,
-    this.eapMethod,
+    this.savedSecurity,
+    this.scannedSecurity,
     this.isConnected = false,
     this.isConnecting = false,
     this.hasNoInternet = false,
@@ -62,12 +79,26 @@ class WifiNetwork extends Equatable {
     this.dnsConfigType = DNSConfigType.automatic,
     this.dnsServers = const [],
     this.dnsSearchDomains = const [],
+    this.activeDnsServers = const [],
+    this.routerAddresses = const [],
     this.wirelessAddress = "",
     this.ipv6ConfigType = IPv6ConfigType.automatic,
     this.ipv6Address = "",
     this.ipv6Prefix = 64,
     this.ipv6Gateway = "",
   });
+
+  /// True when the network is saved and the access point now advertises a
+  /// different security than the saved profile (e.g. it was open and is now
+  /// WPA). The saved credentials cannot be used, so a new password is needed.
+  bool get hasSecurityChanged =>
+      savedSecurity != null &&
+      scannedSecurity != null &&
+      savedSecurity != scannedSecurity;
+
+  /// Security to present when asking for a password: what the access point
+  /// advertises now, falling back to [security].
+  WirelessSecurity get effectiveSecurity => scannedSecurity ?? security;
 
   // Computed signal type
   WifiSignalType get signalType =>
@@ -86,7 +117,8 @@ class WifiNetwork extends Equatable {
     int? frequency,
     bool? isSecured,
     WirelessSecurity? security,
-    EnterpriseEapMethod? eapMethod,
+    WirelessSecurity? savedSecurity,
+    WirelessSecurity? scannedSecurity,
     bool? isConnected,
     bool? isConnecting,
     bool? hasNoInternet,
@@ -102,6 +134,8 @@ class WifiNetwork extends Equatable {
     DNSConfigType? dnsConfigType,
     List<String>? dnsServers,
     List<String>? dnsSearchDomains,
+    List<String>? activeDnsServers,
+    List<String>? routerAddresses,
     String? wirelessAddress,
     IPv6ConfigType? ipv6ConfigType,
     String? ipv6Address,
@@ -118,7 +152,8 @@ class WifiNetwork extends Equatable {
       frequency: frequency ?? this.frequency,
       isSecured: isSecured ?? this.isSecured,
       security: security ?? this.security,
-      eapMethod: eapMethod ?? this.eapMethod,
+      savedSecurity: savedSecurity ?? this.savedSecurity,
+      scannedSecurity: scannedSecurity ?? this.scannedSecurity,
       isConnected: isConnected ?? this.isConnected,
       isConnecting: isConnecting ?? this.isConnecting,
       hasNoInternet: hasNoInternet ?? this.hasNoInternet,
@@ -134,6 +169,8 @@ class WifiNetwork extends Equatable {
       dnsConfigType: dnsConfigType ?? this.dnsConfigType,
       dnsServers: dnsServers ?? this.dnsServers,
       dnsSearchDomains: dnsSearchDomains ?? this.dnsSearchDomains,
+      activeDnsServers: activeDnsServers ?? this.activeDnsServers,
+      routerAddresses: routerAddresses ?? this.routerAddresses,
       wirelessAddress: wirelessAddress ?? this.wirelessAddress,
       ipv6ConfigType: ipv6ConfigType ?? this.ipv6ConfigType,
       ipv6Address: ipv6Address ?? this.ipv6Address,
@@ -152,7 +189,8 @@ class WifiNetwork extends Equatable {
     frequency,
     isSecured,
     security,
-    eapMethod,
+    savedSecurity,
+    scannedSecurity,
     isConnected,
     isConnecting,
     hasNoInternet,
@@ -167,6 +205,8 @@ class WifiNetwork extends Equatable {
     dnsConfigType,
     dnsServers,
     dnsSearchDomains,
+    activeDnsServers,
+    routerAddresses,
     wirelessAddress,
     ipv6ConfigType,
     ipv6Address,

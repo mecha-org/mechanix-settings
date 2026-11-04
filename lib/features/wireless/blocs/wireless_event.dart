@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:mechanix_settings/features/wireless/data/models/enterprise_config.dart';
 import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
 import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
 import 'package:nm/nm.dart';
@@ -36,26 +35,26 @@ class ScanNetworks extends WirelessEvent {
 class ConnectToNetworkEvent extends WirelessEvent {
   final String name;
   final String? password;
-  final EnterpriseConfig? enterpriseConfig;
+  final bool autoConnect;
   const ConnectToNetworkEvent(
     this.name,
     this.password, {
-    this.enterpriseConfig,
+    this.autoConnect = true,
   });
 
   @override
-  List<Object?> get props => [name, password, enterpriseConfig];
+  List<Object?> get props => [name, password, autoConnect];
 }
 
 class AddNetworkEvent extends WirelessEvent {
   final String name;
   final WirelessSecurity security;
-  final EnterpriseConfig? enterpriseConfig;
+  final String? password;
 
-  const AddNetworkEvent(this.name, this.security, {this.enterpriseConfig});
+  const AddNetworkEvent(this.name, this.security, {this.password});
 
   @override
-  List<Object?> get props => [name, security, enterpriseConfig];
+  List<Object?> get props => [name, security, password];
 }
 
 class UpdateNetworkSettingsEvent extends WirelessEvent {
@@ -155,4 +154,15 @@ class ConnectivityStateChangedEvent extends WirelessEvent {
 
 class OpenCaptivePortal extends WirelessEvent {
   const OpenCaptivePortal();
+}
+
+/// Starts periodic Wi-Fi scanning on behalf of a visible screen that shows
+/// the network list.
+class StartPeriodicScan extends WirelessEvent {
+  const StartPeriodicScan();
+}
+
+/// Balances a previous [StartPeriodicScan].
+class StopPeriodicScan extends WirelessEvent {
+  const StopPeriodicScan();
 }

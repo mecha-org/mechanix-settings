@@ -47,7 +47,7 @@ void main() {
       final l10n = AppLocalizations.of(context)!;
 
       // Title
-      expect(find.text(l10n.aboutDevice.toUpperCase()), findsOneWidget);
+      expect(find.text(l10n.aboutDevice), findsOneWidget);
 
       // Device Name
       expect(find.text(l10n.deviceName), findsOneWidget);

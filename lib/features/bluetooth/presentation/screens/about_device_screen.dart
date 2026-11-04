@@ -50,7 +50,7 @@ class AboutDeviceScreen extends StatelessWidget {
           },
         ),
         title: Text(
-          l10n.aboutDevice.toUpperCase(),
+          l10n.aboutDevice,
           style: theme.textTheme.headlineSmall!.copyWith(
             color: theme.colorScheme.onSurface,
           ),
@@ -81,7 +81,7 @@ class AboutDeviceScreen extends StatelessWidget {
                       Text(
                         localDeviceName,
                         style: theme.textTheme.titleLarge?.copyWith(
-                          color: theme.colorScheme.onSecondaryFixed,
+                          color: theme.colorScheme.onPrimaryFixed,
                         ),
                       ),
                       MechanixIconButton.standard(
@@ -90,7 +90,7 @@ class AboutDeviceScreen extends StatelessWidget {
                           SettingIcons.edit,
                           height: 20,
                           width: 20,
-                          color: theme.colorScheme.onSecondaryFixed,
+                          color: theme.colorScheme.primary,
                         ),
                         onPressed: () {
                           _openEditDeviceNameBottomSheet(
@@ -117,12 +117,12 @@ class AboutDeviceScreen extends StatelessWidget {
                       ImageIcon(
                         const AssetImage(SettingIcons.comet),
                         size: 20,
-                        color: theme.colorScheme.onSecondaryFixed,
+                        color: theme.colorScheme.onPrimary,
                       ),
                       Text(
                         l10n.cometType.toUpperCase(),
                         style: theme.textTheme.titleLarge?.copyWith(
-                          color: theme.colorScheme.onSecondaryFixed,
+                          color: theme.colorScheme.onPrimaryFixed,
                         ),
                       ),
                     ],
@@ -235,7 +235,7 @@ class _EditDeviceNameBottomSheetState
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    l10n.deviceName,
+                    l10n.editDeviceName,
                     style: theme.textTheme.headlineSmall?.copyWith(
                       color: theme.colorScheme.onSurface,
                     ),
@@ -257,11 +257,6 @@ class _EditDeviceNameBottomSheetState
                 controller: _controller,
                 autofocus: true,
                 hintText: l10n.enterName,
-                suffix: ImageIcon(
-                  const AssetImage(SettingIcons.edit),
-                  size: 24,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
                 errorText: errorText,
                 textInputAction: TextInputAction.done,
                 onSubmitted: (_) {

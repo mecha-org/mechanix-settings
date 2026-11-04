@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mechanix_settings/features/wireless/blocs/wireless_bloc.dart';
-import 'package:mechanix_settings/features/wireless/data/models/enterprise_config.dart';
 import 'package:mechanix_settings/features/wireless/data/models/enums.dart';
 import 'package:mechanix_settings/features/wireless/data/models/wifi_network.dart';
+import 'package:mechanix_settings/features/wireless/data/models/wireless_exceptions.dart';
 import 'package:mechanix_settings/features/wireless/data/repositories/wireless_repository.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:nm/nm.dart';
@@ -33,7 +33,6 @@ void main() {
     registerFallbackValue(IPv4ConfigType.manual);
     registerFallbackValue(IPv6ConfigType.manual);
     registerFallbackValue(DNSConfigType.manual);
-    registerFallbackValue(const EnterpriseConfig());
   });
 
   void setupDefaultMocks(MockWirelessRepository repository) {
@@ -52,9 +51,7 @@ void main() {
     when(
       () => repository.getWirelessDeviceEventsStream(),
     ).thenAnswer((_) => const Stream<List<String>>.empty());
-    when(
-      () => repository.addNetwork(any(), any(), any(that: anything)),
-    ).thenAnswer((_) async {});
+    when(() => repository.addNetwork(any(), any())).thenAnswer((_) async {});
     when(() => repository.forgetNetwork(any())).thenAnswer((_) async {});
     when(() => repository.updateNetwork(any())).thenAnswer((_) async {});
     when(
@@ -126,20 +123,29 @@ void main() {
       setupDefaultMocks(mockWirelessRepository);
       final bloc = WirelessBloc(wirelessRepository: mockWirelessRepository);
       expect(bloc.state.isWirelessOn, false);
-      expect(bloc.state.connectivityState, NetworkManagerConnectivityState.unknown);
+      expect(
+        bloc.state.connectivityState,
+        NetworkManagerConnectivityState.unknown,
+      );
     });
 
-    test('initial state immediately reflects initialized repository state when wireless is enabled', () {
-      setupDefaultMocks(mockWirelessRepository);
-      when(() => mockWirelessRepository.isWirelessEnabled()).thenReturn(true);
-      when(
-        () => mockWirelessRepository.getConnectivityState(),
-      ).thenReturn(NetworkManagerConnectivityState.full);
+    test(
+      'initial state immediately reflects initialized repository state when wireless is enabled',
+      () {
+        setupDefaultMocks(mockWirelessRepository);
+        when(() => mockWirelessRepository.isWirelessEnabled()).thenReturn(true);
+        when(
+          () => mockWirelessRepository.getConnectivityState(),
+        ).thenReturn(NetworkManagerConnectivityState.full);
 
-      final bloc = WirelessBloc(wirelessRepository: mockWirelessRepository);
-      expect(bloc.state.isWirelessOn, true);
-      expect(bloc.state.connectivityState, NetworkManagerConnectivityState.full);
-    });
+        final bloc = WirelessBloc(wirelessRepository: mockWirelessRepository);
+        expect(bloc.state.isWirelessOn, true);
+        expect(
+          bloc.state.connectivityState,
+          NetworkManagerConnectivityState.full,
+        );
+      },
+    );
   });
 
   group('InitWifi', () {
@@ -357,11 +363,7 @@ void main() {
         setupDefaultMocks(mockWirelessRepository);
         stubWirelessActiveDefaults(mockWirelessRepository);
         when(
-          () => mockWirelessRepository.connectToNetwork(
-            any(),
-            any(),
-            enterpriseConfig: any(named: 'enterpriseConfig', that: anything),
-          ),
+          () => mockWirelessRepository.connectToNetwork(any(), any()),
         ).thenAnswer((_) async {});
         return WirelessBloc(wirelessRepository: mockWirelessRepository);
       },
@@ -391,11 +393,7 @@ void main() {
         setupDefaultMocks(mockWirelessRepository);
         stubWirelessActiveDefaults(mockWirelessRepository);
         when(
-          () => mockWirelessRepository.connectToNetwork(
-            any(),
-            any(),
-            enterpriseConfig: any(named: 'enterpriseConfig', that: anything),
-          ),
+          () => mockWirelessRepository.connectToNetwork(any(), any()),
         ).thenThrow(Exception('Failed connection'));
         return WirelessBloc(wirelessRepository: mockWirelessRepository);
       },
@@ -418,6 +416,40 @@ void main() {
             data: {'networkName': 'Test_WiFi'},
           ),
         ),
+      ],
+    );
+
+    blocTest<WirelessBloc, WirelessState>(
+      'emits passwordRequired (not connectionFailed) when a password is needed',
+      build: () {
+        mockWirelessRepository = MockWirelessRepository();
+        setupDefaultMocks(mockWirelessRepository);
+        stubWirelessActiveDefaults(mockWirelessRepository);
+        when(
+          () => mockWirelessRepository.connectToNetwork(any(), any()),
+        ).thenThrow(
+          const WifiPasswordRequiredException(
+            networkName: 'Cafe',
+            security: WirelessSecurity.wpaWpa2Personal,
+          ),
+        );
+        return WirelessBloc(wirelessRepository: mockWirelessRepository);
+      },
+      seed: () => const WirelessState(isWirelessOn: true),
+      act: (bloc) => bloc.add(const ConnectToNetworkEvent('Cafe', null)),
+      expect: () => [
+        const WirelessState(isWirelessOn: true, connectingNetworkName: 'Cafe'),
+        isA<WirelessState>()
+            .having((s) => s.connectingNetworkName, 'connecting', isNull)
+            .having(
+              (s) => s.error?.type,
+              'error type',
+              WirelessErrorType.passwordRequired,
+            )
+            .having((s) => s.error?.data, 'error data', {
+              'networkName': 'Cafe',
+              'security': WirelessSecurity.wpaWpa2Personal,
+            }),
       ],
     );
 
@@ -480,7 +512,6 @@ void main() {
           () => mockWirelessRepository.addNetwork(
             'New_WiFi',
             WirelessSecurity.wpaWpa2Personal,
-            null,
           ),
         ).called(1);
       },
@@ -493,11 +524,7 @@ void main() {
         setupDefaultMocks(mockWirelessRepository);
         stubWirelessActiveDefaults(mockWirelessRepository);
         when(
-          () => mockWirelessRepository.addNetwork(
-            any(),
-            any(),
-            any(that: anything),
-          ),
+          () => mockWirelessRepository.addNetwork(any(), any()),
         ).thenThrow(Exception('Add failed'));
         return WirelessBloc(wirelessRepository: mockWirelessRepository);
       },
@@ -858,10 +885,7 @@ void main() {
       },
       act: (bloc) => bloc.add(const LoadWireless(requestScan: false)),
       expect: () => [
-        const WirelessState(
-          isWirelessOn: true,
-          isCaptivePortal: true,
-        ),
+        const WirelessState(isWirelessOn: true, isCaptivePortal: true),
       ],
     );
     blocTest<WirelessBloc, WirelessState>(
@@ -881,6 +905,86 @@ void main() {
     );
   });
 
+  group('WirelessState.findNetwork', () {
+    test('prefers the saved profile', () {
+      final saved = testWifiNetwork.copyWith(autoJoin: false);
+      final state = WirelessState(
+        savedNetworks: [saved],
+        availableNetworks: [testWifiNetwork],
+      );
+      expect(state.findNetwork(testWifiNetwork.name), saved);
+    });
+
+    test('falls back to a scanned access point', () {
+      final state = WirelessState(availableNetworks: [testWifiNetwork]);
+      expect(state.findNetwork(testWifiNetwork.name), testWifiNetwork);
+    });
+
+    test('returns a placeholder for unknown networks', () {
+      const state = WirelessState();
+      expect(state.findNetwork('Ghost'), const WifiNetwork(name: 'Ghost'));
+    });
+  });
+
+  group('Periodic scanning', () {
+    blocTest<WirelessBloc, WirelessState>(
+      'InitWifi does not request a scan when no screen asked for scanning',
+      build: () {
+        setupDefaultMocks(mockWirelessRepository);
+        stubWirelessActiveDefaults(mockWirelessRepository);
+        when(() => mockWirelessRepository.isWirelessEnabled()).thenReturn(true);
+        return WirelessBloc(wirelessRepository: mockWirelessRepository);
+      },
+      act: (bloc) => bloc.add(InitWifi()),
+      wait: const Duration(milliseconds: 50),
+      verify: (_) {
+        verifyNever(() => mockWirelessRepository.requestScan());
+        verifyNever(
+          () => mockWirelessRepository.getAvailableNetworks(
+            requestScan: true,
+            savedNetworks: any(named: 'savedNetworks'),
+          ),
+        );
+      },
+    );
+
+    blocTest<WirelessBloc, WirelessState>(
+      'StartPeriodicScan scans immediately, once per first subscriber',
+      build: () {
+        setupDefaultMocks(mockWirelessRepository);
+        stubWirelessActiveDefaults(mockWirelessRepository);
+        when(() => mockWirelessRepository.isWirelessEnabled()).thenReturn(true);
+        return WirelessBloc(wirelessRepository: mockWirelessRepository);
+      },
+      seed: () => const WirelessState(isWirelessOn: true),
+      act: (bloc) => bloc
+        ..add(const StartPeriodicScan())
+        // A second visible screen must not trigger another immediate scan.
+        ..add(const StartPeriodicScan()),
+      wait: const Duration(milliseconds: 2100),
+      expect: () => const [
+        WirelessState(isWirelessOn: true, isScanning: true),
+        WirelessState(isWirelessOn: true, isScanning: false),
+      ],
+      verify: (_) {
+        verify(() => mockWirelessRepository.requestScan()).called(1);
+      },
+    );
+
+    blocTest<WirelessBloc, WirelessState>(
+      'unbalanced StopPeriodicScan is ignored',
+      build: () {
+        setupDefaultMocks(mockWirelessRepository);
+        return WirelessBloc(wirelessRepository: mockWirelessRepository);
+      },
+      act: (bloc) => bloc.add(const StopPeriodicScan()),
+      expect: () => const <WirelessState>[],
+      verify: (_) {
+        verifyNever(() => mockWirelessRepository.requestScan());
+      },
+    );
+  });
+
   group('Lifecycle & Stream Subscription Safety', () {
     test('close() cancels timers and stream subscriptions safely', () async {
       setupDefaultMocks(mockWirelessRepository);
@@ -890,15 +994,18 @@ void main() {
       await expectLater(bloc.close(), completes);
     });
 
-    test('multiple InitWifi calls safely re-subscribe without throwing', () async {
-      setupDefaultMocks(mockWirelessRepository);
-      final bloc = WirelessBloc(wirelessRepository: mockWirelessRepository);
-      bloc.add(InitWifi());
-      await Future.delayed(const Duration(milliseconds: 50));
-      bloc.add(InitWifi());
-      await Future.delayed(const Duration(milliseconds: 50));
-      await bloc.close();
-      verify(() => mockWirelessRepository.init()).called(2);
-    });
+    test(
+      'multiple InitWifi calls safely re-subscribe without throwing',
+      () async {
+        setupDefaultMocks(mockWirelessRepository);
+        final bloc = WirelessBloc(wirelessRepository: mockWirelessRepository);
+        bloc.add(InitWifi());
+        await Future.delayed(const Duration(milliseconds: 50));
+        bloc.add(InitWifi());
+        await Future.delayed(const Duration(milliseconds: 50));
+        await bloc.close();
+        verify(() => mockWirelessRepository.init()).called(2);
+      },
+    );
   });
 }

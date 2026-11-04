@@ -84,84 +84,56 @@ class BluetoothDeviceDetailScreen extends StatelessWidget {
               },
             ),
             title: Text(
-              (device.name.isNotEmpty ? device.name : title).toUpperCase(),
+              (device.name.isNotEmpty ? device.name : title),
               style: theme.textTheme.headlineSmall!.copyWith(
                 color: theme.colorScheme.onSurface,
                 fontWeight: FontWeight.w300,
               ),
             ),
             actions: [
-              MechanixMenu(
-                alignment: MechanixMenuAlignment.end,
-                anchorBuilder: (context, controller, child) {
-                  return MechanixIconButton.standard(
-                    type: IconButtonType.rounded,
-                    size: IconButtonSize.small,
-                    icon: ImageIcon(
-                      const AssetImage(SettingIcons.moreVert),
-                      color: theme.colorScheme.onSurface,
-                      size: 20,
-                    ),
-                    onPressed: () {
-                      controller.toggle();
-                    },
-                  );
+              MechanixIconButton.filled(
+                backgroundColor: theme.colorScheme.secondaryContainer,
+                type: IconButtonType.rounded,
+                size: IconButtonSize.small,
+                icon: ImageIcon(
+                  AssetImage(
+                    device.isConnected
+                        ? SettingIcons.disconnect
+                        : SettingIcons.bluetooth,
+                  ),
+                  size: 24,
+                  color: theme.colorScheme.onSurface,
+                ),
+                onPressed: device.isConnected
+                    ? () {
+                        context.read<BluetoothBloc>().add(
+                          DisconnectFromDeviceEvent(device),
+                        );
+                        Navigator.pop(context);
+                      }
+                    : () {
+                        context.read<BluetoothBloc>().add(
+                          ConnectToDeviceEvent(device),
+                        );
+                        Navigator.pop(context);
+                      },
+              ),
+
+              MechanixIconButton.filled(
+                backgroundColor: theme.colorScheme.onSurfaceVariant.withValues(
+                  alpha: 0.08,
+                ),
+                type: IconButtonType.rounded,
+                size: IconButtonSize.small,
+                icon: ImageIcon(
+                  const AssetImage(SettingIcons.delete),
+                  size: 24,
+                  color: theme.colorScheme.error,
+                ),
+                onPressed: () {
+                  context.read<BluetoothBloc>().add(ForgetDeviceEvent(device));
+                  Navigator.pop(context);
                 },
-                entries: [
-                  MechanixMenuItem(
-                    value: 'connect_disconnect',
-                    leading: ImageIcon(
-                      AssetImage(
-                        device.isConnected
-                            ? SettingIcons.disconnect
-                            : SettingIcons.connect,
-                      ),
-                      size: 20,
-                      color: theme.colorScheme.onSurface,
-                    ),
-                    label: Text(
-                      device.isConnected ? l10n.disconnect : l10n.connect,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        color: theme.colorScheme.onPrimaryFixed,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                    onTap: device.isConnected
-                        ? () {
-                            context.read<BluetoothBloc>().add(
-                              DisconnectFromDeviceEvent(device),
-                            );
-                            Navigator.pop(context);
-                          }
-                        : () {
-                            context.read<BluetoothBloc>().add(
-                              ConnectToDeviceEvent(device),
-                            );
-                            Navigator.pop(context);
-                          },
-                  ),
-                  MechanixMenuItem(
-                    value: 'forget',
-                    leading: ImageIcon(
-                      const AssetImage(SettingIcons.delete),
-                      size: 20,
-                      color: theme.colorScheme.error,
-                    ),
-                    label: Text(
-                      l10n.forgetDevice,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        color: theme.colorScheme.error,
-                        letterSpacing: 1,
-                      ),
-                    ),
-                    onTap: () {
-                      context.read<BluetoothBloc>().add(
-                        ForgetDeviceEvent(device),
-                      );
-                      Navigator.pop(context);
-                    },
-                  ),
-                ],
               ),
             ],
           ),
@@ -184,12 +156,12 @@ class BluetoothDeviceDetailScreen extends StatelessWidget {
                       ImageIcon(
                         AssetImage(device.type.icon),
                         size: 20,
-                        color: theme.colorScheme.onSecondaryFixed,
+                        color: theme.colorScheme.onPrimary,
                       ),
                       Text(
                         _getLocalizedType(device.type, l10n).toUpperCase(),
                         style: theme.textTheme.titleLarge?.copyWith(
-                          color: theme.colorScheme.onSecondaryFixed,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                     ],
@@ -211,11 +183,10 @@ class BluetoothDeviceDetailScreen extends StatelessWidget {
                         ),
                       Text(
                         (device.isConnected
-                                ? l10n.connected
-                                : l10n.notConnected)
-                            .toUpperCase(),
+                            ? l10n.connected
+                            : l10n.disonnected),
                         style: theme.textTheme.titleLarge?.copyWith(
-                          color: theme.colorScheme.onSecondaryFixed,
+                          color: theme.colorScheme.onSurface,
                         ),
                       ),
                     ],

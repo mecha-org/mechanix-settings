@@ -21,7 +21,7 @@ class BluetoothConnectedDeviceTile extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return MechanixListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       onTap: device.isConnecting ? null : onTap,
       leadingWidgets: [
         ImageIcon(
@@ -39,7 +39,7 @@ class BluetoothConnectedDeviceTile extends StatelessWidget {
         device.name,
         style: Theme.of(
           context,
-        ).textTheme.titleLarge!.copyWith(color: colorScheme.onSecondaryFixed),
+        ).textTheme.titleLarge!.copyWith(color: colorScheme.onSurface),
         overflow: TextOverflow.ellipsis,
         maxLines: 1,
       ),

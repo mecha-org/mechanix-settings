@@ -168,11 +168,7 @@ class WifiParser {
       final sec = settings['802-11-wireless-security'];
       if (sec != null) {
         final keyMgmt = sec['key-mgmt']?.toNative()?.toString();
-        if (keyMgmt == 'wpa-eap') {
-          return WirelessSecurity.wpawpa2Enterprise;
-        } else if (keyMgmt == 'ieee8021x') {
-          return WirelessSecurity.leap;
-        } else if (keyMgmt == 'sae') {
+        if (keyMgmt == 'sae') {
           return WirelessSecurity.wpa3Personal;
         } else if (keyMgmt == 'wpa-psk') {
           return WirelessSecurity.wpaWpa2Personal;
@@ -190,8 +186,6 @@ class WifiParser {
         final keyMgmt = NetworkManagerUtils.keyMgmtFromAccessPoint(ap);
         if (keyMgmt == 'sae') {
           return WirelessSecurity.wpa3Personal;
-        } else if (keyMgmt == 'wpa-eap') {
-          return WirelessSecurity.wpawpa2Enterprise;
         } else if (keyMgmt == 'wpa-psk') {
           return WirelessSecurity.wpaWpa2Personal;
         } else {
@@ -203,22 +197,38 @@ class WifiParser {
     return WirelessSecurity.none;
   }
 
-  static EnterpriseEapMethod? parseEapMethod(
+  /// Security stored in a saved profile, independent of what the access
+  /// point currently advertises.
+  ///
+  /// Returns `null` when [settings] is not a saved Wi-Fi profile or uses a
+  /// key management this app does not support.
+  static WirelessSecurity? parseSavedSecurity(
     Map<String, Map<String, DBusValue>>? settings,
   ) {
-    final x1 = settings?['802-1x'];
-    if (x1 != null) {
-      final eapVal = x1['eap'];
-      if (eapVal is DBusArray && eapVal.children.isNotEmpty) {
-        final eapStr = eapVal.children.first.toNative().toString();
-        for (final val in EnterpriseEapMethod.values) {
-          if (val.nmValue == eapStr) {
-            return val;
-          }
-        }
-      }
+    if (settings == null || settings['802-11-wireless'] == null) return null;
+
+    final sec = settings['802-11-wireless-security'];
+    if (sec == null) return WirelessSecurity.none;
+
+    switch (sec['key-mgmt']?.toNative()?.toString()) {
+      case 'sae':
+        return WirelessSecurity.wpa3Personal;
+      case 'wpa-psk':
+        return WirelessSecurity.wpaWpa2Personal;
+      case 'owe':
+        return WirelessSecurity.enhancedOpen;
+      case 'none':
+        return WirelessSecurity.wep;
+      default:
+        return null;
     }
-    return null;
+  }
+
+  /// Security currently advertised by the access point, or `null` when the
+  /// network is not in range.
+  static WirelessSecurity? parseScannedSecurity(NetworkManagerAccessPoint? ap) {
+    if (ap == null) return null;
+    return parseSecurityType(name: '', ap: ap);
   }
 
   static bool parseAutoConnect(Map<String, Map<String, DBusValue>>? settings) {
