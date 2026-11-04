@@ -3,6 +3,7 @@ import 'package:mechanix_settings/core/exceptions/display_exceptions.dart';
 import 'package:mechanix_settings/core/utils/app_logger.dart';
 import 'package:mechanix_settings/features/display/data/models/display_enums.dart';
 import 'package:mechanix_settings/features/display/data/repositories/display_repository.dart';
+import 'package:mechanix_settings/generated/settingsapp.dart';
 import 'display_event.dart';
 import 'display_state.dart';
 
@@ -21,6 +22,27 @@ class DisplayBloc extends Bloc<DisplayEvent, DisplayState> {
     emit(state.copyWith(status: DisplayStatus.loading));
     try {
       await _displayRepository.init();
+
+      // Follow changes made elsewhere until the bloc closes.
+      await emit.onEach<SettingsappChange>(
+        _displayRepository.changes(),
+        onData: (change) {
+          switch (change) {
+            case DisplayBrightnessChange(:final value):
+              emit(state.copyWith(brightness: value / 254));
+            case DisplayAutoBrightnessChange(:final value):
+              emit(state.copyWith(isAutoBrightness: value));
+            case DisplayScreenTimeoutChange(:final value):
+              emit(state.copyWith(screenTimeout: value));
+            default:
+          }
+        },
+        onError: (e, stack) => AppLogger.e(
+          "DisplayBloc: Error watching display settings",
+          error: e,
+          stack: stack,
+        ),
+      );
     } on DisplayInitializationException catch (e, stack) {
       AppLogger.e(
         "DisplayBloc: Error during initialization",

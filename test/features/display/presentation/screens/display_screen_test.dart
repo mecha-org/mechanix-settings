@@ -19,8 +19,13 @@ void main() {
   setUp(() {
     mockRepository = MockDisplayRepository();
     when(() => mockRepository.init()).thenAnswer((_) async {});
+    when(
+      () => mockRepository.changes(),
+    ).thenAnswer((_) => const Stream.empty());
     when(() => mockRepository.getBrightness()).thenAnswer((_) async => 0.5);
-    when(() => mockRepository.getAutoBrightness()).thenAnswer((_) async => true);
+    when(
+      () => mockRepository.getAutoBrightness(),
+    ).thenAnswer((_) async => true);
     when(() => mockRepository.getScreenTimeout()).thenAnswer((_) async => 30);
     displayBloc = DisplayBloc(mockRepository);
   });
@@ -53,20 +58,25 @@ void main() {
     expect(find.byType(ScreenOffTimeScreen), findsOneWidget);
   });
 
-  testWidgets('verify tap on timeout value text ("30 seconds") navigates on first tap', (tester) async {
-    await tester.pumpWidget(buildTestWidget());
-    await tester.pumpAndSettle();
+  testWidgets(
+    'verify tap on timeout value text ("30 seconds") navigates on first tap',
+    (tester) async {
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpAndSettle();
 
-    final BuildContext context = tester.element(find.byType(DisplayScreen));
-    final l10n = AppLocalizations.of(context)!;
+      final BuildContext context = tester.element(find.byType(DisplayScreen));
+      final l10n = AppLocalizations.of(context)!;
 
-    await tester.tap(find.text(l10n.screenOffThirtySeconds));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text(l10n.screenOffThirtySeconds));
+      await tester.pumpAndSettle();
 
-    expect(find.byType(ScreenOffTimeScreen), findsOneWidget);
-  });
+      expect(find.byType(ScreenOffTimeScreen), findsOneWidget);
+    },
+  );
 
-  testWidgets('verify tap on caret button navigates on first tap', (tester) async {
+  testWidgets('verify tap on caret button navigates on first tap', (
+    tester,
+  ) async {
     await tester.pumpWidget(buildTestWidget());
     await tester.pumpAndSettle();
 

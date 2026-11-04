@@ -38,10 +38,17 @@ void main() {
       'emits status loading and adds LoadDisplaySettings on success',
       build: () {
         when(() => mockRepository.init()).thenAnswer((_) async {});
+        when(
+          () => mockRepository.changes(),
+        ).thenAnswer((_) => const Stream.empty());
         // Mocking getters that will be called in LoadDisplaySettings
         when(() => mockRepository.getBrightness()).thenAnswer((_) async => 0.8);
-        when(() => mockRepository.getAutoBrightness()).thenAnswer((_) async => false);
-        when(() => mockRepository.getScreenTimeout()).thenAnswer((_) async => 60);
+        when(
+          () => mockRepository.getAutoBrightness(),
+        ).thenAnswer((_) async => false);
+        when(
+          () => mockRepository.getScreenTimeout(),
+        ).thenAnswer((_) async => 60);
         return displayBloc;
       },
       act: (bloc) => bloc.add(const DisplayInit()),
@@ -62,7 +69,9 @@ void main() {
     blocTest<DisplayBloc, DisplayState>(
       'emits loading and error status when repository init throws DisplayInitializationException',
       build: () {
-        when(() => mockRepository.init()).thenThrow(const DisplayInitializationException());
+        when(
+          () => mockRepository.init(),
+        ).thenThrow(const DisplayInitializationException());
         return displayBloc;
       },
       act: (bloc) => bloc.add(const DisplayInit()),
@@ -97,8 +106,12 @@ void main() {
       'emits loading and loaded with settings on success',
       build: () {
         when(() => mockRepository.getBrightness()).thenAnswer((_) async => 0.4);
-        when(() => mockRepository.getAutoBrightness()).thenAnswer((_) async => true);
-        when(() => mockRepository.getScreenTimeout()).thenAnswer((_) async => 15);
+        when(
+          () => mockRepository.getAutoBrightness(),
+        ).thenAnswer((_) async => true);
+        when(
+          () => mockRepository.getScreenTimeout(),
+        ).thenAnswer((_) async => 15);
         return displayBloc;
       },
       act: (bloc) => bloc.add(const LoadDisplaySettings()),
@@ -116,7 +129,9 @@ void main() {
     blocTest<DisplayBloc, DisplayState>(
       'emits loading and error when loading settings throws exception',
       build: () {
-        when(() => mockRepository.getBrightness()).thenThrow(Exception('Read failed'));
+        when(
+          () => mockRepository.getBrightness(),
+        ).thenThrow(Exception('Read failed'));
         return displayBloc;
       },
       act: (bloc) => bloc.add(const LoadDisplaySettings()),
@@ -138,9 +153,7 @@ void main() {
         return displayBloc;
       },
       act: (bloc) => bloc.add(const SetBrightness(0.7)),
-      expect: () => [
-        const DisplayState(brightness: 0.7),
-      ],
+      expect: () => [const DisplayState(brightness: 0.7)],
       verify: (_) {
         verify(() => mockRepository.setBrightness(0.7)).called(1);
       },
@@ -149,7 +162,9 @@ void main() {
     blocTest<DisplayBloc, DisplayState>(
       'emits error with setBrightnessFailed on SetBrightnessException',
       build: () {
-        when(() => mockRepository.setBrightness(0.7)).thenThrow(const SetBrightnessException());
+        when(
+          () => mockRepository.setBrightness(0.7),
+        ).thenThrow(const SetBrightnessException());
         return displayBloc;
       },
       act: (bloc) => bloc.add(const SetBrightness(0.7)),
@@ -164,7 +179,9 @@ void main() {
     blocTest<DisplayBloc, DisplayState>(
       'emits error with unknown on unexpected Exception',
       build: () {
-        when(() => mockRepository.setBrightness(0.7)).thenThrow(Exception('Unexpected'));
+        when(
+          () => mockRepository.setBrightness(0.7),
+        ).thenThrow(Exception('Unexpected'));
         return displayBloc;
       },
       act: (bloc) => bloc.add(const SetBrightness(0.7)),
@@ -181,13 +198,13 @@ void main() {
     blocTest<DisplayBloc, DisplayState>(
       'emits state with updated auto-brightness status on success',
       build: () {
-        when(() => mockRepository.setAutoBrightness(false)).thenAnswer((_) async {});
+        when(
+          () => mockRepository.setAutoBrightness(false),
+        ).thenAnswer((_) async {});
         return displayBloc;
       },
       act: (bloc) => bloc.add(const SetAutoBrightness(false)),
-      expect: () => [
-        const DisplayState(isAutoBrightness: false),
-      ],
+      expect: () => [const DisplayState(isAutoBrightness: false)],
       verify: (_) {
         verify(() => mockRepository.setAutoBrightness(false)).called(1);
       },
@@ -196,7 +213,9 @@ void main() {
     blocTest<DisplayBloc, DisplayState>(
       'emits error with setAutoBrightnessFailed on SetAutoBrightnessException',
       build: () {
-        when(() => mockRepository.setAutoBrightness(false)).thenThrow(const SetAutoBrightnessException());
+        when(
+          () => mockRepository.setAutoBrightness(false),
+        ).thenThrow(const SetAutoBrightnessException());
         return displayBloc;
       },
       act: (bloc) => bloc.add(const SetAutoBrightness(false)),
@@ -211,7 +230,9 @@ void main() {
     blocTest<DisplayBloc, DisplayState>(
       'emits error with unknown on unexpected Exception',
       build: () {
-        when(() => mockRepository.setAutoBrightness(false)).thenThrow(Exception('Unexpected'));
+        when(
+          () => mockRepository.setAutoBrightness(false),
+        ).thenThrow(Exception('Unexpected'));
         return displayBloc;
       },
       act: (bloc) => bloc.add(const SetAutoBrightness(false)),
@@ -228,13 +249,13 @@ void main() {
     blocTest<DisplayBloc, DisplayState>(
       'emits state with updated screen timeout on success',
       build: () {
-        when(() => mockRepository.setScreenTimeout(45)).thenAnswer((_) async {});
+        when(
+          () => mockRepository.setScreenTimeout(45),
+        ).thenAnswer((_) async {});
         return displayBloc;
       },
       act: (bloc) => bloc.add(const SetScreenTimeout(45)),
-      expect: () => [
-        const DisplayState(screenTimeout: 45),
-      ],
+      expect: () => [const DisplayState(screenTimeout: 45)],
       verify: (_) {
         verify(() => mockRepository.setScreenTimeout(45)).called(1);
       },
@@ -243,7 +264,9 @@ void main() {
     blocTest<DisplayBloc, DisplayState>(
       'emits error with setScreenTimeoutFailed on SetScreenTimeoutException',
       build: () {
-        when(() => mockRepository.setScreenTimeout(45)).thenThrow(const SetScreenTimeoutException());
+        when(
+          () => mockRepository.setScreenTimeout(45),
+        ).thenThrow(const SetScreenTimeoutException());
         return displayBloc;
       },
       act: (bloc) => bloc.add(const SetScreenTimeout(45)),
@@ -258,7 +281,9 @@ void main() {
     blocTest<DisplayBloc, DisplayState>(
       'emits error with unknown on unexpected Exception',
       build: () {
-        when(() => mockRepository.setScreenTimeout(45)).thenThrow(Exception('Unexpected'));
+        when(
+          () => mockRepository.setScreenTimeout(45),
+        ).thenThrow(Exception('Unexpected'));
         return displayBloc;
       },
       act: (bloc) => bloc.add(const SetScreenTimeout(45)),

@@ -1,3 +1,5 @@
+import 'package:mechanix_settings/generated/settingsapp.dart';
+
 abstract class DisplayRepository {
   Future<void> init();
   Future<double> getBrightness();
@@ -6,5 +8,6 @@ abstract class DisplayRepository {
   Future<void> setAutoBrightness(bool enabled);
   Future<int> getScreenTimeout();
   Future<void> setScreenTimeout(int timeoutSeconds);
+  Stream<SettingsappChange> changes();
   Future<void> close();
 }
