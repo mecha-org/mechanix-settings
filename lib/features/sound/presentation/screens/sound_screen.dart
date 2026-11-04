@@ -176,7 +176,7 @@ class _VolumeControl extends StatefulWidget {
 }
 
 class _VolumeControlState extends State<_VolumeControl> {
-  // Local value for smooth UI rendering; volume updates are throttled to 400ms
+  // Local value for smooth UI rendering; volume updates are throttled to 200ms
   // during continuous sliding and applied immediately upon release or mute toggle.
   late final ValueNotifier<double> _value;
   late double _lastNonZeroValue;
@@ -221,8 +221,8 @@ class _VolumeControlState extends State<_VolumeControl> {
     _value.value = val;
     if (val > 0.0) _lastNonZeroValue = val;
 
-    // Start 400ms throttle timer if not already running
-    _throttleTimer ??= Timer(const Duration(milliseconds: 400), () {
+    // Start 200ms throttle timer if not already running
+    _throttleTimer ??= Timer(const Duration(milliseconds: 200), () {
       _throttleTimer = null;
       final value = _value.value;
       if (value != _lastCommittedValue) {
