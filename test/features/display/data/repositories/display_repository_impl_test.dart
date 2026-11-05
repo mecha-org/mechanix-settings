@@ -230,6 +230,20 @@ void main() {
     });
   });
 
+  group('DisplayRepositoryImpl - WatchWriteFailed', () {
+    test('watchWriteFailed forwards the stream from settings', () async {
+      final controller = StreamController<WriteFailure>();
+      when(() => mockSettings.watchWriteFailed())
+          .thenAnswer((_) => controller.stream);
+
+      final stream = repository.watchWriteFailed();
+      final done = expectLater(stream, emitsDone);
+
+      await controller.close();
+      await done;
+    });
+  });
+
   group('DisplayRepositoryImpl - Close', () {
     test('close disposes settings', () async {
       await repository.init();

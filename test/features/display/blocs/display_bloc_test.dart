@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mechanix_settings/core/exceptions/display_exceptions.dart';
@@ -6,7 +9,9 @@ import 'package:mechanix_settings/features/display/data/repositories/display_rep
 import 'package:mechanix_settings/features/display/blocs/display_bloc.dart';
 import 'package:mechanix_settings/features/display/blocs/display_event.dart';
 import 'package:mechanix_settings/features/display/blocs/display_state.dart';
+import 'package:mechanix_settings/generated/settingsapp.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:mxconfig_dart/mxconfig.dart';
 
 class MockDisplayRepository extends Mock implements DisplayRepository {}
 
@@ -16,6 +21,10 @@ void main() {
 
   setUp(() {
     mockRepository = MockDisplayRepository();
+    when(() => mockRepository.changes()).thenAnswer((_) => const Stream.empty());
+    when(
+      () => mockRepository.watchWriteFailed(),
+    ).thenAnswer((_) => const Stream.empty());
     displayBloc = DisplayBloc(mockRepository);
   });
 
@@ -294,5 +303,86 @@ void main() {
         ),
       ],
     );
+  });
+
+  group('WatchWriteFailed', () {
+    const libPath = '/home/batman/Work/mxconfig/target/release/libmxconfig.so';
+    late Directory tempDir;
+    late Settings settings;
+
+    setUp(() async {
+      tempDir = Directory.systemTemp.createTempSync();
+      settings = await Settings.openIn(
+        userDir: tempDir.path,
+        schemaToml: schema,
+        libraryPath: File(libPath).existsSync() ? libPath : null,
+      );
+    });
+
+    tearDown(() {
+      settings.dispose();
+      try {
+        tempDir.deleteSync(recursive: true);
+      } catch (_) {}
+    });
+
+    test('propagates brightness write failure to the bloc', () async {
+      final failureController = StreamController<WriteFailure>();
+      addTearDown(failureController.close);
+
+      when(() => mockRepository.init()).thenAnswer((_) async {});
+      when(
+        () => mockRepository.watchWriteFailed(),
+      ).thenAnswer((_) => failureController.stream);
+      when(() => mockRepository.getBrightness()).thenAnswer((_) async => 0.5);
+      when(
+        () => mockRepository.getAutoBrightness(),
+      ).thenAnswer((_) async => true);
+      when(() => mockRepository.getScreenTimeout()).thenAnswer((_) async => 30);
+
+      displayBloc.add(const DisplayInit());
+      await pumpEventQueue();
+
+      final failureFuture = settings.watchWriteFailed().first;
+      settings.setInt('display.brightness', 999);
+      final failure = await failureFuture;
+
+      failureController.add(failure);
+      await pumpEventQueue();
+
+      expect(displayBloc.state.status, equals(DisplayStatus.error));
+      expect(displayBloc.state.error, equals(DisplayError.setBrightnessFailed));
+      expect(displayBloc.state.brightness, equals(100 / 254));
+    });
+
+    test('propagates screen timeout write failure to the bloc', () async {
+      final failureController = StreamController<WriteFailure>();
+      addTearDown(failureController.close);
+
+      when(() => mockRepository.init()).thenAnswer((_) async {});
+      when(
+        () => mockRepository.watchWriteFailed(),
+      ).thenAnswer((_) => failureController.stream);
+      when(() => mockRepository.getBrightness()).thenAnswer((_) async => 0.5);
+      when(
+        () => mockRepository.getAutoBrightness(),
+      ).thenAnswer((_) async => true);
+      when(() => mockRepository.getScreenTimeout()).thenAnswer((_) async => 30);
+
+      displayBloc.add(const DisplayInit());
+      await pumpEventQueue();
+
+      final failureFuture = settings.watchWriteFailed().first;
+      // timeout must be int, sending wrong type causes a write failure with current value
+      settings.setBool('display.screen_timeout', true);
+      final failure = await failureFuture;
+
+      failureController.add(failure);
+      await pumpEventQueue();
+
+      expect(displayBloc.state.status, equals(DisplayStatus.error));
+      expect(displayBloc.state.error, equals(DisplayError.setScreenTimeoutFailed));
+      expect(displayBloc.state.screenTimeout, equals(30));
+    });
   });
 }

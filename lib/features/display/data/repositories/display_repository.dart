@@ -1,4 +1,5 @@
 import 'package:mechanix_settings/generated/settingsapp.dart';
+import 'package:mxconfig_dart/mxconfig.dart';
 
 abstract class DisplayRepository {
   Future<void> init();
@@ -9,5 +10,6 @@ abstract class DisplayRepository {
   Future<int> getScreenTimeout();
   Future<void> setScreenTimeout(int timeoutSeconds);
   Stream<SettingsappChange> changes();
+  Stream<WriteFailure> watchWriteFailed();
   Future<void> close();
 }

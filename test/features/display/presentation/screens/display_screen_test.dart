@@ -22,6 +22,9 @@ void main() {
     when(
       () => mockRepository.changes(),
     ).thenAnswer((_) => const Stream.empty());
+    when(
+      () => mockRepository.watchWriteFailed(),
+    ).thenAnswer((_) => const Stream.empty());
     when(() => mockRepository.getBrightness()).thenAnswer((_) async => 0.5);
     when(
       () => mockRepository.getAutoBrightness(),

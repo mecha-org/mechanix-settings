@@ -1,6 +1,7 @@
 import 'package:mechanix_settings/core/exceptions/display_exceptions.dart';
 import 'package:mechanix_settings/core/utils/app_logger.dart';
 import 'package:mechanix_settings/generated/settingsapp.dart';
+import 'package:mxconfig_dart/mxconfig.dart';
 import 'display_repository.dart';
 
 class DisplayRepositoryImpl implements DisplayRepository {
@@ -115,6 +116,12 @@ class DisplayRepositoryImpl implements DisplayRepository {
   Stream<SettingsappChange> changes() async* {
     final opening = _opening ??= _openSettings();
     yield* (await opening).changes();
+  }
+
+  @override
+  Stream<WriteFailure> watchWriteFailed() async* {
+    final opening = _opening ??= _openSettings();
+    yield* (await opening).settings.watchWriteFailed();
   }
 
   @override

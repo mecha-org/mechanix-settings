@@ -14,6 +14,8 @@ import 'package:mechanix_settings/features/display/presentation/screens/screen_o
 import 'package:mechanix_settings/features/display/data/repositories/display_repository.dart';
 import 'package:mechanix_settings/features/display/blocs/display_bloc.dart';
 import 'package:mechanix_settings/features/display/blocs/display_event.dart';
+import 'package:mechanix_settings/generated/settingsapp.dart';
+import 'package:mxconfig_dart/mxconfig.dart';
 import 'package:widgets/widgets.dart';
 
 import 'package:mechanix_settings/features/wireless/data/repositories/wireless_repository.dart';
@@ -81,6 +83,12 @@ class FakeDisplayRepository implements DisplayRepository {
   Future<void> setScreenTimeout(int val) async {
     screenTimeout = val;
   }
+
+  @override
+  Stream<SettingsappChange> changes() => const Stream.empty();
+
+  @override
+  Stream<WriteFailure> watchWriteFailed() => const Stream.empty();
 
   @override
   Future<void> close() async {

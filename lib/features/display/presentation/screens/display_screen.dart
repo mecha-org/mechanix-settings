@@ -11,20 +11,8 @@ import 'package:mechanix_settings/features/display/presentation/screens/screen_o
 import 'package:mechanix_settings/l10n/app_localizations.dart';
 import 'package:widgets/widgets.dart';
 
-class DisplayScreen extends StatefulWidget {
+class DisplayScreen extends StatelessWidget {
   const DisplayScreen({super.key});
-
-  @override
-  State<DisplayScreen> createState() => _DisplayScreenState();
-}
-
-class _DisplayScreenState extends State<DisplayScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // Dispatch DisplayInit to fetch the initial values
-    context.read<DisplayBloc>().add(const DisplayInit());
-  }
 
   void _navigateToScreenOffTime(BuildContext context) {
     final bloc = context.read<DisplayBloc>();
