@@ -124,6 +124,48 @@ void main() {
       ).called(1);
     });
 
+    test('getOutputVolume uses volume from sink change event', () async {
+      await repository.getOutputVolume();
+      clearInteractions(mockClient);
+
+      final changedSink = MockPulseAudioSink();
+      when(() => changedSink.name).thenReturn('alsa_output.pci-0000_00_1b.0.analog-stereo');
+      when(() => changedSink.volume).thenReturn(0.8);
+      sinkController.add(changedSink);
+      await Future.delayed(Duration.zero);
+
+      expect(await repository.getOutputVolume(), 0.8);
+      verifyNever(() => mockClient.getServerInfo());
+      verifyNever(() => mockClient.getSinkList());
+    });
+
+    test('setOutputVolume queries server info only once', () async {
+      when(() => mockClient.setSinkVolume(any(), any())).thenAnswer((_) async {});
+
+      await repository.setOutputVolume(0.3);
+      await repository.setOutputVolume(0.7);
+
+      verify(() => mockClient.getServerInfo()).called(1);
+      verify(() => mockClient.setSinkVolume(any(), any())).called(2);
+    });
+
+    test('default sink change clears cached output volume', () async {
+      await repository.getOutputVolume();
+
+      final newServerInfo = MockPulseAudioServerInfo();
+      when(() => newServerInfo.defaultSinkName).thenReturn('usb_headset');
+      when(() => newServerInfo.defaultSourceName).thenReturn('alsa_input.pci-0000_00_1b.0.analog-stereo');
+      final headset = MockPulseAudioSink();
+      when(() => headset.name).thenReturn('usb_headset');
+      when(() => headset.volume).thenReturn(0.2);
+      when(() => mockClient.getSinkList()).thenAnswer((_) async => [mockSink, headset]);
+
+      serverInfoController.add(newServerInfo);
+      await Future.delayed(Duration.zero);
+
+      expect(await repository.getOutputVolume(), 0.2);
+    });
+
     test('setOutputVolume throws SetOutputVolumeException on failure', () async {
       when(() => mockClient.setSinkVolume(any(), any())).thenThrow(Exception());
 
@@ -368,6 +410,154 @@ void main() {
       expect(events.last, SoundChangeType.defaultDevice);
 
       await subscription.cancel();
+    });
+  });
+
+  group('Volume change filtering', () {
+    late List<SoundChangeType> events;
+    late StreamSubscription<SoundChangeType> subscription;
+
+    setUp(() async {
+      // Loads the default device names and current volumes into the cache.
+      await repository.getOutputVolume();
+      await repository.getInputVolume();
+      events = [];
+      subscription = repository.onSoundChanged.listen(events.add);
+    });
+
+    tearDown(() => subscription.cancel());
+
+    test('ignores sink events with unchanged volume', () async {
+      // Same sink and volume, e.g. a running/idle/suspended state change
+      sinkController.add(mockSink);
+      await Future.delayed(Duration.zero);
+
+      expect(events, isEmpty);
+    });
+
+    test('ignores events for non-default sinks', () async {
+      final otherSink = MockPulseAudioSink();
+      when(() => otherSink.name).thenReturn('hdmi_output');
+      when(() => otherSink.volume).thenReturn(0.9);
+
+      sinkController.add(otherSink);
+      await Future.delayed(Duration.zero);
+
+      expect(events, isEmpty);
+      expect(await repository.getOutputVolume(), 0.5);
+    });
+
+    test('notifies when default sink volume changes', () async {
+      final changedSink = MockPulseAudioSink();
+      when(() => changedSink.name).thenReturn('alsa_output.pci-0000_00_1b.0.analog-stereo');
+      when(() => changedSink.volume).thenReturn(0.8);
+
+      sinkController.add(changedSink);
+      await Future.delayed(Duration.zero);
+
+      expect(events, [SoundChangeType.outputVolume]);
+    });
+
+    test('ignores source events with unchanged volume', () async {
+      sourceController.add(mockSource);
+      await Future.delayed(Duration.zero);
+
+      expect(events, isEmpty);
+    });
+
+    test('notifies when default source volume changes', () async {
+      final changedSource = MockPulseAudioSource();
+      when(() => changedSource.name).thenReturn('alsa_input.pci-0000_00_1b.0.analog-stereo');
+      when(() => changedSource.volume).thenReturn(0.1);
+
+      sourceController.add(changedSource);
+      await Future.delayed(Duration.zero);
+
+      expect(events, [SoundChangeType.inputVolume]);
+    });
+  });
+
+  group('Device added detection', () {
+    late List<SoundChangeType> events;
+    late StreamSubscription<SoundChangeType> subscription;
+
+    setUp(() async {
+      // Loads the device lists, default names and volumes into the cache.
+      await repository.getOutputDevices();
+      await repository.getInputDevices();
+      await repository.getOutputVolume();
+      await repository.getInputVolume();
+      events = [];
+      subscription = repository.onSoundChanged.listen(events.add);
+    });
+
+    tearDown(() => subscription.cancel());
+
+    MockPulseAudioSink sinkNamed(String name) {
+      final sink = MockPulseAudioSink();
+      when(() => sink.name).thenReturn(name);
+      when(() => sink.description).thenReturn(name);
+      when(() => sink.volume).thenReturn(0.9);
+      when(() => sink.mute).thenReturn(false);
+      return sink;
+    }
+
+    MockPulseAudioSource sourceNamed(String name) {
+      final source = MockPulseAudioSource();
+      when(() => source.name).thenReturn(name);
+      when(() => source.description).thenReturn(name);
+      when(() => source.volume).thenReturn(0.9);
+      when(() => source.mute).thenReturn(false);
+      return source;
+    }
+
+    test('notifies outputDevice when an unknown sink appears', () async {
+      sinkController.add(sinkNamed('usb_headset'));
+      await Future.delayed(Duration.zero);
+
+      expect(events, [SoundChangeType.outputDevice]);
+    });
+
+    test('notifies only once for repeated events from a new sink', () async {
+      sinkController.add(sinkNamed('usb_headset'));
+      sinkController.add(sinkNamed('usb_headset'));
+      await Future.delayed(Duration.zero);
+
+      expect(events, [SoundChangeType.outputDevice]);
+    });
+
+    test('ignores new monitor sinks', () async {
+      sinkController.add(sinkNamed('usb_headset.monitor'));
+      await Future.delayed(Duration.zero);
+
+      expect(events, isEmpty);
+    });
+
+    test('notifies inputDevice when an unknown source appears', () async {
+      sourceController.add(sourceNamed('usb_mic'));
+      await Future.delayed(Duration.zero);
+
+      expect(events, [SoundChangeType.inputDevice]);
+    });
+
+    test('ignores monitor sources created for new sinks', () async {
+      sourceController.add(sourceNamed('usb_headset.monitor'));
+      await Future.delayed(Duration.zero);
+
+      expect(events, isEmpty);
+    });
+
+    test('does not detect new devices before the list is loaded', () async {
+      final fresh = SoundRepositoryImpl(client: mockClient);
+      await fresh.init();
+      final freshEvents = <SoundChangeType>[];
+      final sub = fresh.onSoundChanged.listen(freshEvents.add);
+
+      sinkController.add(sinkNamed('usb_headset'));
+      await Future.delayed(Duration.zero);
+
+      expect(freshEvents, isNot(contains(SoundChangeType.outputDevice)));
+      await sub.cancel();
     });
   });
 

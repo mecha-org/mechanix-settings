@@ -26,6 +26,19 @@ class SoundRepositoryImpl implements SoundRepository {
   List<PulseAudioSink> _sinks = []; // Output devices
   List<PulseAudioSource> _sources = []; // Input devices
 
+  bool _sinksLoaded = false;
+  bool _sourcesLoaded = false;
+
+  // Default device names, cached so volume updates don't query server info
+  // every time. Refreshed whenever PulseAudio reports a server info change.
+  String? _defaultSinkName;
+  String? _defaultSourceName;
+
+  // Latest default device volumes, taken from PulseAudio change events so
+  // refreshing a volume doesn't need another round trip.
+  double? _outputVolume;
+  double? _inputVolume;
+
   /// List of notification sounds
   final List<String> _notificationSounds = ["Siren", "Cosmic", "Rain", "Crash"];
 
@@ -69,6 +82,22 @@ class SoundRepositoryImpl implements SoundRepository {
     _listenersConfigured = true;
 
     _sinkSubscription = _client.onSinkChanged.listen((sink) {
+      if (_isNewSink(sink)) {
+        _sinks = [..._sinks, sink];
+        AppLogger.i(
+          "SoundRepositoryImpl: PulseAudio sink added (sink: ${sink.name}).",
+        );
+        _notifyChange(SoundChangeType.outputDevice);
+        return;
+      }
+
+      if (_defaultSinkName != null) {
+        if (sink.name != _defaultSinkName) return;
+        final volume = sink.volume.clamp(0.0, 1.0);
+        if (volume == _outputVolume) return;
+        _outputVolume = volume;
+      }
+
       AppLogger.i(
         "SoundRepositoryImpl: PulseAudio sink changed "
         "(sink: ${sink.name}, volume: ${sink.volume}).",
@@ -77,7 +106,26 @@ class SoundRepositoryImpl implements SoundRepository {
       _notifyChange(SoundChangeType.outputVolume);
     });
 
+    // Same filtering as sinks: only notify on default source volume changes.
     _sourceSubscription = _client.onSourceChanged.listen((source) {
+      // Same as sinks: a source missing from the loaded list was connected.
+      if (_isNewSource(source)) {
+        _sources = [..._sources, source];
+        AppLogger.i(
+          "SoundRepositoryImpl: PulseAudio source added "
+          "(source: ${source.name}).",
+        );
+        _notifyChange(SoundChangeType.inputDevice);
+        return;
+      }
+
+      if (_defaultSourceName != null) {
+        if (source.name != _defaultSourceName) return;
+        final volume = source.volume.clamp(0.0, 1.0);
+        if (volume == _inputVolume) return;
+        _inputVolume = volume;
+      }
+
       AppLogger.i(
         "SoundRepositoryImpl: PulseAudio source changed "
         "(source: ${source.name}, volume: ${source.volume}).",
@@ -111,8 +159,45 @@ class SoundRepositoryImpl implements SoundRepository {
         "defaultSource: ${info.defaultSourceName}).",
       );
 
+      _cacheDefaultDevices(info);
       _notifyChange(SoundChangeType.defaultDevice);
     });
+  }
+
+  void _cacheDefaultDevices(PulseAudioServerInfo info) {
+    if (info.defaultSinkName != _defaultSinkName) _outputVolume = null;
+    if (info.defaultSourceName != _defaultSourceName) _inputVolume = null;
+    _defaultSinkName = info.defaultSinkName;
+    _defaultSourceName = info.defaultSourceName;
+  }
+
+  /// Whether [sink] is a real output device not in the loaded device list.
+  bool _isNewSink(PulseAudioSink sink) =>
+      _sinksLoaded &&
+      !sink.name.contains('.monitor') &&
+      !_sinks.any((known) => known.name == sink.name);
+
+  /// Whether [source] is a real input device not in the loaded device list.
+  /// Monitor sources, created alongside every new sink, are ignored.
+  bool _isNewSource(PulseAudioSource source) =>
+      _sourcesLoaded &&
+      !source.name.contains('.monitor') &&
+      !_sources.any((known) => known.name == source.name);
+
+  /// Returns the default sink name, querying PulseAudio only if not cached.
+  Future<String> _getDefaultSinkName() async {
+    if (_defaultSinkName == null) {
+      _cacheDefaultDevices(await _client.getServerInfo());
+    }
+    return _defaultSinkName!;
+  }
+
+  /// Returns the default source name, querying PulseAudio only if not cached.
+  Future<String> _getDefaultSourceName() async {
+    if (_defaultSourceName == null) {
+      _cacheDefaultDevices(await _client.getServerInfo());
+    }
+    return _defaultSourceName!;
   }
 
   /// Publishes a sound change event to all listeners.
@@ -141,8 +226,10 @@ class SoundRepositoryImpl implements SoundRepository {
   Future<double> getOutputVolume() async {
     await _ensureConnected();
     try {
-      final serverInfo = await _client.getServerInfo();
-      final defaultSinkName = serverInfo.defaultSinkName;
+      final cached = _outputVolume;
+      if (cached != null) return cached;
+
+      final defaultSinkName = await _getDefaultSinkName();
       final sinks = await _client.getSinkList();
 
       final defaultSink = sinks.firstWhere(
@@ -150,7 +237,9 @@ class SoundRepositoryImpl implements SoundRepository {
         orElse: () => sinks.first,
       );
 
-      return defaultSink.volume.clamp(0.0, 1.0);
+      final volume = defaultSink.volume.clamp(0.0, 1.0);
+      if (defaultSink.name == defaultSinkName) _outputVolume = volume;
+      return volume;
     } catch (e, stack) {
       AppLogger.e("Error getting output volume", error: e, stack: stack);
       throw const GetOutputVolumeException();
@@ -162,8 +251,7 @@ class SoundRepositoryImpl implements SoundRepository {
   Future<void> setOutputVolume(double volume) async {
     await _ensureConnected();
     try {
-      final serverInfo = await _client.getServerInfo();
-      final defaultSinkName = serverInfo.defaultSinkName;
+      final defaultSinkName = await _getDefaultSinkName();
 
       await _client.setSinkVolume(defaultSinkName, volume.clamp(0.0, 1.0));
     } catch (e, stack) {
@@ -179,6 +267,7 @@ class SoundRepositoryImpl implements SoundRepository {
     try {
       final sinks = await _client.getSinkList();
       _sinks = sinks.where((sink) => !sink.name.contains('.monitor')).toList();
+      _sinksLoaded = true;
 
       return _sinks
           .map(
@@ -248,8 +337,10 @@ class SoundRepositoryImpl implements SoundRepository {
   Future<double> getInputVolume() async {
     await _ensureConnected();
     try {
-      final serverInfo = await _client.getServerInfo();
-      final defaultSourceName = serverInfo.defaultSourceName;
+      final cached = _inputVolume;
+      if (cached != null) return cached;
+
+      final defaultSourceName = await _getDefaultSourceName();
       final sources = await _client.getSourceList();
 
       final defaultSource = sources.firstWhere(
@@ -257,7 +348,9 @@ class SoundRepositoryImpl implements SoundRepository {
         orElse: () => sources.first,
       );
 
-      return defaultSource.volume.clamp(0.0, 1.0);
+      final volume = defaultSource.volume.clamp(0.0, 1.0);
+      if (defaultSource.name == defaultSourceName) _inputVolume = volume;
+      return volume;
     } catch (e, stack) {
       AppLogger.e("Error getting input volume", error: e, stack: stack);
       throw const GetInputVolumeException();
@@ -269,8 +362,7 @@ class SoundRepositoryImpl implements SoundRepository {
   Future<void> setInputVolume(double volume) async {
     await _ensureConnected();
     try {
-      final serverInfo = await _client.getServerInfo();
-      final defaultSourceName = serverInfo.defaultSourceName;
+      final defaultSourceName = await _getDefaultSourceName();
 
       await _client.setSourceVolume(defaultSourceName, volume.clamp(0.0, 1.0));
     } catch (e, stack) {
@@ -289,6 +381,7 @@ class SoundRepositoryImpl implements SoundRepository {
       _sources = sources
           .where((source) => !source.name.contains('.monitor'))
           .toList();
+      _sourcesLoaded = true;
 
       return _sources
           .map(
@@ -476,6 +569,12 @@ class SoundRepositoryImpl implements SoundRepository {
 
       _sinks.clear();
       _sources.clear();
+      _sinksLoaded = false;
+      _sourcesLoaded = false;
+      _defaultSinkName = null;
+      _defaultSourceName = null;
+      _outputVolume = null;
+      _inputVolume = null;
     } catch (e, stack) {
       AppLogger.e("Error closing PulseAudio client", error: e, stack: stack);
       throw const SoundCloseException();

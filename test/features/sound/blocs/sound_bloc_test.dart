@@ -352,6 +352,37 @@ void main() {
     );
   });
 
+  group('Overlapping device refreshes', () {
+    blocTest<SoundBloc, SoundState>(
+      'older output refresh cannot overwrite the latest one',
+      build: () {
+        var calls = 0;
+        when(() => mockSoundRepository.getOutputDevices()).thenAnswer((
+          _,
+        ) async {
+          // The first (older) refresh finishes last, after the newer one.
+          if (++calls == 1) {
+            await Future.delayed(const Duration(milliseconds: 50));
+            return ['Stale'];
+          }
+          return ['Speakers'];
+        });
+        when(
+          () => mockSoundRepository.getSelectedOutputDevice(),
+        ).thenAnswer((_) async => 'Speakers');
+        return soundBloc;
+      },
+      act: (bloc) => bloc
+        ..add(const RefreshOutputDevicesList())
+        ..add(const RefreshOutputDevicesList()),
+      wait: const Duration(milliseconds: 700),
+      verify: (bloc) {
+        expect(bloc.state.outputDevices, ['Speakers']);
+        expect(bloc.state.outputDeviceLoading, isFalse);
+      },
+    );
+  });
+
   group('RefreshInputDevicesList Event', () {
     blocTest<SoundBloc, SoundState>(
       'refreshes input devices list successfully after delay',
