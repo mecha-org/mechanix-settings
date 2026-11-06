@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mechanix_settings/core/exceptions/sound_exceptions.dart';
 import 'package:mechanix_settings/core/utils/app_logger.dart';
@@ -24,8 +25,14 @@ class SoundBloc extends Bloc<SoundEvent, SoundState> {
     on<ToggleLauncherSounds>(_onToggleLauncherSounds);
     on<ToggleHapticFeedback>(_onToggleHapticFeedback);
     on<SetNotificationSound>(_onSetNotificationSound);
-    on<RefreshOutputDevicesList>(_onRefreshOutputDevicesList);
-    on<RefreshInputDevicesList>(_onRefreshInputDevicesList);
+    on<RefreshOutputDevicesList>(
+      _onRefreshOutputDevicesList,
+      transformer: restartable(),
+    );
+    on<RefreshInputDevicesList>(
+      _onRefreshInputDevicesList,
+      transformer: restartable(),
+    );
     on<RefreshOutputVolume>(_onRefreshOutputVolume);
     on<RefreshInputVolume>(_onRefreshInputVolume);
   }
@@ -298,6 +305,8 @@ class SoundBloc extends Bloc<SoundEvent, SoundState> {
           error: SoundError.setOutputVolumeFailed,
         ),
       );
+
+      add(const RefreshOutputVolume());
     } catch (e, stack) {
       AppLogger.e(
         "SoundBloc: Unexpected error setting output volume",
@@ -364,6 +373,8 @@ class SoundBloc extends Bloc<SoundEvent, SoundState> {
           error: SoundError.setInputVolumeFailed,
         ),
       );
+
+      add(const RefreshInputVolume());
     } catch (e, stack) {
       AppLogger.e(
         "SoundBloc: Unexpected error setting input volume",
