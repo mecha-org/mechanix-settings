@@ -7,16 +7,16 @@ import 'package:mocktail/mocktail.dart';
 import 'package:timezone/data/latest.dart' as tz;
 
 import 'package:mechanix_settings/main.dart';
-import 'package:mechanix_settings/core/widgets/custom_toggle.dart';
-import 'package:mechanix_settings/core/widgets/custom_slider.dart';
-import 'package:mechanix_settings/core/widgets/custom_icon_button.dart';
-import 'package:mechanix_settings/core/widgets/bottom_bar/bottom_bar.dart';
+import 'package:mechanix_settings/core/constants/icons.dart';
 import 'package:mechanix_settings/features/settings_menu/presentation/screens/settings_menu_screen.dart';
 import 'package:mechanix_settings/features/display/presentation/screens/display_screen.dart';
 import 'package:mechanix_settings/features/display/presentation/screens/screen_off_time_screen.dart';
 import 'package:mechanix_settings/features/display/data/repositories/display_repository.dart';
 import 'package:mechanix_settings/features/display/blocs/display_bloc.dart';
 import 'package:mechanix_settings/features/display/blocs/display_event.dart';
+import 'package:mechanix_settings/generated/settingsapp.dart';
+import 'package:mxconfig_dart/mxconfig.dart';
+import 'package:widgets/widgets.dart';
 
 import 'package:mechanix_settings/features/wireless/data/repositories/wireless_repository.dart';
 import 'package:mechanix_settings/features/wireless/blocs/wireless_bloc.dart';
@@ -83,6 +83,12 @@ class FakeDisplayRepository implements DisplayRepository {
   Future<void> setScreenTimeout(int val) async {
     screenTimeout = val;
   }
+
+  @override
+  Stream<SettingsappChange> changes() => const Stream.empty();
+
+  @override
+  Stream<WriteFailure> watchWriteFailed() => const Stream.empty();
 
   @override
   Future<void> close() async {
@@ -223,9 +229,7 @@ void main() {
           RepositoryProvider<BatteryRepository>.value(
             value: mockBatteryRepository,
           ),
-          RepositoryProvider<AboutRepository>.value(
-            value: mockAboutRepository,
-          ),
+          RepositoryProvider<AboutRepository>.value(value: mockAboutRepository),
           RepositoryProvider<DisplayRepository>.value(
             value: fakeDisplayRepository,
           ),
@@ -250,8 +254,8 @@ void main() {
             BlocProvider<BatteryBloc>(
               create: (context) =>
                   BatteryBloc(
-                    batteryRepository: context.read<BatteryRepository>(),
-                  )
+                      batteryRepository: context.read<BatteryRepository>(),
+                    )
                     ..add(const BatteryInit())
                     ..add(const BatteryInfoRequested()),
             ),
@@ -272,12 +276,16 @@ void main() {
     }
 
     Finder findBackButton() {
-      return find
-          .descendant(
-            of: find.byType(BottomBar),
-            matching: find.byType(CustomIconButton),
-          )
-          .first;
+      return find.descendant(
+        of: find.byType(MechanixAppBar),
+        matching: find.byWidgetPredicate(
+          (widget) =>
+              widget is MechanixIconButton &&
+              widget.icon is ImageIcon &&
+              ((widget.icon as ImageIcon).image as AssetImage).assetName ==
+                  SettingIcons.back,
+        ),
+      );
     }
 
     testWidgets('Verify complete Display settings flow', (
@@ -310,26 +318,29 @@ void main() {
       expect(find.text(l10n.screenOffThirtySeconds), findsOneWidget);
 
       // Verify auto brightness is initially enabled (isAutoBrightness = true)
-      final autoBrightnessToggle = find.byType(CustomToggle);
+      final autoBrightnessToggle = find.byType(MechanixSwitch);
       expect(autoBrightnessToggle, findsOneWidget);
-      expect(tester.widget<CustomToggle>(autoBrightnessToggle).value, isTrue);
+      expect(tester.widget<MechanixSwitch>(autoBrightnessToggle).value, isTrue);
 
       // 4. Toggle auto brightness OFF
       await tester.tap(autoBrightnessToggle);
       await tester.pumpAndSettle();
 
-      expect(tester.widget<CustomToggle>(autoBrightnessToggle).value, isFalse);
+      expect(
+        tester.widget<MechanixSwitch>(autoBrightnessToggle).value,
+        isFalse,
+      );
       expect(fakeDisplayRepository.isAutoBrightness, isFalse);
 
       // Toggle auto brightness ON again
       await tester.tap(autoBrightnessToggle);
       await tester.pumpAndSettle();
 
-      expect(tester.widget<CustomToggle>(autoBrightnessToggle).value, isTrue);
+      expect(tester.widget<MechanixSwitch>(autoBrightnessToggle).value, isTrue);
       expect(fakeDisplayRepository.isAutoBrightness, isTrue);
 
-      // 5. Interact with CustomSlider
-      final sliderFinder = find.byType(CustomSlider);
+      // 5. Interact with MechanixSlider
+      final sliderFinder = find.byType(MechanixSlider);
       expect(sliderFinder, findsOneWidget);
       await tester.drag(sliderFinder, const Offset(100, 0));
       await tester.pumpAndSettle();

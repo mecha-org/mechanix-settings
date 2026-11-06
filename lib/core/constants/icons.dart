@@ -56,5 +56,6 @@ class SettingIcons {
   static const String caretUp = 'assets/images/caret_up.png';
   static const String manageNetwork = 'assets/images/manage_network.png';
   static const String copy = 'assets/images/copy.png';
+  static const String sunIcon = 'assets/images/sun.png';
   static const String micIcon = 'assets/images/mic.png';
 }
