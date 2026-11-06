@@ -198,7 +198,36 @@ void main() {
         isA<SoundState>()
             .having((s) => s.status, 'status', SoundStatus.error)
             .having((s) => s.error, 'error', SoundError.setOutputVolumeFailed),
+        // Re-reads the real volume so the slider shows the actual level.
+        isA<SoundState>()
+            .having((s) => s.outputVolume, 'outputVolume', 0.5)
+            .having((s) => s.error, 'error', null),
       ],
+      verify: (_) {
+        verify(() => mockSoundRepository.getOutputVolume()).called(1);
+      },
+    );
+
+    blocTest<SoundBloc, SoundState>(
+      're-reads input volume when setInputVolume throws SetInputVolumeException',
+      build: () {
+        when(
+          () => mockSoundRepository.setInputVolume(any()),
+        ).thenThrow(const SetInputVolumeException());
+        return soundBloc;
+      },
+      act: (bloc) => bloc.add(const SetInputVolume(0.9)),
+      expect: () => [
+        isA<SoundState>()
+            .having((s) => s.status, 'status', SoundStatus.error)
+            .having((s) => s.error, 'error', SoundError.setInputVolumeFailed),
+        isA<SoundState>()
+            .having((s) => s.inputVolume, 'inputVolume', 0.4)
+            .having((s) => s.error, 'error', null),
+      ],
+      verify: (_) {
+        verify(() => mockSoundRepository.getInputVolume()).called(1);
+      },
     );
   });
 
@@ -320,6 +349,37 @@ void main() {
               'Bluetooth',
             ),
       ],
+    );
+  });
+
+  group('Overlapping device refreshes', () {
+    blocTest<SoundBloc, SoundState>(
+      'older output refresh cannot overwrite the latest one',
+      build: () {
+        var calls = 0;
+        when(() => mockSoundRepository.getOutputDevices()).thenAnswer((
+          _,
+        ) async {
+          // The first (older) refresh finishes last, after the newer one.
+          if (++calls == 1) {
+            await Future.delayed(const Duration(milliseconds: 50));
+            return ['Stale'];
+          }
+          return ['Speakers'];
+        });
+        when(
+          () => mockSoundRepository.getSelectedOutputDevice(),
+        ).thenAnswer((_) async => 'Speakers');
+        return soundBloc;
+      },
+      act: (bloc) => bloc
+        ..add(const RefreshOutputDevicesList())
+        ..add(const RefreshOutputDevicesList()),
+      wait: const Duration(milliseconds: 700),
+      verify: (bloc) {
+        expect(bloc.state.outputDevices, ['Speakers']);
+        expect(bloc.state.outputDeviceLoading, isFalse);
+      },
     );
   });
 
