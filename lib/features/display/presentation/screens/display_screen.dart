@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -168,23 +169,88 @@ class _BrightnessValue extends StatelessWidget {
   }
 }
 
-class _BrightnessSlider extends StatelessWidget {
+class _BrightnessSlider extends StatefulWidget {
   const _BrightnessSlider();
+
+  @override
+  State<_BrightnessSlider> createState() => _BrightnessSliderState();
+}
+
+class _BrightnessSliderState extends State<_BrightnessSlider> {
+  static const _throttleDuration = Duration(milliseconds: 200);
+
+  Timer? _throttleTimer;
+  double? _pendingBrightness;
+  double? _dragValue;
+  double? _lastDispatchedBrightness;
+  bool _isDragging = false;
+
+  @override
+  void dispose() {
+    _throttleTimer?.cancel();
+    super.dispose();
+  }
+
+  void _onChanged(BuildContext context, double val) {
+    _isDragging = true;
+    _dragValue = val;
+    _pendingBrightness = val;
+    if (_throttleTimer == null || !_throttleTimer!.isActive) {
+      _dispatchBrightness(context, val);
+      _startThrottleTimer(context);
+    }
+  }
+
+  void _dispatchBrightness(BuildContext context, double val) {
+    _lastDispatchedBrightness = val;
+    context.read<DisplayBloc>().add(SetBrightness(val));
+  }
+
+  void _startThrottleTimer(BuildContext context) {
+    _throttleTimer = Timer(_throttleDuration, () {
+      if (!mounted) return;
+      if (_pendingBrightness != null) {
+        final valToSet = _pendingBrightness!;
+        _pendingBrightness = null;
+        if (valToSet != _lastDispatchedBrightness) {
+          _dispatchBrightness(context, valToSet);
+        }
+        _startThrottleTimer(context);
+      }
+    });
+  }
+
+  void _onChangeStart(double val) {
+    _isDragging = true;
+    _dragValue = val;
+  }
+
+  void _onChangeEnd(BuildContext context, double val) {
+    _throttleTimer?.cancel();
+    _pendingBrightness = null;
+    _isDragging = false;
+    _dragValue = null;
+    _dispatchBrightness(context, val);
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocSelector<DisplayBloc, DisplayState, double>(
       selector: (state) => state.brightness,
       builder: (context, brightness) {
+        final displayValue = (_isDragging && _dragValue != null)
+            ? _dragValue!
+            : brightness;
+
         return MechanixSlider(
-          value: brightness,
+          value: displayValue.clamp(0.0, 1.0),
           min: 0,
           max: 1,
           size: MechanixSliderSize.medium,
           showValueLabel: false,
-          onChanged: (val) {
-            context.read<DisplayBloc>().add(SetBrightness(val));
-          },
+          onChangeStart: _onChangeStart,
+          onChanged: (val) => _onChanged(context, val),
+          onChangeEnd: (val) => _onChangeEnd(context, val),
         );
       },
     );
