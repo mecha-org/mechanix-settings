@@ -1,0 +1,57 @@
+namespace = "org.mechanix.settingsapp"
+version = 1
+
+[groups.colors]
+label = "Colors"
+order = 10
+
+[keys.colors.accent]
+type = "string"
+default = "#7aa2f7"
+label = "Accent"
+description = "The color the app highlights with."
+
+[keys.colors.corner_radius]
+type = "integer"
+default = 8
+label = "Corner radius"
+description = "Corner radius in pixels."
+min = 0
+max = 64
+
+[keys.colors.mode]
+type = "enum"
+values = ["light", "dark"]
+default = "dark"
+label = "Mode"
+description = "Light or dark."
+
+[keys.verbose]
+type = "bool"
+default = false
+label = "Verbose"
+description = "Log extra detail."
+
+[groups.display]
+label = "Display"
+order = 20
+
+[keys.display.brightness]
+type = "integer"
+default = 100
+label = "Brightness"
+description = "Screen brightness, from 0 to 254."
+min = 0
+max = 254
+
+[keys.display.auto_brightness]
+type = "bool"
+default = true
+label = "Auto brightness"
+description = "Adjust brightness to ambient light."
+
+[keys.display.screen_timeout]
+type = "integer"
+default = 30
+label = "Screen off time"
+description = "Seconds of inactivity before the screen turns off. 0 means never."

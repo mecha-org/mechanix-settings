@@ -55,6 +55,11 @@ dependencies:
       url: https://github.com/mecha-org/mechanix.dart.git
       path: widgets
       ref: pre-release
+  mxconfig_dart:
+    git:
+      url: https://github.com/mecha-org/mxconfig
+      path: packages/mxconfig_dart
+      ref: main
 
 dev_dependencies:
   flutter_test:

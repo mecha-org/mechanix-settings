@@ -34,10 +34,10 @@ class DisplayState extends Equatable {
 
   @override
   List<Object?> get props => [
-        brightness,
-        isAutoBrightness,
-        screenTimeout,
-        status,
-        error,
-      ];
+    brightness,
+    isAutoBrightness,
+    screenTimeout,
+    status,
+    error,
+  ];
 }

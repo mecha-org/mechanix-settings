@@ -2,137 +2,94 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mechanix_settings/core/constants/icons.dart';
-import 'package:mechanix_settings/core/theme/app_theme.dart';
-import 'package:mechanix_settings/core/widgets/bottom_bar/bottom_bar.dart';
-import 'package:mechanix_settings/core/widgets/check_box/circular_checkbox.dart';
-import 'package:mechanix_settings/core/widgets/custom_icon_button.dart';
-import 'package:mechanix_settings/core/widgets/custom_divider.dart';
-import 'package:mechanix_settings/core/widgets/breadcrumbs.dart';
+import 'package:mechanix_settings/core/utils/helper.dart';
 import 'package:mechanix_settings/features/display/blocs/display_bloc.dart';
 import 'package:mechanix_settings/features/display/blocs/display_event.dart';
 import 'package:mechanix_settings/features/display/blocs/display_state.dart';
 import 'package:mechanix_settings/l10n/app_localizations.dart';
+import 'package:widgets/widgets.dart';
 
-class ScreenOffTimeScreen extends StatefulWidget {
+class ScreenOffTimeScreen extends StatelessWidget {
   const ScreenOffTimeScreen({super.key});
 
-  @override
-  State<ScreenOffTimeScreen> createState() => _ScreenOffTimeScreenState();
-}
-
-class _ScreenOffTimeScreenState extends State<ScreenOffTimeScreen> {
-  final ScrollController _breadcrumbController = ScrollController();
-
-  @override
-  void dispose() {
-    _breadcrumbController.dispose();
-    super.dispose();
-  }
+  static const List<int> _timeoutOptions = [10, 30, 60, 120, 300, 0];
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
-    final List<Map<String, dynamic>> options = [
-      {'label': l10n.screenOffTenSeconds, 'value': 10},
-      {'label': l10n.screenOffThirtySeconds, 'value': 30},
-      {'label': l10n.screenOffOneMinute, 'value': 60},
-      {'label': l10n.screenOffTwoMinutes, 'value': 120},
-      {'label': l10n.screenOffFiveMinutes, 'value': 300},
-      {'label': l10n.screenOffNever, 'value': 0},
-    ];
-
-    return BlocBuilder<DisplayBloc, DisplayState>(
-      builder: (context, state) {
-        return Scaffold(
-          appBar: AppBar(
-            scrolledUnderElevation: 0,
-            elevation: 0,
-            backgroundColor: Colors.transparent,
-            automaticallyImplyLeading: false,
-            title: AppBreadcrumbs(
-              scrollController: _breadcrumbController,
-              items: [
-                BreadcrumbItem(
-                  label: l10n.settings,
-                  onTap: () {
-                    Navigator.of(context).popUntil((route) => route.isFirst);
-                  },
-                ),
-                BreadcrumbItem(
-                  label: l10n.display,
-                  onTap: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                BreadcrumbItem(label: l10n.screenOffTime),
-              ],
-            ),
-            bottom: const PreferredSize(
-              preferredSize: Size.fromHeight(1),
-              child: CustomDivider(verticalPadding: 0),
-            ),
+    return Scaffold(
+      backgroundColor: theme.colorScheme.surfaceContainerLowest,
+      appBar: MechanixAppBar.small(
+        primary: false,
+        leading: MechanixIconButton.standard(
+          size: IconButtonSize.small,
+          icon: ImageIcon(
+            const AssetImage(SettingIcons.back),
+            color: theme.colorScheme.onSurface,
           ),
-          body: ScrollConfiguration(
-            behavior: ScrollConfiguration.of(context).copyWith(
-              scrollbars: false,
-              dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.mouse},
-            ),
-            child: ListView.builder(
-              itemCount: options.length,
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        titleSpacing: 0,
+        leadingWidth: 48,
+        title: Text(
+          l10n.screenOffTime,
+          style: theme.textTheme.headlineSmall!.copyWith(
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+        backgroundColor: Colors.transparent,
+      ),
+      body: ScrollConfiguration(
+        behavior: ScrollConfiguration.of(context).copyWith(
+          scrollbars: false,
+          dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.mouse},
+        ),
+        child: BlocSelector<DisplayBloc, DisplayState, int>(
+          selector: (state) => state.screenTimeout,
+          builder: (context, currentScreenTimeout) {
+            return ListView.separated(
+              itemCount: _timeoutOptions.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 8),
               itemBuilder: (context, index) {
-                final option = options[index];
-                final int value = option['value'] as int;
-                final String label = option['label'] as String;
-                final bool isSelected = state.screenTimeout == value;
+                final int value = _timeoutOptions[index];
+                final String label = getScreenTimeoutLabel(l10n, value);
+                final bool isSelected = currentScreenTimeout == value;
 
-                return InkWell(
-                  onTap: () {
-                    context.read<DisplayBloc>().add(SetScreenTimeout(value));
-                    // Navigator.of(context).pop();
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 20,
+                void select() {
+                  context.read<DisplayBloc>().add(SetScreenTimeout(value));
+                }
+
+                return MechanixListTile(
+                  key: ValueKey<int>(value),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 24),
+                  gap: 12,
+                  height: 68,
+                  onTap: select,
+                  leadingWidgets: [
+                    MechanixRadio<int>(
+                      value: value,
+                      groupValue: currentScreenTimeout,
+                      onChanged: (_) => select(),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          label,
-                          style: theme.textTheme.bodyLarge!.copyWith(
-                            color: isSelected
-                                ? AppColors.onSurface
-                                : AppColors.onSurfaceVariant,
-                          ),
-                        ),
-
-                        CustomCircleCheckbox(
-                          isChecked: isSelected,
-                          onTap: () {
-                            context.read<DisplayBloc>().add(
-                              SetScreenTimeout(value),
-                            );
-                          },
-                        ),
-                      ],
+                  ],
+                  label: Text(
+                    label,
+                    style: theme.textTheme.titleLarge!.copyWith(
+                      color: isSelected
+                          ? theme.colorScheme.onSecondaryFixed
+                          : theme.colorScheme.onPrimaryFixed,
                     ),
                   ),
                 );
               },
-            ),
-          ),
-          bottomNavigationBar: BottomBar(
-            leading: CustomIconButton.asset(
-              assetPath: SettingIcons.back,
-              enabled: true,
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-        );
-      },
+            );
+          },
+        ),
+      ),
     );
   }
 }
